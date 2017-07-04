@@ -21,9 +21,9 @@ Pod::Spec.new do |s|
 
   s.source_files = 'SyncServer/Classes/**/*.{swift}'
   
-  s.resources = 'SyncServer/Assets/**/*.{xcdatamodel}'
+  s.resources = 'SyncServer/Assets/**/*'
   
-  s.preserve_paths = 'SyncServer/Assets/**/*.{xcdatamodel}'
+  s.preserve_paths = 'SyncServer/Assets/**/*'
     
   s.dependency 'AFNetworking'
   s.dependency 'SMCoreLib'
