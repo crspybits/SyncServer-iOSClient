@@ -4,7 +4,7 @@ pod lib lint --sources="https://github.com/crspybits/Specs.git,https://github.co
 # and then push updated revision of pod to its repo
 
 # And push a new tag:
-git tag 0.0.4
+git tag 0.0.5
 git push --tags
 
 # validate the pod, with downloading
@@ -14,5 +14,5 @@ pod spec lint --sources="https://github.com/crspybits/Specs.git,https://github.c
 # See also: ls ~/.cocoapods/repos/
 # These need to be done from the relevant directory, e.g., Client
 
-pod repo push crspybits-specs SyncServer.podspec --allow-warnings
+pod repo push crspybits-specs SyncServer.podspec --sources="https://github.com/crspybits/Specs.git,https://github.com/CocoaPods/Specs.git" --allow-warnings
 
