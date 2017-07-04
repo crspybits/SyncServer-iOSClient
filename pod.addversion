@@ -4,7 +4,7 @@ pod lib lint --sources="https://github.com/crspybits/Specs.git,https://github.co
 # and then push updated revision of pod to its repo
 
 # And push a new tag:
-git tag 0.0.3
+git tag 0.0.4
 git push --tags
 
 # validate the pod, with downloading

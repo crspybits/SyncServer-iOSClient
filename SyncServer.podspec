@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '0.0.4'
+  s.version          = '0.0.5'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -19,9 +19,9 @@ Pod::Spec.new do |s|
     'OTHER_SWIFT_FLAGS[config=Debug]' => '-DDEBUG',
   }
 
-  s.source_files = 'Classes/**/*.{swift}'
-  s.resources = 'Assets/**/*'
-  s.preserve_paths = 'Assets/**/*'
+  s.source_files = 'Client/Classes/**/*.{swift}'
+  s.resources = 'Client/Assets/**/*'
+  s.preserve_paths = 'Client/Assets/**/*'
     
   s.dependency 'AFNetworking'
   s.dependency 'SMCoreLib'
