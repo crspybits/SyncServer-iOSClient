@@ -16,7 +16,7 @@ public class SignInManager {
     public static var currentUserId = SMPersistItemString(name:"SignInManager.currentUserId", initialStringValue:"",  persistType: .userDefaults)
     
     // The class name of the current GenericSignIn
-    static var currentSignIn = SMPersistItemString(name:"SignInManager.currentSignIn", initialStringValue:"",  persistType: .userDefaults)
+    static var currentSignInName = SMPersistItemString(name:"SignInManager.currentSignIn", initialStringValue:"",  persistType: .userDefaults)
 
     public static let session = SignInManager()
     
@@ -29,10 +29,10 @@ public class SignInManager {
     public var currentSignIn:GenericSignIn? {
         didSet {
             if currentSignIn == nil {
-                SignInManager.currentSignIn.stringValue = ""
+                SignInManager.currentSignInName.stringValue = ""
             }
             else {
-                SignInManager.currentSignIn.stringValue = stringNameForSignIn(currentSignIn!)
+                SignInManager.currentSignInName.stringValue = stringNameForSignIn(currentSignIn!)
             }
         }
     }
@@ -59,7 +59,7 @@ public class SignInManager {
         
         alternativeSignIns.append(signIn)
         signIn.managerDelegate = self
-        let silentSignIn = SignInManager.currentSignIn.stringValue == name
+        let silentSignIn = SignInManager.currentSignInName.stringValue == name
         signIn.appLaunchSetup(silentSignIn: silentSignIn)
     }
     
@@ -67,7 +67,7 @@ public class SignInManager {
     public func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool {
         
         for signIn in alternativeSignIns {
-            if SignInManager.currentSignIn.stringValue == stringNameForSignIn(signIn) {
+            if SignInManager.currentSignInName.stringValue == stringNameForSignIn(signIn) {
                 return signIn.application(application, openURL: url, sourceApplication: sourceApplication, annotation: annotation)
             }
         }
