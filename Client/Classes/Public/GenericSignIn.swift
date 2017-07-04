@@ -61,6 +61,11 @@ public protocol GenericSignInManagerDelegate : class {
     func signInStateChanged(to state: SignInState, for signIn:GenericSignIn)
 }
 
+public protocol TappableSignInButton {
+    // A programmatic means of tapping the button.
+    func tap()
+}
+
 public protocol GenericSignIn : class {
     // Delgate not dependent on the UI. Typically present through lifespan of app.
     var signOutDelegate:GenericSignOutDelegate? {get set}
@@ -76,7 +81,11 @@ public protocol GenericSignIn : class {
     func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool
 
     // The UI element to use to allow signing in. A successful result will give a non-nil UI element.
-    func getSignInButton(params:[String:Any]) -> UIView?
+    /* TODO: *0* With Swift 4, I ought to be able to return an object of type:
+        UIView & TappableSignInButton
+    See https://github.com/apple/swift-evolution/blob/master/proposals/0156-subclass-existentials.md
+    */
+    func getSignInButton(params:[String:Any]) -> TappableSignInButton?
 
     var userIsSignedIn: Bool {get}
 

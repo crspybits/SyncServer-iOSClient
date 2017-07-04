@@ -193,7 +193,7 @@ class GoogleSignIn : NSObject, GenericSignIn {
     }
     
     // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
-    public func getSignInButton(params:[String:Any]) -> UIView? {
+    public func getSignInButton(params:[String:Any]) -> TappableSignInButton? {
         guard let vcDelegate = params["delegate"] as? GoogleSignInViewController else {
             Log.error("You must give a GoogleUserSignInViewController delegate parameter")
             return nil
@@ -300,7 +300,7 @@ extension GoogleSignIn : GIDSignInDelegate {
 }
 
 // Self-sized; cannot be resized.
-public class GoogleSignInOutButton : UIView {
+private class GoogleSignInOutButton : UIView, TappableSignInButton {
     let signInButton = GIDSignInButton()
     
     let signOutButtonContainer = UIView()
@@ -388,10 +388,12 @@ public class GoogleSignInOutButton : UIView {
             case .signIn:
                 self.signInButton.isHidden = false
                 self.signOutButtonContainer.isHidden = true
+                managerDelegate?().signInStateChanged(to: .signedOut, for: signIn)
             
             case .signOut:
                 self.signInButton.isHidden = true
                 self.signOutButtonContainer.isHidden = false
+                managerDelegate?().signInStateChanged(to: .signedIn, for: signIn)
             }
             
             self.setNeedsDisplay()

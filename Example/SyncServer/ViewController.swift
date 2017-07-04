@@ -72,7 +72,8 @@ class ViewController: GoogleSignInViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        googleSignInButton = SetupSignIn.session.googleSignIn.getSignInButton(params: ["delegate": self])
+        // TODO: *0* Need to remove UIView coersion
+        googleSignInButton = SetupSignIn.session.googleSignIn.getSignInButton(params: ["delegate": self]) as! UIView
         googleSignInButton.frameY = 100
         view.addSubview(googleSignInButton)
         googleSignInButton.centerHorizontallyInSuperview()

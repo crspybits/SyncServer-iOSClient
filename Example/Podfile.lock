@@ -70,7 +70,13 @@ PODS:
 DEPENDENCIES:
   - Google/SignIn
   - SevenSwitch (~> 2.1)
-  - SyncServer
+  - SMCoreLib
+  - SyncServer (from `../`)
+  - SyncServer-Shared
+
+EXTERNAL SOURCES:
+  SyncServer:
+    :path: ../
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
@@ -88,9 +94,9 @@ SPEC CHECKSUMS:
   SevenSwitch: 5543327829b7bec5b29b73bad5f3cc3f92c1736d
   SMCoreLib: bfb5b7004a95077cc91e28b1e5f4a7bfaa879306
   SwiftyBeaver: d4b551ba34b4206c52cc4684ae90444b8aaa5afd
-  SyncServer: 45d4873b779b688012d4fb0890b0f100803113bf
+  SyncServer: 71b1aeffb372621380f97d97a5eb65222a4a9b5d
   SyncServer-Shared: 05d83f5ad74213d5f0e2fc0dd7199b63d90c0f5d
 
-PODFILE CHECKSUM: e9ac6364cec66c6fb207e20c13437d9389f1354a
+PODFILE CHECKSUM: 543f41912e4b692c6cdd2c4837a152b1efd8084d
 
 COCOAPODS: 1.2.0

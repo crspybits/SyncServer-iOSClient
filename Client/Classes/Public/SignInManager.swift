@@ -84,10 +84,12 @@ extension SignInManager : GenericSignInManagerDelegate {
         case .signInStarted:
             // Must not have any other signin's active when attempting to sign in.
             assert(currentSignIn == nil)
+            // This is necessary to enable the `application(_ application: UIApplication!,...` method to be called during the sign in process.
             currentSignIn = signIn
             
         case .signedIn:
-            break
+            // This is necessary for silent sign in's.
+            currentSignIn = signIn
             
         case .signedOut:
             currentSignIn = nil
