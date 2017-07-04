@@ -19,11 +19,9 @@ Pod::Spec.new do |s|
     'OTHER_SWIFT_FLAGS[config=Debug]' => '-DDEBUG',
   }
 
-  s.source_files = 'SyncServer/Classes/**/*.{swift}'
-  
-  s.resources = 'SyncServer/Assets/**/*'
-  
-  s.preserve_paths = 'SyncServer/Assets/**/*'
+  s.source_files = 'Classes/**/*.{swift}'
+  s.resources = 'Assets/**/*'
+  s.preserve_paths = 'Assets/**/*'
     
   s.dependency 'AFNetworking'
   s.dependency 'SMCoreLib'
