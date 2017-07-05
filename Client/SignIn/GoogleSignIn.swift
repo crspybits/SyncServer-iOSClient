@@ -127,7 +127,7 @@ class GoogleSignIn : NSObject, GenericSignIn {
         signInOutButton.signIn = self
     }
     
-    open func appLaunchSetup(silentSignIn: Bool) {
+    public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
         var configureError: NSError?
         GGLContext.sharedInstance().configureWithError(&configureError)
@@ -160,7 +160,9 @@ class GoogleSignIn : NSObject, GenericSignIn {
         }
     }
 
-    open func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool {
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        let annotation = options[UIApplicationOpenURLOptionsKey.annotation]
+        let sourceApplication = options[UIApplicationOpenURLOptionsKey.sourceApplication] as! String
         return GIDSignIn.sharedInstance().handle(url, sourceApplication: sourceApplication,
             annotation: annotation)
     }
@@ -193,8 +195,8 @@ class GoogleSignIn : NSObject, GenericSignIn {
     }
     
     // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
-    public func getSignInButton(params:[String:Any]) -> TappableSignInButton? {
-        guard let vcDelegate = params["delegate"] as? GoogleSignInViewController else {
+    public func getSignInButton(params:[String:Any]?) -> TappableSignInButton? {
+        guard let vcDelegate = params?["delegate"] as? GoogleSignInViewController else {
             Log.error("You must give a GoogleUserSignInViewController delegate parameter")
             return nil
         }

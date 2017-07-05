@@ -76,16 +76,16 @@ public protocol GenericSignIn : class {
     // Used exclusively by the SignInManager.
     var managerDelegate:GenericSignInManagerDelegate! {get set}
     
-    func appLaunchSetup(silentSignIn: Bool)
+    func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?)
     
-    func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any]) -> Bool
 
     // The UI element to use to allow signing in. A successful result will give a non-nil UI element.
     /* TODO: *0* With Swift 4, I ought to be able to return an object of type:
         UIView & TappableSignInButton
     See https://github.com/apple/swift-evolution/blob/master/proposals/0156-subclass-existentials.md
     */
-    func getSignInButton(params:[String:Any]) -> TappableSignInButton?
+    func getSignInButton(params:[String:Any]?) -> TappableSignInButton?
 
     var userIsSignedIn: Bool {get}
 

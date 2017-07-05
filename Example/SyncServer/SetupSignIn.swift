@@ -12,12 +12,13 @@ import SyncServer
 
 class SetupSignIn {
     var googleSignIn:GoogleSignIn!
+    var facebookSignIn:FacebookSignIn!
     static let session = SetupSignIn()
     
     private init() {
     }
     
-    func appLaunch() {
+    func appLaunch(options: [UIApplicationLaunchOptionsKey: Any]?) {
         var serverClientId:String!
         var appClientId:String!
         
@@ -32,6 +33,9 @@ class SetupSignIn {
         }
     
         googleSignIn = GoogleSignIn(serverClientId: serverClientId, appClientId: appClientId)
-        SignInManager.session.addSignIn(googleSignIn)
+        SignInManager.session.addSignIn(googleSignIn, launchOptions: options)
+        
+        facebookSignIn = FacebookSignIn()
+        SignInManager.session.addSignIn(facebookSignIn, launchOptions: options)
     }
 }

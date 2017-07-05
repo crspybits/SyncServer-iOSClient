@@ -1,5 +1,5 @@
 //
-//  SMFacebookUserSignIn.swift
+//  FacebookUserSignIn.swift
 //  SyncServer
 //
 //  Created by Christopher Prince on 6/11/16.
@@ -11,82 +11,93 @@
 import Foundation
 import SyncServer
 import SMCoreLib
-import FBSDKLoginKit
+import FacebookLogin
+import FacebookCore
 
-// I tried this initially as a way to find friends, but that didn't work
-// Does *not* return friends in the way that would be useful to us here.
-/*
-// See https://developers.facebook.com/docs/graph-api/reference/user/friends/
-FBSDKGraphRequest(graphPath: "me/friends", parameters: ["fields" : "data"]).startWithCompletionHandler { (connection:FBSDKGraphRequestConnection!, result: AnyObject!, error: NSError!) in
-    Log.msg("result: \(result); error: \(error)")
-}*/
+public class FacebookCredentials : GenericCredentials {
+    fileprivate var accessToken:AccessToken!
+    fileprivate var userProfile:UserProfile!
+    
+    public var userId:String = ""
+    public var username:String = ""
+    public var uiDisplayName:String = ""
 
-open class SMFacebookUserSignIn : SMUserSignInAccount {
-    fileprivate static let _fbUserName = SMPersistItemString(name: "SMFacebookUserSignIn.fbUserName", initialStringValue: "", persistType: .UserDefaults)
-    fileprivate static let _currentOwningUserId = SMPersistItemString(name: "SMFacebookUserSignIn.currentOwningUserId", initialStringValue: "", persistType: .UserDefaults)
-    
-    fileprivate var fbUserName:String? {
-        get {
-            return SMFacebookUserSignIn._fbUserName.stringValue == "" ? nil : SMFacebookUserSignIn._fbUserName.stringValue
-        }
-        set {
-            SMFacebookUserSignIn._fbUserName.stringValue =
-                newValue == nil ? "" : newValue!
-        }
-    }
-    
-    // The shared data that we're using right now.
-    fileprivate var currentOwningUserId:String? {
-        get {
-            return SMFacebookUserSignIn._currentOwningUserId.stringValue == "" ? nil : SMFacebookUserSignIn._currentOwningUserId.stringValue
-        }
-        set {
-            SMFacebookUserSignIn._currentOwningUserId.stringValue =
-                newValue == nil ? "" : newValue!
-        }
+    public var httpRequestHeaders:[String:String] {
+        return [String:String]()
     }
 
-    override open static var displayNameS: String? {
-        get {
-            return SMServerConstants.accountTypeFacebook
+    enum RefreshError : Error {
+    case noRefreshAvailable
+    }
+    
+    public func refreshCredentials(completion: @escaping (Error?) ->()) {
+        completion(RefreshError.noRefreshAvailable)
+        // The AccessToken refresh method doesn't work if the access token has expired. So, I think it's not useful here.
+    }
+}
+
+public class FacebookSignIn : GenericSignIn {
+    public var signOutDelegate:GenericSignOutDelegate?
+    public var delegate:GenericSignInDelegate?
+    public var managerDelegate:GenericSignInManagerDelegate!
+    private let signInButton:FacebookSignInButton!
+    
+    private func getManagerDelegate() -> GenericSignInManagerDelegate {
+        return managerDelegate
+    }
+    
+    public init() {
+        signInButton = FacebookSignInButton()
+        signInButton.managerDelegate = getManagerDelegate
+        signInButton.signIn = self
+    }
+    
+    public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
+    
+        SDKApplicationDelegate.shared.application(UIApplication.shared, didFinishLaunchingWithOptions: options)
+        
+        if silentSignIn {
+            AccessToken.refreshCurrentToken() { (accessToken, error) in
+                if error == nil {
+                    Log.msg("FacebookSignIn: Sucessfully refreshed current access token")
+                }
+                else {
+                    Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
+                }
+            }
         }
     }
     
-    override open var displayNameI: String? {
-        get {
-            return SMFacebookUserSignIn.displayNameS
+    public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        return SDKApplicationDelegate.shared.application(app, open: url, options: options)
+    }
+    
+    public func getSignInButton(params:[String:Any]? = nil) -> TappableSignInButton? {
+        return signInButton
+    }
+    
+    public var userIsSignedIn: Bool {
+        return AccessToken.current != nil
+    }
+
+    // Non-nil if userIsSignedIn is true.
+    public var credentials:GenericCredentials? {
+        if userIsSignedIn {
+            let creds = FacebookCredentials()
+            creds.accessToken = AccessToken.current
+            creds.userProfile = UserProfile.current
+            return creds
+        }
+        else {
+            return nil
         }
     }
-    
-    override public init() {
+
+    public func signUserOut() {
+        LoginManager().logOut()
     }
     
-    override open func syncServerAppLaunchSetup(silentSignIn: Bool, launchOptions:[AnyHashable: Any]?) {
-    
-        // TODO: What can be done for a silent sign-in? Perhaps pass a silent parameter to finishSignIn.
-        
-        // FBSDKLoginManager public class func renewSystemCredentials(handler: ((ACAccountCredentialRenewResult, NSError!) -> Void)!)
-        
-        // http://stackoverflow.com/questions/32950937/fbsdkaccesstoken-currentaccesstoken-nil-after-quitting-app
-        FBSDKApplicationDelegate.sharedInstance().application(UIApplication.sharedApplication(), didFinishLaunchingWithOptions: launchOptions)
-        
-        Log.msg("FBSDKAccessToken.currentAccessToken(): \(FBSDKAccessToken.currentAccessToken())")
-        
-        if self.syncServerUserIsSignedIn {
-            self.finishSignIn()
-        }
-    }
-    
-    override open func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool {
-        return FBSDKApplicationDelegate.sharedInstance().application(application, openURL: url, sourceApplication: sourceApplication, annotation: annotation)
-    }
-    
-    override open var syncServerUserIsSignedIn: Bool {
-        get {
-            return FBSDKAccessToken.currentAccessToken() != nil
-        }
-    }
-    
+    /*
     override open var syncServerSignedInUser:SMUserCredentials? {
         get {
             if self.syncServerUserIsSignedIn {
@@ -116,14 +127,85 @@ open class SMFacebookUserSignIn : SMUserSignInAccount {
         
         return fbLoginButton
     }
-    
+    */
     @objc fileprivate func longPressAction() {
+        /*
         if FBSDKAccessToken.currentAccessToken() != nil {
             self.reallyLogOut()
+        }
+        */
+    }
+}
+
+extension FacebookSignIn : LoginButtonDelegate {
+    public func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
+        switch result {
+        case .cancelled:
+            Log.msg("FacebookSignIn: Cancelled sign in.")
+            managerDelegate?.signInStateChanged(to: .signedOut, for: self)
+
+        case .failed(let error):
+            Log.msg("FacebookSignIn: Error signing in: \(error).")
+            managerDelegate?.signInStateChanged(to: .signedOut, for: self)
+            
+        case .success(grantedPermissions: _, declinedPermissions: _, token: _):
+            Log.msg("FacebookSignIn: Success signing in!")
+            managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+        }
+    }
+
+    public func loginButtonDidLogOut(_ loginButton: LoginButton) {
+        Log.msg("FacebookSignIn: Button did logout.")
+        managerDelegate?.signInStateChanged(to: .signedOut, for: self)
+    }
+}
+
+private class FacebookSignInButton : UIControl, TappableSignInButton {
+    var signInButton:LoginButton!
+    var managerDelegate:(()->GenericSignInManagerDelegate)!
+    weak var signIn: FacebookSignIn!
+    private let permissions = [ReadPermission.publicProfile]
+
+    init() {
+        // The parameters here are really unused-- I'm just using the FB LoginButton for it's visuals. I'm handling the actions myself because I need an indication of when the button is tapped, and can't seem to do that with FB's button. See the LoginManager below.
+        signInButton = LoginButton(readPermissions: permissions)
+        super.init(frame: signInButton.frame)
+        addSubview(signInButton)
+        signInButton.autoresizingMask = [.flexibleWidth]
+        addTarget(self, action: #selector(tap), for: .touchUpInside)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        return self
+    }
+    
+    public func tap() {
+        if signIn.userIsSignedIn {
+            signIn.signUserOut()
+        }
+        else {
+            managerDelegate?().signInStateChanged(to: .signInStarted, for: signIn)
+            
+            let loginManager = LoginManager()
+            loginManager.logIn(permissions, viewController: nil) { (loginResult) in
+                switch loginResult {
+                case .failed(let error):
+                    print(error)
+                case .cancelled:
+                    print("User cancelled login.")
+                case .success(let grantedPermissions, let declinedPermissions, let accessToken):
+                    print("Logged in!")
+                }
+            }
         }
     }
 }
 
+/*
 extension SMFacebookUserSignIn : FBSDKLoginButtonDelegate {
     public func loginButton(_ loginButton: FBSDKLoginButton!, didCompleteWithResult result: FBSDKLoginManagerLoginResult!, error: NSError!) {
     
@@ -251,4 +333,4 @@ extension SMFacebookUserSignIn : FBSDKLoginButtonDelegate {
         self.currentOwningUserId = nil
     }
 }
-
+*/

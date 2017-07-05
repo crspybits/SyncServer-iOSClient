@@ -12,6 +12,9 @@ target 'SyncServer_Example' do
 	
     pod 'SevenSwitch', '~> 2.1'
 	pod 'Google/SignIn'
+	
+	pod 'FacebookLogin'
+	pod 'FacebookCore'		
 
 	target 'SyncServer_Tests' do
     	inherit! :search_paths

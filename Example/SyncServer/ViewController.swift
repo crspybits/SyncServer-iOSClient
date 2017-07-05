@@ -14,6 +14,7 @@ import SyncServer_Shared
 
 class ViewController: GoogleSignInViewController {
     var googleSignInButton:UIView!
+    var facebookSignInButton:UIView!
     fileprivate var signinTypeSwitch:SevenSwitch!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
     var syncServerSingleFileUploadCompleted: (()->())?
@@ -77,15 +78,23 @@ class ViewController: GoogleSignInViewController {
         googleSignInButton.frameY = 100
         view.addSubview(googleSignInButton)
         googleSignInButton.centerHorizontallyInSuperview()
-        
         SetupSignIn.session.googleSignIn.delegate = self
         
+        // TODO: *0* Need to remove UIView coersion
+        facebookSignInButton = SetupSignIn.session.facebookSignIn.getSignInButton(params:nil) as! UIView
+        facebookSignInButton.frameY = googleSignInButton.frameMaxY + 20
+        facebookSignInButton.frameWidth = googleSignInButton.frameWidth
+        view.addSubview(facebookSignInButton)
+        facebookSignInButton.centerHorizontallyInSuperview()
+        SetupSignIn.session.facebookSignIn.delegate = self
+        
+        // Existing/New user switch
         signinTypeSwitch = SevenSwitch()
         signinTypeSwitch.offLabel.text = "Existing user"
         signinTypeSwitch.offLabel.textColor = UIColor.black
         signinTypeSwitch.onLabel.text = "New user"
         signinTypeSwitch.onLabel.textColor = UIColor.black
-        signinTypeSwitch.frameY = googleSignInButton.frameMaxY + 30
+        signinTypeSwitch.frameY = facebookSignInButton.frameMaxY + 30
         signinTypeSwitch.frameWidth = 120
         signinTypeSwitch.inactiveColor =  UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
         signinTypeSwitch.onTintColor = UIColor(red: 16.0/255.0, green: 125.0/255.0, blue: 247.0/255.0, alpha: 1)
@@ -100,7 +109,7 @@ class ViewController: GoogleSignInViewController {
     }
     
     func setSignInTypeState() {
-        signinTypeSwitch?.isHidden = SetupSignIn.session.googleSignIn.userIsSignedIn
+        signinTypeSwitch?.isHidden = SignInManager.session.userIsSignIn
     }
 }
 
