@@ -78,7 +78,7 @@ public class SignInManager {
     }
 }
 
-extension SignInManager : GenericSignInManagerDelegate {
+extension SignInManager : SignInManagerDelegate {
     public func signInStateChanged(to state: SignInState, for signIn:GenericSignIn) {
         switch state {
         case .signInStarted:
@@ -90,9 +90,20 @@ extension SignInManager : GenericSignInManagerDelegate {
         case .signedIn:
             // This is necessary for silent sign in's.
             currentSignIn = signIn
+            // Hide all other signIn's
+            for signIn in alternativeSignIns {
+                if SignInManager.currentSignInName.stringValue == stringNameForSignIn(signIn) {
+                    continue
+                }
+                signIn.signInButton?.isHidden = true
+            }
             
         case .signedOut:
             currentSignIn = nil
+            // Show all signIn's
+            for signIn in alternativeSignIns {
+                signIn.signInButton?.isHidden = false
+            }
         }
     }
 }

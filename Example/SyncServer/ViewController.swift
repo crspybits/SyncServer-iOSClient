@@ -13,8 +13,8 @@ import SevenSwitch
 import SyncServer_Shared
 
 class ViewController: GoogleSignInViewController {
-    var googleSignInButton:UIView!
-    var facebookSignInButton:UIView!
+    var googleSignInButton:TappableButton!
+    var facebookSignInButton:TappableButton!
     fileprivate var signinTypeSwitch:SevenSwitch!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
     var syncServerSingleFileUploadCompleted: (()->())?
@@ -73,15 +73,13 @@ class ViewController: GoogleSignInViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // TODO: *0* Need to remove UIView coersion
-        googleSignInButton = SetupSignIn.session.googleSignIn.getSignInButton(params: ["delegate": self]) as! UIView
+        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
         googleSignInButton.frameY = 100
         view.addSubview(googleSignInButton)
         googleSignInButton.centerHorizontallyInSuperview()
         SetupSignIn.session.googleSignIn.delegate = self
         
-        // TODO: *0* Need to remove UIView coersion
-        facebookSignInButton = SetupSignIn.session.facebookSignIn.getSignInButton(params:nil) as! UIView
+        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil)
         facebookSignInButton.frameY = googleSignInButton.frameMaxY + 20
         facebookSignInButton.frameWidth = googleSignInButton.frameWidth
         view.addSubview(facebookSignInButton)
@@ -115,10 +113,13 @@ class ViewController: GoogleSignInViewController {
 
 extension ViewController : GenericSignInDelegate {
     func shouldDoUserAction(signIn: GenericSignIn) -> UserActionNeeded {
-        var result:UserActionNeeded
+        var result:UserActionNeeded = .none
         
         if signinTypeSwitch.isOn() {
-            result = .createOwningUser
+            // User wants to create a new user. We only allow the user to request this directly in the case of a sign in that allows owning users. E.g., Google Drive. For a sign-in that only allows sharing users (e.g., Facebook), the user first needs a sharing invitation.
+            if signIn.signInTypesAllowed.contains(.owningUser) {
+                result = .createOwningUser
+            }
         }
         else {
             result = .signInExistingUser

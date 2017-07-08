@@ -112,20 +112,20 @@ class GoogleSignIn : NSObject, GenericSignIn {
     
     weak public var delegate:GenericSignInDelegate?    
     weak public var signOutDelegate:GenericSignOutDelegate?
-    weak public var managerDelegate:GenericSignInManagerDelegate!
-    
-    private func getManagerDelegate() -> GenericSignInManagerDelegate {
-        return managerDelegate
-    }
+    weak public var managerDelegate:SignInManagerDelegate!
    
     public init(serverClientId:String, appClientId:String) {
         self.serverClientId = serverClientId
         self.appClientId = appClientId
         super.init()
         self.signInOutButton.signOutButton.addTarget(self, action: #selector(signUserOut), for: .touchUpInside)
-        signInOutButton.managerDelegate = getManagerDelegate
         signInOutButton.signIn = self
+        
+        // 7/7/16; Prior to Google Sign In 4.0, this delegate was on the signInOutButton button. But now, its on the GIDSignIn. E.g., see https://developers.google.com/identity/sign-in/ios/api/protocol_g_i_d_sign_in_delegate-p
+        GIDSignIn.sharedInstance().delegate = self
     }
+    
+    public var signInTypesAllowed:SignInType = .both
     
     public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
@@ -194,19 +194,24 @@ class GoogleSignIn : NSObject, GenericSignIn {
         return creds
     }
     
-    // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
-    public func getSignInButton(params:[String:Any]?) -> TappableSignInButton? {
-        guard let vcDelegate = params?["delegate"] as? GoogleSignInViewController else {
-            Log.error("You must give a GoogleUserSignInViewController delegate parameter")
+    private var _signInOutButton:TappableButton?
+    
+    // The parameter, if given, must have a "delegate" key with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
+    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
+        _signInOutButton = nil
+        guard let delegate = params?["delegate"] as? GoogleSignInViewController else {
+            assert(false)
             return nil
         }
+        
+        GIDSignIn.sharedInstance().uiDelegate = delegate
+        
+        _signInOutButton = signInOutButton
+        return signInOutButton
+    }
     
-        // 7/7/16; Prior to Google Sign In 4.0, this delegate was on the signInOutButton button. But now, its on the GIDSignIn. E.g., see https://developers.google.com/identity/sign-in/ios/api/protocol_g_i_d_sign_in_delegate-p
-        GIDSignIn.sharedInstance().delegate = self
-        
-        GIDSignIn.sharedInstance().uiDelegate = vcDelegate
-        
-        return self.signInOutButton
+    var signInButton:TappableButton? {
+        return _signInOutButton
     }
 }
 
@@ -302,7 +307,7 @@ extension GoogleSignIn : GIDSignInDelegate {
 }
 
 // Self-sized; cannot be resized.
-private class GoogleSignInOutButton : UIView, TappableSignInButton {
+private class GoogleSignInOutButton : UIView, Tappable {
     let signInButton = GIDSignInButton()
     
     let signOutButtonContainer = UIView()
@@ -310,7 +315,6 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
     let signOutButton = UIButton(type: .system)
     let signOutLabel = UILabel()
     
-    var managerDelegate:(()->GenericSignInManagerDelegate)!
     weak var signIn: GoogleSignIn!
 
     init() {
@@ -360,7 +364,7 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
     
     func signInButtonAction() {
         if buttonShowing == .signIn {
-            managerDelegate().signInStateChanged(to: .signInStarted, for: signIn)
+            signIn.managerDelegate.signInStateChanged(to: .signInStarted, for: signIn)
         }
     }
     
@@ -390,12 +394,12 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
             case .signIn:
                 self.signInButton.isHidden = false
                 self.signOutButtonContainer.isHidden = true
-                managerDelegate?().signInStateChanged(to: .signedOut, for: signIn)
+                signIn?.managerDelegate?.signInStateChanged(to: .signedOut, for: signIn)
             
             case .signOut:
                 self.signInButton.isHidden = true
                 self.signOutButtonContainer.isHidden = false
-                managerDelegate?().signInStateChanged(to: .signedIn, for: signIn)
+                signIn?.managerDelegate?.signInStateChanged(to: .signedIn, for: signIn)
             }
             
             self.setNeedsDisplay()

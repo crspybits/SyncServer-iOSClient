@@ -13,17 +13,30 @@ import SyncServer
 import SMCoreLib
 import FacebookLogin
 import FacebookCore
+import SyncServer_Shared
 
 public class FacebookCredentials : GenericCredentials {
     fileprivate var accessToken:AccessToken!
     fileprivate var userProfile:UserProfile!
     
-    public var userId:String = ""
-    public var username:String = ""
-    public var uiDisplayName:String = ""
-
+    public var userId:String {
+        return userProfile.userId
+    }
+    
+    public var username:String {
+        return userProfile.fullName!
+    }
+    
+    public var uiDisplayName:String {
+        return userProfile.fullName!
+    }
+    
     public var httpRequestHeaders:[String:String] {
-        return [String:String]()
+        var result = [String:String]()
+        result[ServerConstants.httpUsernameKey] = username
+        result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.FacebookToken.rawValue
+        result[ServerConstants.HTTPOAuth2AccessTokenKey] = accessToken.authenticationToken
+        return result
     }
 
     enum RefreshError : Error {
@@ -39,18 +52,15 @@ public class FacebookCredentials : GenericCredentials {
 public class FacebookSignIn : GenericSignIn {
     public var signOutDelegate:GenericSignOutDelegate?
     public var delegate:GenericSignInDelegate?
-    public var managerDelegate:GenericSignInManagerDelegate!
-    private let signInButton:FacebookSignInButton!
-    
-    private func getManagerDelegate() -> GenericSignInManagerDelegate {
-        return managerDelegate
-    }
+    public var managerDelegate:SignInManagerDelegate!
+    private let signInOutButton:FacebookSignInButton!
     
     public init() {
-        signInButton = FacebookSignInButton()
-        signInButton.managerDelegate = getManagerDelegate
-        signInButton.signIn = self
+        signInOutButton = FacebookSignInButton()
+        signInOutButton.signIn = self
     }
+    
+    public var signInTypesAllowed:SignInType = .sharingUser
     
     public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
@@ -62,6 +72,7 @@ public class FacebookSignIn : GenericSignIn {
                     Log.msg("FacebookSignIn: Sucessfully refreshed current access token")
                 }
                 else {
+                    self.signUserOut()
                     Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
                 }
             }
@@ -72,8 +83,12 @@ public class FacebookSignIn : GenericSignIn {
         return SDKApplicationDelegate.shared.application(app, open: url, options: options)
     }
     
-    public func getSignInButton(params:[String:Any]? = nil) -> TappableSignInButton? {
-        return signInButton
+    public func setupSignInButton(params:[String:Any]? = nil) -> TappableButton? {
+        return signInOutButton
+    }
+    
+    public var signInButton:TappableButton? {
+        return signInOutButton
     }
     
     public var userIsSignedIn: Bool {
@@ -95,48 +110,139 @@ public class FacebookSignIn : GenericSignIn {
 
     public func signUserOut() {
         LoginManager().logOut()
+        signOutDelegate?.userWasSignedOut(signIn: self)
+        delegate?.userActionOccurred(action: .userSignedOut, signIn: self)
+        managerDelegate?.signInStateChanged(to: .signedOut, for: self)
     }
     
-    /*
-    override open var syncServerSignedInUser:SMUserCredentials? {
-        get {
-            if self.syncServerUserIsSignedIn {
-                return .Facebook(userType: .SharingUser(owningUserId: self.currentOwningUserId), accessToken: FBSDKAccessToken.currentAccessToken().tokenString, userId: FBSDKAccessToken.currentAccessToken().userID, userName: self.fbUserName)
-            }
-            else {
-                return nil
-            }
+    // Call this on a successful sign in to Facebook.
+    fileprivate func completeSignInProcess() {
+        guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
+            // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
+            SyncServerUser.session.creds = credentials
+            return
         }
-    }
-    
-    override open func syncServerSignOutUser() {
-        self.reallyLogOut()
-    }
-    
-    override open func syncServerRefreshUserCredentials() {
-    }
-    
-    open func signInButton() -> UIButton {
-        let fbLoginButton = FBSDKLoginButton()
-        // fbLoginButton.readPermissions =  ["public_profile", "email", "user_friends"]
-        fbLoginButton.readPermissions =  ["email"]
-        fbLoginButton.delegate = self
-            
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressAction))
-        fbLoginButton.addGestureRecognizer(longPress)
         
-        return fbLoginButton
-    }
-    */
-    @objc fileprivate func longPressAction() {
-        /*
-        if FBSDKAccessToken.currentAccessToken() != nil {
-            self.reallyLogOut()
+        switch userAction {
+        case .signInExistingUser:
+            SyncServerUser.session.checkForExistingUser(creds: credentials!) {
+                (checkForUserResult, error) in
+                if error == nil {
+                    switch checkForUserResult! {
+                    case .noUser:
+                        self.delegate?.userActionOccurred(action:
+                            .userNotFoundOnSignInAttempt, signIn: self)
+                        self.signUserOut()
+                        
+                    case .owningUser:
+                        // This should never happen!
+                        self.signUserOut()
+                        Log.error("Somehow a Facebook user signed in as an owning user!!")
+                        
+                    case .sharingUser(sharingPermission: let permission):
+                        self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                    }
+                }
+                else {
+                    // TODO: *0* Give the user an error indication.
+                    Log.error("Error checking for existing user: \(String(describing: error))")
+                    self.signUserOut()
+                }
+            }
+            
+        case .createOwningUser:
+            // Facebook users cannot be owning users! They don't have cloud storage.
+            signUserOut()
+            Log.error("Somehow a Facebook user attempted to create an owning user!!")
+            
+        case .createSharingUser(invitationCode: let invitationCode):
+            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { error in
+                if error == nil {
+                    self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+                }
+                else {
+                    // TODO: *0* Give the user an error indication.
+                    self.signUserOut()
+                }
+            }
+            
+        case .none:
+            self.signUserOut()
+            break
         }
-        */
     }
 }
 
+private class FacebookSignInButton : UIControl, Tappable {
+    var signInButton:LoginButton!
+    weak var signIn: FacebookSignIn!
+    private let permissions = [ReadPermission.publicProfile]
+    
+    init() {
+        // The parameters here are really unused-- I'm just using the FB LoginButton for it's visuals. I'm handling the actions myself because I need an indication of when the button is tapped, and can't seem to do that with FB's button. See the LoginManager below.
+        signInButton = LoginButton(readPermissions: permissions)
+        super.init(frame: signInButton.frame)
+        addSubview(signInButton)
+        signInButton.autoresizingMask = [.flexibleWidth]
+        addTarget(self, action: #selector(tap), for: .touchUpInside)
+        clipsToBounds = true
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // The incoming point is relative to the coordinate system of the button if the button is at (0,0)
+        var zeroStartFrame = frame
+        zeroStartFrame.origin = CGPoint(x: 0, y: 0)
+        if zeroStartFrame.contains(point) {
+            return self
+        }
+        else {
+            return nil
+        }
+    }
+    
+    public func tap() {
+        if signIn.userIsSignedIn {
+            signIn.signUserOut()
+        }
+        else {
+            signIn.managerDelegate?.signInStateChanged(to: .signInStarted, for: signIn)
+            
+            let loginManager = LoginManager()
+            loginManager.logIn(permissions, viewController: nil) { (loginResult) in
+                switch loginResult {
+                case .failed(let error):
+                    print(error)
+                    self.signIn.signUserOut()
+                    
+                case .cancelled:
+                    print("User cancelled login.")
+                    self.signIn.signUserOut()
+                    
+                case .success(_, _, _):
+                    print("Logged in!")
+                    self.signIn.managerDelegate?.signInStateChanged(to: .signedIn, for: self.signIn)
+                    
+                    // Seems the UserProfile isn't loaded yet.
+                    UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
+                        switch fetchResult {
+                        case .success(_):
+                            self.signIn.completeSignInProcess()
+                        case .failed(let error):
+                            Log.error("Error fetching UserProfile: \(error)")
+                            self.signIn.signUserOut()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
 extension FacebookSignIn : LoginButtonDelegate {
     public func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
         switch result {
@@ -159,51 +265,8 @@ extension FacebookSignIn : LoginButtonDelegate {
         managerDelegate?.signInStateChanged(to: .signedOut, for: self)
     }
 }
+*/
 
-private class FacebookSignInButton : UIControl, TappableSignInButton {
-    var signInButton:LoginButton!
-    var managerDelegate:(()->GenericSignInManagerDelegate)!
-    weak var signIn: FacebookSignIn!
-    private let permissions = [ReadPermission.publicProfile]
-
-    init() {
-        // The parameters here are really unused-- I'm just using the FB LoginButton for it's visuals. I'm handling the actions myself because I need an indication of when the button is tapped, and can't seem to do that with FB's button. See the LoginManager below.
-        signInButton = LoginButton(readPermissions: permissions)
-        super.init(frame: signInButton.frame)
-        addSubview(signInButton)
-        signInButton.autoresizingMask = [.flexibleWidth]
-        addTarget(self, action: #selector(tap), for: .touchUpInside)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        return self
-    }
-    
-    public func tap() {
-        if signIn.userIsSignedIn {
-            signIn.signUserOut()
-        }
-        else {
-            managerDelegate?().signInStateChanged(to: .signInStarted, for: signIn)
-            
-            let loginManager = LoginManager()
-            loginManager.logIn(permissions, viewController: nil) { (loginResult) in
-                switch loginResult {
-                case .failed(let error):
-                    print(error)
-                case .cancelled:
-                    print("User cancelled login.")
-                case .success(let grantedPermissions, let declinedPermissions, let accessToken):
-                    print("Logged in!")
-                }
-            }
-        }
-    }
-}
 
 /*
 extension SMFacebookUserSignIn : FBSDKLoginButtonDelegate {
