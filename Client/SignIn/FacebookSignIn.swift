@@ -116,10 +116,11 @@ public class FacebookSignIn : GenericSignIn {
     }
     
     // Call this on a successful sign in to Facebook.
-    fileprivate func completeSignInProcess() {
+    fileprivate func completeSignInProcess(success: (()->())? = nil, failure: (()->())? = nil) {
         guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
             // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
             SyncServerUser.session.creds = credentials
+            success?()
             return
         }
         
@@ -132,43 +133,43 @@ public class FacebookSignIn : GenericSignIn {
                     case .noUser:
                         self.delegate?.userActionOccurred(action:
                             .userNotFoundOnSignInAttempt, signIn: self)
-                        self.signUserOut()
+                        failure?()
                         
                     case .owningUser:
                         // This should never happen!
-                        self.signUserOut()
+                        failure?()
                         Log.error("Somehow a Facebook user signed in as an owning user!!")
                         
                     case .sharingUser(sharingPermission: let permission):
                         self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                        success?()
                     }
                 }
                 else {
                     // TODO: *0* Give the user an error indication.
                     Log.error("Error checking for existing user: \(String(describing: error))")
-                    self.signUserOut()
+                    failure?()
                 }
             }
             
         case .createOwningUser:
             // Facebook users cannot be owning users! They don't have cloud storage.
-            signUserOut()
+            failure?()
             Log.error("Somehow a Facebook user attempted to create an owning user!!")
             
         case .createSharingUser(invitationCode: let invitationCode):
             SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { error in
                 if error == nil {
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+                    success?()
                 }
                 else {
-                    // TODO: *0* Give the user an error indication.
-                    self.signUserOut()
+                    failure?()
                 }
             }
             
         case .none:
-            self.signUserOut()
-            break
+            failure?()
         }
     }
 }
@@ -230,7 +231,9 @@ private class FacebookSignInButton : UIControl, Tappable {
                     UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
                         switch fetchResult {
                         case .success(_):
-                            self.signIn.completeSignInProcess()
+                            self.signIn.completeSignInProcess(failure: {
+                                self.signIn.signUserOut()
+                            })
                         case .failed(let error):
                             Log.error("Error fetching UserProfile: \(error)")
                             self.signIn.signUserOut()

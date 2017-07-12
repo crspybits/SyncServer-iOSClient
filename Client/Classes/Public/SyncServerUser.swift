@@ -44,12 +44,25 @@ public class SyncServerUser {
     case sharingUser(sharingPermission:SharingPermission)
     }
     
+    private func showAlert(with title:String, and message:String? = nil) {
+        let window = UIApplication.shared.keyWindow
+        let rootViewController = window?.rootViewController
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.popoverPresentationController?.sourceView = rootViewController?.view
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+        
+        Thread.runSync(onMainThread: {
+            rootViewController?.present(alert, animated: true, completion: nil)
+        })
+    }
+    
     public func checkForExistingUser(creds: GenericCredentials,
         completion:@escaping (_ result: CheckForExistingUserResult?, Error?) ->()) {
         
-        Log.msg("SignInCreds: \(creds)")
-        
+        // Have to do this before call to `checkCreds` because it sets up creds with the ServerAPI.
         self.creds = creds
+        
+        Log.msg("SignInCreds: \(creds)")
         
         ServerAPI.session.checkCreds { (checkCredsResult, error) in
             var checkForUserResult:CheckForExistingUserResult?
@@ -58,6 +71,7 @@ public class SyncServerUser {
             switch checkCredsResult {
             case .none:
                 self.creds = nil
+                SignInManager.session.currentSignIn!.signUserOut()
                 if error == nil {
                     Log.msg("Did not find user!")
                     checkForUserResult = .noUser
@@ -68,6 +82,8 @@ public class SyncServerUser {
                 }
             
             case .some(.noUser):
+                self.creds = nil
+                SignInManager.session.currentSignIn!.signUserOut()
                 checkForUserResult = .noUser
                 
             case .some(.owningUser):
@@ -75,6 +91,13 @@ public class SyncServerUser {
                 
             case .some(.sharingUser(let permission)):
                 checkForUserResult = .sharingUser(sharingPermission: permission)
+            }
+            
+            if case .some(.noUser) = checkForUserResult {
+                self.showAlert(with: "\(creds.uiDisplayName) doesn't exist on the system.", and: "You can sign in as a \"New user\", or get a sharing invitation from another user.")
+            }
+            else if errorResult != nil {
+                 self.showAlert(with: "Error trying to sign in: \(errorResult!)")
             }
             
             Thread.runSync(onMainThread: {
@@ -92,6 +115,9 @@ public class SyncServerUser {
             if error != nil {
                 self.creds = nil
                 Log.error("Error: \(String(describing: error))")
+                Thread.runSync(onMainThread: {
+                    self.showAlert(with: "Failed adding user \(creds.uiDisplayName).", and: "Error was: \(error!).")
+                })
             }
             Thread.runSync(onMainThread: {
                 completion(error)
