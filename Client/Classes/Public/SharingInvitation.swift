@@ -42,7 +42,7 @@ public class SharingInvitation {
     }
     
     // Returns true iff can handle the url.
-    public func application(application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: Any) -> Bool {
+    public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         Log.msg("url: \(url)")
         
         var returnResult = false

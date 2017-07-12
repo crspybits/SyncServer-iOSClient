@@ -105,6 +105,7 @@ class GoogleSignInViewController : UIViewController, GIDSignInUIDelegate {
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
 class GoogleSignIn : NSObject, GenericSignIn {
+    
     fileprivate let serverClientId:String!
     fileprivate let appClientId:String!
     
@@ -120,9 +121,6 @@ class GoogleSignIn : NSObject, GenericSignIn {
         super.init()
         self.signInOutButton.signOutButton.addTarget(self, action: #selector(signUserOut), for: .touchUpInside)
         signInOutButton.signIn = self
-        
-        // 7/7/16; Prior to Google Sign In 4.0, this delegate was on the signInOutButton button. But now, its on the GIDSignIn. E.g., see https://developers.google.com/identity/sign-in/ios/api/protocol_g_i_d_sign_in_delegate-p
-        GIDSignIn.sharedInstance().delegate = self
     }
     
     public var signInTypesAllowed:SignInType = .both
@@ -196,15 +194,16 @@ class GoogleSignIn : NSObject, GenericSignIn {
     
     private var _signInOutButton:TappableButton?
     
-    // The parameter, if given, must have a "delegate" key with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
+    // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
     public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
-        _signInOutButton = nil
-        guard let delegate = params?["delegate"] as? GoogleSignInViewController else {
-            assert(false)
+        _signInOutButton = signInOutButton
+        
+        guard let vcDelegate = params?["delegate"] as? GoogleSignInViewController else {
+            Log.error("You must give a GoogleUserSignInViewController delegate parameter")
             return nil
         }
         
-        GIDSignIn.sharedInstance().uiDelegate = delegate
+        GIDSignIn.sharedInstance().uiDelegate = vcDelegate
         
         _signInOutButton = signInOutButton
         return signInOutButton

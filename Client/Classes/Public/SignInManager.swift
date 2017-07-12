@@ -23,7 +23,7 @@ public class SignInManager {
     private init() {
     }
     
-    private var alternativeSignIns = [GenericSignIn]()
+    fileprivate var alternativeSignIns = [GenericSignIn]()
     
     // Set this to establish the current SignIn mechanism in use in the app.
     public var currentSignIn:GenericSignIn? {
@@ -37,7 +37,7 @@ public class SignInManager {
         }
     }
     
-    private func stringNameForSignIn(_ signIn: GenericSignIn) -> String {
+    fileprivate func stringNameForSignIn(_ signIn: GenericSignIn) -> String {
         // This gives "GenericSignIn"
         // String(describing: type(of: currentSignIn!))
         
