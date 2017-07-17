@@ -63,15 +63,15 @@ PODS:
   - GoogleToolboxForMac/NSString+URLArguments (2.1.1)
   - GTMOAuth2 (1.1.4):
     - GTMSessionFetcher (~> 1.1)
-  - GTMSessionFetcher (1.1.10):
-    - GTMSessionFetcher/Full (= 1.1.10)
-  - GTMSessionFetcher/Core (1.1.10)
-  - GTMSessionFetcher/Full (1.1.10):
-    - GTMSessionFetcher/Core (= 1.1.10)
+  - GTMSessionFetcher (1.1.11):
+    - GTMSessionFetcher/Full (= 1.1.11)
+  - GTMSessionFetcher/Core (1.1.11)
+  - GTMSessionFetcher/Full (1.1.11):
+    - GTMSessionFetcher/Core (= 1.1.11)
   - HPTextViewTapGestureRecognizer (0.1)
   - Reachability (3.2)
   - SevenSwitch (2.1.0)
-  - SMCoreLib (0.0.29):
+  - SMCoreLib (0.0.30):
     - AFNetworking
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
@@ -82,7 +82,7 @@ PODS:
     - Gloss
     - SMCoreLib
     - SyncServer-Shared
-  - SyncServer-Shared (0.0.5):
+  - SyncServer-Shared (0.0.8):
     - Gloss
 
 DEPENDENCIES:
@@ -117,14 +117,14 @@ SPEC CHECKSUMS:
   GoogleSignIn: d7ad83f13480e1f30453471d00d19b5293ac46af
   GoogleToolboxForMac: 8e329f1b599f2512c6b10676d45736bcc2cbbeb0
   GTMOAuth2: 7fc9c10f5c745f4d9850419ea88889fe3baa6b7d
-  GTMSessionFetcher: 30d874b96d0d76028f61fbd122801e3f030d47db
+  GTMSessionFetcher: 5ad62e8200fa00ed011fe5e08d27fef72c5b1429
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SevenSwitch: 5543327829b7bec5b29b73bad5f3cc3f92c1736d
-  SMCoreLib: 4e3ddb69ccc6bc1b8180ddadf9e092bd30d60c53
+  SMCoreLib: 8f8a30169fbb100226f108e5586b1fa8e293e8a6
   SwiftyBeaver: d4b551ba34b4206c52cc4684ae90444b8aaa5afd
   SyncServer: 71b1aeffb372621380f97d97a5eb65222a4a9b5d
-  SyncServer-Shared: 0820510f78b00fcad8109082790163e7061c885c
+  SyncServer-Shared: e2e972c2b0ec0ee7154929c4276a22d0128f73f2
 
 PODFILE CHECKSUM: 7d2d05c82252c4d91e8dccd745d5e6618fa5b4dd
 

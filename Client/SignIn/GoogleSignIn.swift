@@ -47,7 +47,6 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
-        result[ServerConstants.httpUsernameKey] = username
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.GoogleToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = self.accessToken
         result[ServerConstants.GoogleHTTPServerAuthCodeKey] = self.serverAuthCode

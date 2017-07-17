@@ -33,7 +33,6 @@ public class FacebookCredentials : GenericCredentials {
     
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
-        result[ServerConstants.httpUsernameKey] = username
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.FacebookToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = accessToken.authenticationToken
         return result

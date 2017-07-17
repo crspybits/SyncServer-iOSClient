@@ -68,16 +68,6 @@ public protocol Tappable {
     func tap()
 }
 
-public struct SignInType: OptionSet {
-    public let rawValue: Int
-    
-    public init(rawValue: Int) { self.rawValue = rawValue }
-    
-    public static let owningUser = SignInType(rawValue: 1 << 0)
-    public static let sharingUser = SignInType(rawValue: 1 << 1)
-    public static let both:SignInType = [.owningUser, .sharingUser]
-}
-
 public protocol GenericSignIn : class {
     // Some services, e.g., Facebook, are only suitable for sharing users-- i.e., they don't have cloud storage.
     var signInTypesAllowed:SignInType {get}
