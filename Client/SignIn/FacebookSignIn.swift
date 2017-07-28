@@ -34,6 +34,7 @@ public class FacebookCredentials : GenericCredentials {
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.FacebookToken.rawValue
+        
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = accessToken.authenticationToken
         return result
     }
@@ -112,6 +113,20 @@ public class FacebookSignIn : GenericSignIn {
         signOutDelegate?.userWasSignedOut(signIn: self)
         delegate?.userActionOccurred(action: .userSignedOut, signIn: self)
         managerDelegate?.signInStateChanged(to: .signedOut, for: self)
+        reallySignUserOut()
+    }
+    
+    // It seems really hard to fully sign a user out of Facebook. The following helps.
+    fileprivate func reallySignUserOut() {
+        let deletePermission = GraphRequest(graphPath: "me/permissions/", parameters: [:], accessToken: AccessToken.current, httpMethod: .DELETE)
+        deletePermission.start { (response, graphRequestResult) in
+            switch graphRequestResult {
+            case .success(_):
+                Log.error("Success logging out.")
+            case .failed(let error):
+                Log.error("Error: Failed logging out: \(error)")
+            }
+        }
     }
     
     // Call this on a successful sign in to Facebook.
@@ -138,29 +153,31 @@ public class FacebookSignIn : GenericSignIn {
                         self.signUserOut()
                         Log.error("Somehow a Facebook user signed in as an owning user!!")
                         
-                    case .sharingUser(sharingPermission: let permission):
+                    case .sharingUser(sharingPermission: let permission, accessToken: let accessToken):
+                        Log.msg("Sharing user signed in: access token: \(String(describing: accessToken))")
                         self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
                     }
                 }
                 else {
-                    // TODO: *0* Give the user an error indication.
-                    Log.error("Error checking for existing user: \(String(describing: error))")
+                    Alert.show(withTitle: "Alert!", message: "Error checking for existing user: \(error!)")
                     self.signUserOut()
                 }
             }
             
         case .createOwningUser:
             // Facebook users cannot be owning users! They don't have cloud storage.
+            Alert.show(withTitle: "Alert!", message: "Somehow a Facebook user attempted to create an owning user!!")
             signUserOut()
-            Log.error("Somehow a Facebook user attempted to create an owning user!!")
             
         case .createSharingUser(invitationCode: let invitationCode):
-            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { error in
+            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { longLivedAccessToken, error in
                 if error == nil {
+                    Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                 }
                 else {
-                    // TODO: *0* Give the user an error indication.
+                    Log.error("Error: \(error!)")
+                    Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                     self.signUserOut()
                 }
             }
@@ -231,7 +248,7 @@ private class FacebookSignInButton : UIControl, Tappable {
                         case .success(_):
                             self.signIn.completeSignInProcess()
                         case .failed(let error):
-                            Log.error("Error fetching UserProfile: \(error)")
+                            Alert.show(withTitle: "Alert!", message: "Error fetching UserProfile: \(error)")
                             self.signIn.signUserOut()
                         }
                     }

@@ -3,7 +3,7 @@
 //  SyncServer_ExampleUITests
 //
 //  Created by Christopher Prince on 6/17/17.
-//  Copyright © 2017 CocoaPods. All rights reserved.
+//  Copyright © 2017 Spastic Muffin, LLC. All rights reserved.
 //
 
 import XCTest

@@ -9,6 +9,9 @@
 // To use this app with a self-signed SSL certificate, you need to add a flag:
 //  -D SELF_SIGNED_SSL
 
+// To revoke Facebook permissions for app, go to: https://www.facebook.com/settings?tab=applications
+// You can also go to https://developers.facebook.com/apps and reset the app secret. (And, of course, you need to update the app secret on your server).
+
 import UIKit
 import SMCoreLib
 import SyncServer

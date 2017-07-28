@@ -255,13 +255,12 @@ extension GoogleSignIn : GIDSignInDelegate {
                                 .userNotFoundOnSignInAttempt, signIn: self)
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
-                        case .sharingUser(sharingPermission: let permission):
+                        case .sharingUser(sharingPermission: let permission, _):
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
                         }
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
-                        Log.error("Error checking for existing user: \(String(describing: error))")
+                        Alert.show(withTitle: "Alert!", message: "Error checking for existing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -272,18 +271,18 @@ extension GoogleSignIn : GIDSignInDelegate {
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
                         self.signUserOut()
                     }
                 }
                 
             case .createSharingUser(invitationCode: let invitationCode):
-                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { error in
+                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { accessToken, error in
                     if error == nil {
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -293,12 +292,14 @@ extension GoogleSignIn : GIDSignInDelegate {
             }
         }
         else {
-            Log.error("Error signing into Google: \(error)")
+            Alert.show(withTitle: "Alert!", message: "Error signing into Google: \(error!)")
+            
             // So we don't have the UI saying we're signed in, but we're actually not.
             signUserOut()
         }
     }
     
+    // TODO: *2* When does this get called?
     public func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!)
     {
     }

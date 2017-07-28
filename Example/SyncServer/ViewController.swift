@@ -20,6 +20,8 @@ class ViewController: GoogleSignInViewController {
     var syncServerSingleFileUploadCompleted: (()->())?
     @IBOutlet weak var testingOutcome: UILabel!
     
+    static fileprivate var sharingInvitationUUID:SMPersistItemString = SMPersistItemString(name: "ViewController.sharingInvitationUUID", initialStringValue: "", persistType: .userDefaults)
+    
     // So far, this needs to be run manually, after you've signed in. Also-- you may need to delete the current FileIndex contents in the database, and delete the app.
     @IBAction func testCredentialsRefreshAction(_ sender: Any) {
         self.testingOutcome.text = nil
@@ -109,13 +111,36 @@ class ViewController: GoogleSignInViewController {
     func setSignInTypeState() {
         signinTypeSwitch?.isHidden = SignInManager.session.userIsSignIn
     }
+    
+    @IBAction func createSharingInvitationAction(_ sender: Any) {
+        Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
+            ServerAPI.session.createSharingInvitation(withPermission: .admin) { (invitationUUID, error)  in
+                guard error == nil else {
+                    Thread.runSync(onMainThread: {
+                        Alert.show(message: "Error: Could not create sharing invitation: \(error!)")
+                    })
+                    return
+                }
+                
+                ViewController.sharingInvitationUUID.stringValue = invitationUUID!
+                Thread.runSync(onMainThread: {
+                    Alert.show(message: "You can now sign out, and sign in as a Facebook user.")
+                })
+            }
+        }
+    }
 }
 
 extension ViewController : GenericSignInDelegate {
     func shouldDoUserAction(signIn: GenericSignIn) -> UserActionNeeded {
         var result:UserActionNeeded = .none
         
-        if signinTypeSwitch.isOn() {
+        // A bit of a hack to test sharing users with Facebook.
+        if ViewController.sharingInvitationUUID.stringValue != "" && signIn.signInTypesAllowed.contains(.sharingUser) {
+            
+            result = .createSharingUser(invitationCode: ViewController.sharingInvitationUUID.stringValue)
+            ViewController.sharingInvitationUUID.stringValue = ""
+        } else if signinTypeSwitch.isOn() {
             // User wants to create a new user. We only allow the user to request this directly in the case of a sign in that allows owning users. E.g., Google Drive. For a sign-in that only allows sharing users (e.g., Facebook), the user first needs a sharing invitation.
             if signIn.signInTypesAllowed.contains(.owningUser) {
                 result = .createOwningUser
@@ -143,7 +168,7 @@ extension ViewController : GenericSignInDelegate {
             break
             
         case .sharingUserCreated:
-            break
+            Alert.show(message: "Sharing user created!")
         }
         
         setSignInTypeState()
@@ -180,5 +205,4 @@ extension ViewController : SyncServerDelegate {
         assert(false)
     }
 }
-
 

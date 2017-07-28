@@ -3,7 +3,7 @@
 //  SyncServer
 //
 //  Created by Christopher Prince on 3/22/17.
-//  Copyright © 2017 CocoaPods. All rights reserved.
+//  Copyright © 2017 Spastic Muffin, LLC. All rights reserved.
 //
 
 import XCTest
@@ -70,6 +70,7 @@ class Client_SyncServer_Download: TestCase {
          doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain", appMetaData: "Some app meta data")
     }
     
+    // TODO: *2* This test typically fails when run as a group with other tests. Why?
     func testGetStats() {
         // 1) Get a download deletion ready
         

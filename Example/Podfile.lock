@@ -71,7 +71,7 @@ PODS:
   - HPTextViewTapGestureRecognizer (0.1)
   - Reachability (3.2)
   - SevenSwitch (2.1.0)
-  - SMCoreLib (0.0.30):
+  - SMCoreLib (0.1.0):
     - AFNetworking
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
@@ -82,7 +82,7 @@ PODS:
     - Gloss
     - SMCoreLib
     - SyncServer-Shared
-  - SyncServer-Shared (0.0.8):
+  - SyncServer-Shared (1.0.0):
     - Gloss
 
 DEPENDENCIES:
@@ -90,17 +90,13 @@ DEPENDENCIES:
   - FacebookLogin
   - Google/SignIn
   - SevenSwitch (~> 2.1)
-  - SMCoreLib (from `../../Common/SMCoreLib/`)
+  - SMCoreLib (< 1.0)
   - SyncServer (from `../`)
-  - SyncServer-Shared (from `../../SyncServer-Shared/`)
+  - SyncServer-Shared (< 2.0)
 
 EXTERNAL SOURCES:
-  SMCoreLib:
-    :path: ../../Common/SMCoreLib/
   SyncServer:
     :path: ../
-  SyncServer-Shared:
-    :path: ../../SyncServer-Shared/
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
@@ -121,11 +117,11 @@ SPEC CHECKSUMS:
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SevenSwitch: 5543327829b7bec5b29b73bad5f3cc3f92c1736d
-  SMCoreLib: 8f8a30169fbb100226f108e5586b1fa8e293e8a6
+  SMCoreLib: ff4726822b976fe8edaef419d1c283de06d0f9c7
   SwiftyBeaver: d4b551ba34b4206c52cc4684ae90444b8aaa5afd
   SyncServer: 71b1aeffb372621380f97d97a5eb65222a4a9b5d
-  SyncServer-Shared: e2e972c2b0ec0ee7154929c4276a22d0128f73f2
+  SyncServer-Shared: 20f100002e98e4b74d9332d3b633f4d3789fc120
 
-PODFILE CHECKSUM: 7d2d05c82252c4d91e8dccd745d5e6618fa5b4dd
+PODFILE CHECKSUM: ac3bce5e49aef07cd162e35b4497fb3fbce11008
 
 COCOAPODS: 1.2.0

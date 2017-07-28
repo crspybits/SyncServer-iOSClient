@@ -23,6 +23,8 @@ public class SharingInvitation {
     public weak var delegate:SharingInvitationDelegate?
     
     public var sharingInvitationCode:String?
+    
+    // It seems odd to have this coming in as a URL parameter, but it has no effect on the permissions granted. Rather, it's here for the UI-- to tell the invited person what kind of permissions they would get if they accept the invitation. (The alternative would be to have a dedicated backend call which would return the sharing permission given the invitation code).
     public var sharingInvitationPermission:SharingPermission?
 
     // The upper/lower case sense of this is ignored.
