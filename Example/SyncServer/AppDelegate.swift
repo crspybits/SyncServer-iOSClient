@@ -9,6 +9,9 @@
 // To use this app with a self-signed SSL certificate, you need to add a flag:
 //  -D SELF_SIGNED_SSL
 
+// To revoke Facebook permissions for app, go to: https://www.facebook.com/settings?tab=applications
+// You can also go to https://developers.facebook.com/apps and reset the app secret. (And, of course, you need to update the app secret on your server).
+
 import UIKit
 import SMCoreLib
 import SyncServer
@@ -20,7 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        SetupSignIn.session.appLaunch()
+        SetupSignIn.session.appLaunch(options:launchOptions)
 
         let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
         let urlString = try! plist.getString(varName: "ServerURL")
@@ -33,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
-        return SignInManager.session.application(app, openURL: url, sourceApplication: options[UIApplicationOpenURLOptionsKey.sourceApplication] as! String, annotation: options[UIApplicationOpenURLOptionsKey.annotation] as AnyObject)
+        return SignInManager.session.application(app, open: url, options: options)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

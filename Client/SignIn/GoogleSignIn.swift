@@ -47,7 +47,6 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
-        result[ServerConstants.httpUsernameKey] = username
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.GoogleToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = self.accessToken
         result[ServerConstants.GoogleHTTPServerAuthCodeKey] = self.serverAuthCode
@@ -105,6 +104,7 @@ class GoogleSignInViewController : UIViewController, GIDSignInUIDelegate {
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
 class GoogleSignIn : NSObject, GenericSignIn {
+    
     fileprivate let serverClientId:String!
     fileprivate let appClientId:String!
     
@@ -112,22 +112,19 @@ class GoogleSignIn : NSObject, GenericSignIn {
     
     weak public var delegate:GenericSignInDelegate?    
     weak public var signOutDelegate:GenericSignOutDelegate?
-    weak public var managerDelegate:GenericSignInManagerDelegate!
-    
-    private func getManagerDelegate() -> GenericSignInManagerDelegate {
-        return managerDelegate
-    }
+    weak public var managerDelegate:SignInManagerDelegate!
    
     public init(serverClientId:String, appClientId:String) {
         self.serverClientId = serverClientId
         self.appClientId = appClientId
         super.init()
         self.signInOutButton.signOutButton.addTarget(self, action: #selector(signUserOut), for: .touchUpInside)
-        signInOutButton.managerDelegate = getManagerDelegate
         signInOutButton.signIn = self
     }
     
-    open func appLaunchSetup(silentSignIn: Bool) {
+    public var signInTypesAllowed:SignInType = .both
+    
+    public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
         var configureError: NSError?
         GGLContext.sharedInstance().configureWithError(&configureError)
@@ -160,7 +157,9 @@ class GoogleSignIn : NSObject, GenericSignIn {
         }
     }
 
-    open func application(_ application: UIApplication!, openURL url: URL!, sourceApplication: String!, annotation: AnyObject!) -> Bool {
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        let annotation = options[UIApplicationOpenURLOptionsKey.annotation]
+        let sourceApplication = options[UIApplicationOpenURLOptionsKey.sourceApplication] as! String
         return GIDSignIn.sharedInstance().handle(url, sourceApplication: sourceApplication,
             annotation: annotation)
     }
@@ -192,19 +191,25 @@ class GoogleSignIn : NSObject, GenericSignIn {
         return creds
     }
     
+    private var _signInOutButton:TappableButton?
+    
     // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
-    public func getSignInButton(params:[String:Any]) -> TappableSignInButton? {
-        guard let vcDelegate = params["delegate"] as? GoogleSignInViewController else {
+    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
+        _signInOutButton = signInOutButton
+        
+        guard let vcDelegate = params?["delegate"] as? GoogleSignInViewController else {
             Log.error("You must give a GoogleUserSignInViewController delegate parameter")
             return nil
         }
-    
-        // 7/7/16; Prior to Google Sign In 4.0, this delegate was on the signInOutButton button. But now, its on the GIDSignIn. E.g., see https://developers.google.com/identity/sign-in/ios/api/protocol_g_i_d_sign_in_delegate-p
-        GIDSignIn.sharedInstance().delegate = self
         
         GIDSignIn.sharedInstance().uiDelegate = vcDelegate
         
-        return self.signInOutButton
+        _signInOutButton = signInOutButton
+        return signInOutButton
+    }
+    
+    var signInButton:TappableButton? {
+        return _signInOutButton
     }
 }
 
@@ -250,13 +255,12 @@ extension GoogleSignIn : GIDSignInDelegate {
                                 .userNotFoundOnSignInAttempt, signIn: self)
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
-                        case .sharingUser(sharingPermission: let permission):
+                        case .sharingUser(sharingPermission: let permission, _):
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
                         }
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
-                        Log.error("Error checking for existing user: \(String(describing: error))")
+                        Alert.show(withTitle: "Alert!", message: "Error checking for existing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -267,18 +271,18 @@ extension GoogleSignIn : GIDSignInDelegate {
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
                         self.signUserOut()
                     }
                 }
                 
             case .createSharingUser(invitationCode: let invitationCode):
-                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { error in
+                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { accessToken, error in
                     if error == nil {
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -288,19 +292,21 @@ extension GoogleSignIn : GIDSignInDelegate {
             }
         }
         else {
-            Log.error("Error signing into Google: \(error)")
+            Alert.show(withTitle: "Alert!", message: "Error signing into Google: \(error!)")
+            
             // So we don't have the UI saying we're signed in, but we're actually not.
             signUserOut()
         }
     }
     
+    // TODO: *2* When does this get called?
     public func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!)
     {
     }
 }
 
 // Self-sized; cannot be resized.
-private class GoogleSignInOutButton : UIView, TappableSignInButton {
+private class GoogleSignInOutButton : UIView, Tappable {
     let signInButton = GIDSignInButton()
     
     let signOutButtonContainer = UIView()
@@ -308,7 +314,6 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
     let signOutButton = UIButton(type: .system)
     let signOutLabel = UILabel()
     
-    var managerDelegate:(()->GenericSignInManagerDelegate)!
     weak var signIn: GoogleSignIn!
 
     init() {
@@ -358,7 +363,7 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
     
     func signInButtonAction() {
         if buttonShowing == .signIn {
-            managerDelegate().signInStateChanged(to: .signInStarted, for: signIn)
+            signIn.managerDelegate.signInStateChanged(to: .signInStarted, for: signIn)
         }
     }
     
@@ -388,12 +393,12 @@ private class GoogleSignInOutButton : UIView, TappableSignInButton {
             case .signIn:
                 self.signInButton.isHidden = false
                 self.signOutButtonContainer.isHidden = true
-                managerDelegate?().signInStateChanged(to: .signedOut, for: signIn)
+                signIn?.managerDelegate?.signInStateChanged(to: .signedOut, for: signIn)
             
             case .signOut:
                 self.signInButton.isHidden = true
                 self.signOutButtonContainer.isHidden = false
-                managerDelegate?().signInStateChanged(to: .signedIn, for: signIn)
+                signIn?.managerDelegate?.signInStateChanged(to: .signedIn, for: signIn)
             }
             
             self.setNeedsDisplay()

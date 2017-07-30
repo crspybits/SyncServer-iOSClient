@@ -41,7 +41,7 @@ public class SyncServerUser {
     public enum CheckForExistingUserResult {
     case noUser
     case owningUser
-    case sharingUser(sharingPermission:SharingPermission)
+    case sharingUser(sharingPermission:SharingPermission, accessToken:String?)
     }
     
     public func checkForExistingUser(creds: GenericCredentials,
@@ -73,8 +73,8 @@ public class SyncServerUser {
             case .some(.owningUser):
                 checkForUserResult = .owningUser
                 
-            case .some(.sharingUser(let permission)):
-                checkForUserResult = .sharingUser(sharingPermission: permission)
+            case .some(.sharingUser(let permission, let accessToken)):
+                checkForUserResult = .sharingUser(sharingPermission: permission, accessToken:accessToken)
             }
             
             Thread.runSync(onMainThread: {
@@ -108,13 +108,13 @@ public class SyncServerUser {
         }
     }
     
-    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, completion:((Error?)->())?) {
+    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, completion:((_ accessToken:String?, Error?)->())?) {
         
         self.creds = creds
         
-        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode) { error in
+        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode) { accessToken, error in
             Thread.runSync(onMainThread: {
-                completion?(error)
+                completion?(accessToken, error)
             })
         }
     }

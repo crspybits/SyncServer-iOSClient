@@ -174,8 +174,15 @@ class ServerNetworking : NSObject {
                 return
             }
             
+            var resultDict = jsonDict
+            
+            // Some responses (from endpoints doing sharing operations) have ServerConstants.httpResponseOAuth2AccessTokenKey in their header. Pass it up using the same key.
+            if let accessTokenResponse = response.allHeaderFields[ServerConstants.httpResponseOAuth2AccessTokenKey] {
+                resultDict[ServerConstants.httpResponseOAuth2AccessTokenKey] = accessTokenResponse
+            }
+            
             Log.msg("No errors on upload: jsonDict: \(jsonDict)")
-            completion?(jsonDict, response.statusCode, nil)
+            completion?(resultDict, response.statusCode, nil)
         }
         else {
             completion?(nil, nil, error)

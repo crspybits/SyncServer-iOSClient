@@ -13,6 +13,37 @@ import SMCoreLib
 import SyncServer_Shared
 
 class TestCase: XCTestCase {
+    // Before you run any tests, change this to the account type that you want to test.
+    // For Google, before running each complete set of tests, you must copy the access token from a recent sign-in (i.e., immediately before the tests) in to the .plist file.
+    // For Facebook, before running each complete set of tests, you must have a long-lived access token in the .plist that is current (i.e., within the last 60 days).
+    static let currTestAccount:TestAccount = .facebook
+    
+    func currTestAccountIsSharing() -> Bool {
+        return TestCase.currTestAccount.accountType == ServerConstants.AuthTokenType.FacebookToken
+    }
+    
+    struct TestAccount {
+        let tokenKey:String // key into the Consts.serverPlistFile
+        let accountType:ServerConstants.AuthTokenType
+            
+        // Must reference an owning account or a sharing account with admin sharing permission (the latter hasn't yet been tested).
+        static let google = TestAccount(tokenKey: "GoogleAccessToken", accountType: .GoogleToken)
+            
+        // The tokenKey references a long-lived access token. It must reference a Facebook account that has admin sharing permission
+        static let facebook = TestAccount(tokenKey: "FacebookAccessToken", accountType: .FacebookToken)
+            
+        func token() -> String {
+            let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
+            
+            if case .stringValue(let value) = try! plist.getRequired(varName: tokenKey) {
+                return value
+            }
+            
+            XCTFail()
+            return ""
+        }
+    }
+    
     let cloudFolderName = "Test.Folder"
     var authTokens = [String:String]()
     
@@ -33,26 +64,14 @@ class TestCase: XCTestCase {
     var syncServerSingleFileUploadCompleted:((_ next: @escaping ()->())->())?
     var syncServerSingleFileDownloadCompleted:((_ next: @escaping ()->())->())?
     
-    // This value needs to be refreshed before running these tests.
-    static let accessToken:String = {
-        let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
-        
-        if case .stringValue(let value) = try! plist.getRequired(varName: "GoogleAccessToken") {
-            return value
-        }
-        
-        XCTFail()
-        return ""
-    }()
-    
     override func setUp() {
         super.setUp()
         ServerAPI.session.delegate = self
         ServerNetworking.session.authenticationDelegate = self
         
         self.authTokens = [
-            ServerConstants.XTokenTypeKey: ServerConstants.AuthTokenType.GoogleToken.rawValue,
-            ServerConstants.HTTPOAuth2AccessTokenKey: TestCase.accessToken
+            ServerConstants.XTokenTypeKey: TestCase.currTestAccount.accountType.rawValue,
+            ServerConstants.HTTPOAuth2AccessTokenKey: TestCase.currTestAccount.token()
         ]
         
         SyncManager.session.delegate = self

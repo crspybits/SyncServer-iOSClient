@@ -3,7 +3,7 @@
 //  SyncServer
 //
 //  Created by Christopher Prince on 4/16/17.
-//  Copyright © 2017 CocoaPods. All rights reserved.
+//  Copyright © 2017 Spastic Muffin, LLC. All rights reserved.
 //
 
 import XCTest
@@ -41,7 +41,7 @@ class ServerAPI_Sharing: TestCase {
             XCTAssert(error == nil)
             XCTAssert(sharingInvitationUUID != nil)
             
-            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!) { error in
+            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!) { accessToken, error in
                 XCTAssert(error != nil)
                 expectation.fulfill()
             }

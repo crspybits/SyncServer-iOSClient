@@ -120,7 +120,7 @@ class ServerAPI {
     enum CheckCredsResult {
     case noUser
     case owningUser
-    case sharingUser(sharingPermission:SharingPermission)
+    case sharingUser(sharingPermission:SharingPermission, accessToken:String?)
     }
     
     // Checks the creds of the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil). Because this method uses an unauthorized (401) http status code to indicate that the user doesn't exist, it will not do retries in the case of an error.
@@ -145,7 +145,8 @@ class ServerAPI {
                     result = .owningUser
                 }
                 else {
-                    result = .sharingUser(sharingPermission: checkCredsResponse.sharingPermission)
+                    let accessToken = response?[ServerConstants.httpResponseOAuth2AccessTokenKey] as? String
+                    result = .sharingUser(sharingPermission: checkCredsResponse.sharingPermission, accessToken: accessToken)
                 }
             }
             
@@ -595,7 +596,8 @@ class ServerAPI {
     case responseConversionError
     }
     
-    func redeemSharingInvitation(sharingInvitationUUID:String, completion:((Error?)->(Void))?) {
+    // Some accounts return an access token after sign-in (e.g., Facebook's long-lived access token).
+    func redeemSharingInvitation(sharingInvitationUUID:String, completion:((_ accessToken:String?, Error?)->(Void))?) {
         let endpoint = ServerEndpoints.redeemSharingInvitation
 
         var paramsForRequest:[String:Any] = [:]
@@ -610,14 +612,15 @@ class ServerAPI {
             
             if resultError == nil {
                 if RedeemSharingInvitationResponse(json: response!) != nil {
-                    completion?(nil)
+                    let accessToken = response?[ServerConstants.httpResponseOAuth2AccessTokenKey] as? String
+                    completion?(accessToken, nil)
                 }
                 else {
-                    completion?(RedeemSharingInvitationError.responseConversionError)
+                    completion?(nil, RedeemSharingInvitationError.responseConversionError)
                 }
             }
             else {
-                completion?(resultError)
+                completion?(nil, resultError)
             }
         }
     }
