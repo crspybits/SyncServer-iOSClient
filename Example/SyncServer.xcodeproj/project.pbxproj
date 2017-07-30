@@ -36,7 +36,6 @@
 		8378D9BE1E91B8F000470D49 /* Client_SyncServer_Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8378D9BD1E91B8F000470D49 /* Client_SyncServer_Error.swift */; };
 		8378D9C21E95F29700470D49 /* ServerAPI_SingleError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8378D9C11E95F29700470D49 /* ServerAPI_SingleError.swift */; };
 		838ED40C1ED2B46200078E9F /* Performance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838ED40B1ED2B46200078E9F /* Performance.swift */; };
-		83AD481E1F0C650E002B39C6 /* FacebookSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD481D1F0C650E002B39C6 /* FacebookSignIn.swift */; };
 		83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */; };
 		83CD30831E15880000A0C7AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30811E15880000A0C7AD /* GoogleService-Info.plist */; };
 		83CD30841E15880000A0C7AD /* Server.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30821E15880000A0C7AD /* Server.plist */; };
@@ -55,7 +54,6 @@
 		83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */; };
 		83F882131E6E5FDD008F644A /* Client_SyncServer_Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */; };
 		83F882151E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882141E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift */; };
-		83F8823A1E711E24008F644A /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882391E711E24008F644A /* GoogleSignIn.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,7 +111,6 @@
 		8378D9BD1E91B8F000470D49 /* Client_SyncServer_Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Error.swift; sourceTree = "<group>"; };
 		8378D9C11E95F29700470D49 /* ServerAPI_SingleError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_SingleError.swift; sourceTree = "<group>"; };
 		838ED40B1ED2B46200078E9F /* Performance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Performance.swift; sourceTree = "<group>"; };
-		83AD481D1F0C650E002B39C6 /* FacebookSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FacebookSignIn.swift; path = ../../Client/SignIn/FacebookSignIn.swift; sourceTree = "<group>"; };
 		83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CatBehaviors.jpg; sourceTree = "<group>"; };
 		83CD30811E15880000A0C7AD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		83CD30821E15880000A0C7AD /* Server.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Server.plist; sourceTree = "<group>"; };
@@ -130,7 +127,6 @@
 		83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_GetUploads.swift; sourceTree = "<group>"; };
 		83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Sync.swift; sourceTree = "<group>"; };
 		83F882141E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_UploadDeletion.swift; sourceTree = "<group>"; };
-		83F882391E711E24008F644A /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		950FA6AEF6E79D1648CC8B07 /* Pods-SyncServer_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SyncServer_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example.release.xcconfig"; sourceTree = "<group>"; };
 		99CC8F59D9EBD3C940A50230 /* SyncServer.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = SyncServer.podspec; path = ../SyncServer.podspec; sourceTree = "<group>"; };
 		A5DC520778F7EB9A2C2C2CA7 /* Pods-SyncServer_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SyncServer_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example.debug.xcconfig"; sourceTree = "<group>"; };
@@ -203,7 +199,6 @@
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
-				83AD481F1F0C6968002B39C6 /* SignIn */,
 				836D4BEF1E1205CF005209F2 /* Consts.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
@@ -290,15 +285,6 @@
 				83544F881EF58B32007E0887 /* Info.plist */,
 			);
 			path = SyncServer_ExampleUITests;
-			sourceTree = "<group>";
-		};
-		83AD481F1F0C6968002B39C6 /* SignIn */ = {
-			isa = PBXGroup;
-			children = (
-				83F882391E711E24008F644A /* GoogleSignIn.swift */,
-				83AD481D1F0C650E002B39C6 /* FacebookSignIn.swift */,
-			);
-			name = SignIn;
 			sourceTree = "<group>";
 		};
 		881D5EB56DAB9EE45ECC0D5E /* Pods */ = {
@@ -558,9 +544,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83F8823A1E711E24008F644A /* GoogleSignIn.swift in Sources */,
 				836D4BF01E1205CF005209F2 /* Consts.swift in Sources */,
-				83AD481E1F0C650E002B39C6 /* FacebookSignIn.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
 				836D4BE21E11AF8C005209F2 /* SetupSignIn.swift in Sources */,

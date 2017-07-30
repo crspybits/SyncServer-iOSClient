@@ -1,18 +1,11 @@
 
 //
-//  SMGoogleUserSignIn.swift
+//  GoogleSignIn.swift
 //  SyncServer
 //
 //  Created by Christopher Prince on 11/26/15.
 //  Copyright © 2015 Christopher Prince. All rights reserved.
 //
-
-import Google
-import Foundation
-import SyncServer
-import SMCoreLib
-import GoogleSignIn
-import SyncServer_Shared
 
 // See https://cocoapods.org/pods/GoogleSignIn for current version of GoogleSignIn
 
@@ -20,6 +13,16 @@ import SyncServer_Shared
     with the Google/SignIn Cocoapod when I do a `pod update`
 See also: https://stackoverflow.com/questions/44398121/google-signin-cocoapod-deprecated
 */
+
+// See the .podspec file for this definition.
+#if SYNCSERVER_GOOGLE_SIGNIN
+
+import Google
+import Foundation
+//import SyncServer
+import SMCoreLib
+import GoogleSignIn
+import SyncServer_Shared
 
 protocol GoogleSignInDelegate : class {
 func signUserOutUsing(creds:GoogleCredentials)
@@ -415,3 +418,6 @@ private class GoogleSignInOutButton : UIView, Tappable {
         }
     }
 }
+
+#endif
+

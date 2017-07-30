@@ -8,8 +8,11 @@
 
 // Enables you to sign in as a Facebook user to (a) create a new sharing user (must have an invitation from another SyncServer user), or (b) sign in as an existing sharing user.
 
+// See the .podspec file for this definition.
+#if SYNCSERVER_FACEBOOK_SIGNIN
+
 import Foundation
-import SyncServer
+//import SyncServer
 import SMCoreLib
 import FacebookLogin
 import FacebookCore
@@ -413,3 +416,5 @@ extension SMFacebookUserSignIn : FBSDKLoginButtonDelegate {
     }
 }
 */
+
+#endif
