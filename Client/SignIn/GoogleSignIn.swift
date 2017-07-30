@@ -208,8 +208,8 @@ class GoogleSignIn : NSObject, GenericSignIn {
         return signInOutButton
     }
     
-    var signInButton:TappableButton? {
-        return _signInOutButton
+    public var signInButton: /* TappableButton */ UIView? {
+        return _signInOutButton as? UIView
     }
 }
 

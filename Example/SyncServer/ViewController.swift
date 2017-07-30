@@ -13,8 +13,8 @@ import SevenSwitch
 import SyncServer_Shared
 
 class ViewController: GoogleSignInViewController {
-    var googleSignInButton:TappableButton!
-    var facebookSignInButton:TappableButton!
+    var googleSignInButton: /* TappableButton */ UIView!
+    var facebookSignInButton:/* TappableButton */ UIView!
     fileprivate var signinTypeSwitch:SevenSwitch!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
     var syncServerSingleFileUploadCompleted: (()->())?
@@ -75,13 +75,13 @@ class ViewController: GoogleSignInViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
+        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self]) as! UIView
         googleSignInButton.frameY = 100
         view.addSubview(googleSignInButton)
         googleSignInButton.centerHorizontallyInSuperview()
         SetupSignIn.session.googleSignIn.delegate = self
         
-        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil)
+        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil) as! UIView
         facebookSignInButton.frameY = googleSignInButton.frameMaxY + 20
         facebookSignInButton.frameWidth = googleSignInButton.frameWidth
         view.addSubview(facebookSignInButton)

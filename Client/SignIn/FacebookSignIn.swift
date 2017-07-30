@@ -87,7 +87,7 @@ public class FacebookSignIn : GenericSignIn {
         return signInOutButton
     }
     
-    public var signInButton:TappableButton? {
+    public var signInButton: /* TappableButton */ UIView? {
         return signInOutButton
     }
     
