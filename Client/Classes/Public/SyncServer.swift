@@ -323,7 +323,7 @@ public class SyncServer {
         }
     }
     
-    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again.
+    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again. Non-blocking in all cases.
     public func sync() {
         sync(completion:nil)
     }
