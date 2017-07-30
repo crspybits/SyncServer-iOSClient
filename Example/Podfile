@@ -15,7 +15,11 @@ target 'SyncServer_Example' do
 	pod 'Google/SignIn'
 	
 	pod 'FacebookLogin'
-	pod 'FacebookCore'		
+	pod 'FacebookCore'
+	
+	# 7/29/17. I just added these. Take them out of here eventually. I was just debugging an issue with Xcode9.
+	pod 'FBSDKCoreKit', '4.24.0'
+	pod 'FBSDKLoginKit', '4.24.0'
 
 	target 'SyncServer_Tests' do
     	inherit! :search_paths
