@@ -18,6 +18,7 @@
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
 		8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */; };
+		833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
 		8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */; };
 		8344CC2B1E5FDD1800BEB263 /* Client_Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */; };
@@ -92,6 +93,7 @@
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
 		8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_DownloadDeletion.swift; sourceTree = "<group>"; };
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_Failure.swift; sourceTree = "<group>"; };
 		8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_UploadDeletion.swift; sourceTree = "<group>"; };
 		8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_Downloads.swift; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
+				833768B91F2EC4A000650446 /* SignIn */,
 				836D4BEF1E1205CF005209F2 /* Consts.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
@@ -276,6 +279,14 @@
 				54E87A63361A7EE7FDF5B03A /* LICENSE */,
 			);
 			name = "Podspec Metadata";
+			sourceTree = "<group>";
+		};
+		833768B91F2EC4A000650446 /* SignIn */ = {
+			isa = PBXGroup;
+			children = (
+				833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */,
+			);
+			name = SignIn;
 			sourceTree = "<group>";
 		};
 		83544F851EF58B32007E0887 /* SyncServer_ExampleUITests */ = {
@@ -453,13 +464,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SyncServer_Tests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		4E1B9F457DBCAB6D2B974651 /* [CP] Embed Pods Frameworks */ = {
@@ -498,9 +512,44 @@
 			files = (
 			);
 			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
+				"${BUILT_PRODUCTS_DIR}/Bolts/Bolts.framework",
+				"${BUILT_PRODUCTS_DIR}/FBSDKCoreKit/FBSDKCoreKit.framework",
+				"${BUILT_PRODUCTS_DIR}/FBSDKLoginKit/FBSDKLoginKit.framework",
+				"${BUILT_PRODUCTS_DIR}/FacebookCore/FacebookCore.framework",
+				"${BUILT_PRODUCTS_DIR}/FacebookLogin/FacebookLogin.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMOAuth2/GTMOAuth2.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
+				"${BUILT_PRODUCTS_DIR}/Gloss/Gloss.framework",
+				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
+				"${BUILT_PRODUCTS_DIR}/HPTextViewTapGestureRecognizer/HPTextViewTapGestureRecognizer.framework",
+				"${BUILT_PRODUCTS_DIR}/Reachability/Reachability.framework",
+				"${BUILT_PRODUCTS_DIR}/SMCoreLib/SMCoreLib.framework",
+				"${BUILT_PRODUCTS_DIR}/SevenSwitch/SevenSwitch.framework",
+				"${BUILT_PRODUCTS_DIR}/SwiftyBeaver/SwiftyBeaver.framework",
+				"${BUILT_PRODUCTS_DIR}/SyncServer/SyncServer.framework",
+				"${BUILT_PRODUCTS_DIR}/SyncServer-Shared/SyncServer_Shared.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AFNetworking.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Bolts.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBSDKCoreKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBSDKLoginKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FacebookCore.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FacebookLogin.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMOAuth2.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Gloss.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/HPTextViewTapGestureRecognizer.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Reachability.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SMCoreLib.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SevenSwitch.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyBeaver.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SyncServer.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SyncServer_Shared.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -513,9 +562,12 @@
 			files = (
 			);
 			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-resources.sh",
+				"${PODS_ROOT}/GoogleSignIn/Resources/GoogleSignIn.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -528,13 +580,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SyncServer_Example-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -544,6 +599,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */,
 				836D4BF01E1205CF005209F2 /* Consts.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,

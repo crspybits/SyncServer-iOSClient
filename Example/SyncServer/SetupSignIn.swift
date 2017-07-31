@@ -11,8 +11,8 @@ import SMCoreLib
 import SyncServer
 
 class SetupSignIn {
-    var googleSignIn:GoogleSignIn!
-    var facebookSignIn:FacebookSignIn!
+    var googleSignIn:GoogleSyncServerSignIn!
+    var facebookSignIn:FacebookSyncServerSignIn!
     static let session = SetupSignIn()
     
     private init() {
@@ -32,10 +32,10 @@ class SetupSignIn {
             serverClientId = value
         }
     
-        googleSignIn = GoogleSignIn(serverClientId: serverClientId, appClientId: appClientId)
+        googleSignIn = GoogleSyncServerSignIn(serverClientId: serverClientId, appClientId: appClientId)
         SignInManager.session.addSignIn(googleSignIn, launchOptions: options)
         
-        facebookSignIn = FacebookSignIn()
+        facebookSignIn = FacebookSyncServerSignIn()
         SignInManager.session.addSignIn(facebookSignIn, launchOptions: options)
     }
 }

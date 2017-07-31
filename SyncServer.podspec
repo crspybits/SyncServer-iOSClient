@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '2.0.0'
+  s.version          = '2.0.1'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
 
   s.pod_target_xcconfig = {
-    'OTHER_SWIFT_FLAGS[config=Debug]' => '-DDEBUG',
+    'OTHER_SWIFT_FLAGS[config=Debug]' => '$(inherited) -DDEBUG',
   }
 
   s.source_files = 'Client/Classes/**/*.{swift}'
@@ -34,16 +34,11 @@ Pod::Spec.new do |s|
   s.subspec 'Lite' do |lite|
     # subspec for users who don't want the sign-in's they don't use.
   end
-
-  s.subspec 'Google' do |google|
-    google.xcconfig	=  
-        { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN' }
-    google.dependency 'Google/SignIn', '3.1.0'
-  end
   
   s.subspec 'Facebook' do |facebook|
     facebook.xcconfig =   
-        { 'OTHER_CFLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
+        { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
+
     facebook.dependency 'FacebookLogin', '0.2.0'
     facebook.dependency 'FacebookCore', '0.2.0'
   end

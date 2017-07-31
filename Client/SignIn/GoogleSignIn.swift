@@ -14,12 +14,8 @@
 See also: https://stackoverflow.com/questions/44398121/google-signin-cocoapod-deprecated
 */
 
-// See the .podspec file for this definition.
-#if SYNCSERVER_GOOGLE_SIGNIN
-
-import Google
 import Foundation
-//import SyncServer
+import SyncServer
 import SMCoreLib
 import GoogleSignIn
 import SyncServer_Shared
@@ -102,11 +98,11 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
 }
 
 // The class that you use to enable sign-in to Google should subclass this VC class.
-class GoogleSignInViewController : UIViewController, GIDSignInUIDelegate {
+public class GoogleSignInViewController : UIViewController, GIDSignInUIDelegate {
 }
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
-class GoogleSignIn : NSObject, GenericSignIn {
+public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
     
     fileprivate let serverClientId:String!
     fileprivate let appClientId:String!
@@ -116,6 +112,8 @@ class GoogleSignIn : NSObject, GenericSignIn {
     weak public var delegate:GenericSignInDelegate?    
     weak public var signOutDelegate:GenericSignOutDelegate?
     weak public var managerDelegate:SignInManagerDelegate!
+    
+    fileprivate var duringLaunch = true
    
     public init(serverClientId:String, appClientId:String) {
         self.serverClientId = serverClientId
@@ -129,9 +127,12 @@ class GoogleSignIn : NSObject, GenericSignIn {
     
     public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
+        // 7/30/17; Seems this is not needed any more using the GoogleSignIn Cocoapod; see https://stackoverflow.com/questions/44398121/google-signin-cocoapod-deprecated
+        /*
         var configureError: NSError?
         GGLContext.sharedInstance().configureWithError(&configureError)
         assert(configureError == nil, "Error configuring Google services: \(String(describing: configureError))")
+        */
         
         GIDSignIn.sharedInstance().delegate = self
         
@@ -155,19 +156,20 @@ class GoogleSignIn : NSObject, GenericSignIn {
             GIDSignIn.sharedInstance().signInSilently()
         }
         else {
+            duringLaunch = false
             // I'm doing this to force a user-signout, so that I get the serverAuthCode. Seems I only get this with the user explicitly signed out before hand.
             GIDSignIn.sharedInstance().signOut()
         }
     }
 
-    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+    public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         let annotation = options[UIApplicationOpenURLOptionsKey.annotation]
         let sourceApplication = options[UIApplicationOpenURLOptionsKey.sourceApplication] as! String
         return GIDSignIn.sharedInstance().handle(url, sourceApplication: sourceApplication,
             annotation: annotation)
     }
     
-    var userIsSignedIn: Bool {
+    public var userIsSignedIn: Bool {
         Log.msg("GIDSignIn.sharedInstance().currentUser: \(GIDSignIn.sharedInstance().currentUser)")
         return GIDSignIn.sharedInstance().hasAuthInKeychain()
     }
@@ -216,14 +218,14 @@ class GoogleSignIn : NSObject, GenericSignIn {
     }
 }
 
-extension GoogleSignIn : GoogleSignInDelegate {
+extension GoogleSyncServerSignIn : GoogleSignInDelegate {
     func signUserOutUsing(creds:GoogleCredentials) {
         self.signUserOut()
     }
 }
 
 // // MARK: UserSignIn methods.
-extension GoogleSignIn {
+extension GoogleSyncServerSignIn {
     @objc public func signUserOut() {
         GIDSignIn.sharedInstance().signOut()
         signInOutButton.buttonShowing = .signIn
@@ -232,7 +234,7 @@ extension GoogleSignIn {
     }
 }
 
-extension GoogleSignIn : GIDSignInDelegate {
+extension GoogleSyncServerSignIn : GIDSignInDelegate {
     public func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!)
     {
         if (error == nil) {
@@ -263,7 +265,11 @@ extension GoogleSignIn : GIDSignInDelegate {
                         }
                     }
                     else {
-                        Alert.show(withTitle: "Alert!", message: "Error checking for existing user: \(error!)")
+                        let message = "Error checking for existing user: \(error!)"
+                        if !self.duringLaunch {
+                            Alert.show(withTitle: "Alert!", message: message)
+                        }
+                        Log.error(message)
                         self.signUserOut()
                     }
                 }
@@ -295,11 +301,18 @@ extension GoogleSignIn : GIDSignInDelegate {
             }
         }
         else {
-            Alert.show(withTitle: "Alert!", message: "Error signing into Google: \(error!)")
+            let message = "Error signing into Google: \(error!)"
+            if !duringLaunch {
+                // This assumes there is a root view controller present-- don't do it during launch
+                Alert.show(withTitle: "Alert!", message: message)
+            }
+            Log.error(message)
             
             // So we don't have the UI saying we're signed in, but we're actually not.
             signUserOut()
         }
+        
+        duringLaunch = false
     }
     
     // TODO: *2* When does this get called?
@@ -317,7 +330,7 @@ private class GoogleSignInOutButton : UIView, Tappable {
     let signOutButton = UIButton(type: .system)
     let signOutLabel = UILabel()
     
-    weak var signIn: GoogleSignIn!
+    weak var signIn: GoogleSyncServerSignIn!
 
     init() {
         super.init(frame: CGRect.zero)
@@ -419,5 +432,4 @@ private class GoogleSignInOutButton : UIView, Tappable {
     }
 }
 
-#endif
 

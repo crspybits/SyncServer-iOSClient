@@ -12,7 +12,6 @@
 #if SYNCSERVER_FACEBOOK_SIGNIN
 
 import Foundation
-//import SyncServer
 import SMCoreLib
 import FacebookLogin
 import FacebookCore
@@ -52,11 +51,12 @@ public class FacebookCredentials : GenericCredentials {
     }
 }
 
-public class FacebookSignIn : GenericSignIn {
+public class FacebookSyncServerSignIn : GenericSignIn {
     public var signOutDelegate:GenericSignOutDelegate?
     public var delegate:GenericSignInDelegate?
     public var managerDelegate:SignInManagerDelegate!
     private let signInOutButton:FacebookSignInButton!
+    fileprivate var duringLaunch = true
     
     public init() {
         signInOutButton = FacebookSignInButton()
@@ -78,7 +78,12 @@ public class FacebookSignIn : GenericSignIn {
                     self.signUserOut()
                     Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
                 }
+                
+                self.duringLaunch = false
             }
+        }
+        else {
+            duringLaunch = false
         }
     }
     
@@ -162,7 +167,11 @@ public class FacebookSignIn : GenericSignIn {
                     }
                 }
                 else {
-                    Alert.show(withTitle: "Alert!", message: "Error checking for existing user: \(error!)")
+                    let message = "Error checking for existing user: \(error!)"
+                    if !self.duringLaunch {
+                        Alert.show(withTitle: "Alert!", message: message)
+                    }
+                    Log.error(message)
                     self.signUserOut()
                 }
             }
@@ -194,7 +203,7 @@ public class FacebookSignIn : GenericSignIn {
 
 private class FacebookSignInButton : UIControl, Tappable {
     var signInButton:LoginButton!
-    weak var signIn: FacebookSignIn!
+    weak var signIn: FacebookSyncServerSignIn!
     private let permissions = [ReadPermission.publicProfile]
     
     init() {
@@ -251,7 +260,11 @@ private class FacebookSignInButton : UIControl, Tappable {
                         case .success(_):
                             self.signIn.completeSignInProcess()
                         case .failed(let error):
-                            Alert.show(withTitle: "Alert!", message: "Error fetching UserProfile: \(error)")
+                            let message = "Error fetching UserProfile: \(error)"
+                            if !self.signIn.duringLaunch {
+                                Alert.show(withTitle: "Alert!", message: message)
+                            }
+                            Log.error(message)
                             self.signIn.signUserOut()
                         }
                     }

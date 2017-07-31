@@ -4,9 +4,11 @@ source 'https://github.com/crspybits/Specs.git'
 use_frameworks!
 
 target 'SyncServer_Example' do
-	pod 'SyncServer'
-	pod 'SyncServer/Google'
-	pod 'SyncServer/Facebook'
+	# This is needed because we can't put it in the SyncServer Cocoapod-- it apparently has static frameworks.
+	pod 'GoogleSignIn', '4.0.2'
+	
+	pod 'SyncServer', :path => '..'
+	pod 'SyncServer/Facebook', :path => '..'
 	
     pod 'SevenSwitch', '~> 2.1'
 
