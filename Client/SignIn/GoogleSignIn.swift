@@ -267,7 +267,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                     else {
                         let message = "Error checking for existing user: \(error!)"
                         if !self.duringLaunch {
-                            Alert.show(withTitle: "Alert!", message: message)
+                            SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
                         }
                         Log.error(message)
                         self.signUserOut()
@@ -280,7 +280,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
                     }
                     else {
-                        Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
+                        SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -291,7 +291,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                     }
                     else {
-                        Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
+                        SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -304,7 +304,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             let message = "Error signing into Google: \(error!)"
             if !duringLaunch {
                 // This assumes there is a root view controller present-- don't do it during launch
-                Alert.show(withTitle: "Alert!", message: message)
+                SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
             }
             Log.error(message)
             
