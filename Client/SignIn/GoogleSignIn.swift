@@ -7,13 +7,6 @@
 //  Copyright © 2015 Christopher Prince. All rights reserved.
 //
 
-// See https://cocoapods.org/pods/GoogleSignIn for current version of GoogleSignIn
-
-/* 6/15/17; Just started seeing: "[!] Google has been deprecated"
-    with the Google/SignIn Cocoapod when I do a `pod update`
-See also: https://stackoverflow.com/questions/44398121/google-signin-cocoapod-deprecated
-*/
-
 import Foundation
 import SyncServer
 import SMCoreLib
@@ -97,8 +90,9 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     }
 }
 
-// The class that you use to enable sign-in to Google should subclass this VC class.
-public class GoogleSignInViewController : UIViewController, GIDSignInUIDelegate {
+// The class that you use to enable sign-in to Google should adopt this protocol. e.g., this should be the view controller on which your Google button is placed.
+// Renaming `GIDSignInUIDelegate` to my own protocol just so we don't have to expose Google's
+public protocol GoogleSignInUIProtocol : GIDSignInUIDelegate {
 }
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
@@ -133,7 +127,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         GGLContext.sharedInstance().configureWithError(&configureError)
         assert(configureError == nil, "Error configuring Google services: \(String(describing: configureError))")
         */
-        
+
         GIDSignIn.sharedInstance().delegate = self
         
         // Seem to need the following for accessing the serverAuthCode. Plus, you seem to need a "fresh" sign-in (not a silent sign-in). PLUS: serverAuthCode is *only* available when you don't do the silent sign in.
@@ -196,18 +190,19 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         return creds
     }
     
-    private var _signInOutButton:TappableButton?
-    
-    // The parameter must be given as "delegate" with a value of a `GoogleSignInViewController`. Returns an object of type `GoogleSignInOutButton`.
+    private var _signInOutButton: TappableButton?
+
+    // The parameter must be given as "delegate" with a value of a `GoogleSignInUIProtocol` conforming object. Returns an object of type `GoogleSignInOutButton`.
+    @discardableResult
     public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
         _signInOutButton = signInOutButton
         
-        guard let vcDelegate = params?["delegate"] as? GoogleSignInViewController else {
-            Log.error("You must give a GoogleUserSignInViewController delegate parameter")
+        guard let delegate = params?["delegate"] as? GoogleSignInUIProtocol else {
+            Log.error("You must give a GoogleSignInUIProtocol conforming object as a delegate parameter")
             return nil
         }
         
-        GIDSignIn.sharedInstance().uiDelegate = vcDelegate
+        GIDSignIn.sharedInstance().uiDelegate = delegate
         
         _signInOutButton = signInOutButton
         return signInOutButton
@@ -375,6 +370,8 @@ private class GoogleSignInOutButton : UIView, Tappable {
         self.buttonShowing = .signIn
         
         signInButton.addTarget(self, action: #selector(signInButtonAction), for: .touchUpInside)
+        
+        signOutButtonContainer.backgroundColor = UIColor.white
     }
     
     func signInButtonAction() {

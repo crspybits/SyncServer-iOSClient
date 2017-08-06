@@ -1,0 +1,75 @@
+
+//
+//  SignInStart.swift
+//  SyncServer
+//
+//  Created by Christopher Prince on 8/5/17.
+//  Copyright © 2017 Christopher Prince. All rights reserved.
+//
+
+import UIKit
+import SyncServer_Shared
+
+class SignInStart : UIView, XibBasics {
+    typealias ViewType = SignInStart
+    @IBOutlet weak var signIn: UIButton!
+    static private(set) var createOwningUser:Bool?
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        signIn.titleLabel?.textAlignment = .center
+        
+        if SignInManager.session.userIsSignIn {
+            showSignIns(for: .both)
+        }
+        
+        _ = SignInManager.session.signInStateChanged.addTarget!(self, with: #selector(signInStateChanged))
+        
+        SignInStart.createOwningUser = nil
+    }
+    
+    deinit {
+        SignInManager.session.signInStateChanged.removeTarget!(self, with: #selector(signInStateChanged))
+    }
+    
+    func signInStateChanged() {
+        // If displayed
+        if superview != nil {
+            if SignInManager.session.userIsSignIn {
+                showSignIns(for: .both)
+            }
+        }
+    }
+    
+    @IBAction func signInAction(_ sender: Any) {
+        showSignIns(for: .both)
+    }
+    
+    @IBAction func createNewAccountAction(_ sender: Any) {
+        showSignIns(for: .owningUser)
+    }
+    
+    func showSignIns(`for` signInType: SignInType) {
+        let signIns = SignInManager.session.getSignIns(for: signInType)
+        let signInAccounts = SignInAccounts.create()!
+        
+        switch signInType {
+        case SignInType.both:
+            signInAccounts.title.text = "Existing Account"
+            SignInStart.createOwningUser = false
+            
+        case SignInType.owningUser:
+            SignInStart.createOwningUser = true
+            signInAccounts.title.text = "New Account"
+            
+        default:
+            assert(false)
+        }
+        
+        signInAccounts.title.sizeToFit()
+        
+        signInAccounts.signIns = signIns
+        superview!.addSubview(signInAccounts)
+        removeFromSuperview()
+    }
+}

@@ -23,8 +23,10 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Client/Classes/**/*.{swift}'
   s.resources = 'Client/Assets/**/*'
+  s.resources = 'Client/Classes/**/*.{xib}'
+
   s.preserve_paths = 'Client/Assets/**/*'
-    
+
   s.dependency 'SMCoreLib', '< 1.0'
   s.dependency 'Gloss'
   s.dependency 'SyncServer-Shared', '< 2.0'

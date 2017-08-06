@@ -41,11 +41,21 @@
                                     <action selector="createSharingInvitationAction:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="3YV-Bn-ety"/>
                                 </connections>
                             </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Zgy-sw-fW0" userLabel="SignIn Container">
+                                <rect key="frame" x="40" y="70" width="240" height="213"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="240" id="XE6-44-Px7"/>
+                                    <constraint firstAttribute="height" constant="213" id="zuh-32-s6d"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="tSZ-MM-XvG" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="0yw-jf-E33"/>
+                            <constraint firstItem="Zgy-sw-fW0" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="7RX-Eb-ZUk"/>
                             <constraint firstItem="lYq-xT-cLr" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="8st-kb-Yhj"/>
+                            <constraint firstItem="Zgy-sw-fW0" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="50" id="MNy-9c-fYk"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="EhT-f8-VAK" secondAttribute="bottom" constant="34" id="Nth-af-Otd"/>
                             <constraint firstItem="lYq-xT-cLr" firstAttribute="top" secondItem="EhT-f8-VAK" secondAttribute="bottom" constant="5" id="VYJ-MF-HIz"/>
                             <constraint firstItem="EhT-f8-VAK" firstAttribute="top" secondItem="tSZ-MM-XvG" secondAttribute="bottom" constant="19" id="gAS-Vy-yZl"/>
@@ -54,6 +64,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="signInContainer" destination="Zgy-sw-fW0" id="5iv-eY-kix"/>
                         <outlet property="testingOutcome" destination="lYq-xT-cLr" id="1oZ-M2-Wxp"/>
                     </connections>
                 </viewController>

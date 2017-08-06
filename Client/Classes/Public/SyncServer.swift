@@ -380,7 +380,7 @@ public class SyncServer {
     }
     
     // Only operates if not currently synchronizing.
-    public func localConsistencyCheck(clientFiles:[UUIDString]) throws -> LocalConsistencyResults {
+    public func localConsistencyCheck(clientFiles:[UUIDString]) throws -> LocalConsistencyResults? {
         var error: Error?
         var results:LocalConsistencyResults!
         

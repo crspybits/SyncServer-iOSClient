@@ -55,7 +55,6 @@ PODS:
     - GTMSessionFetcher/Core (= 1.1.11)
   - HPTextViewTapGestureRecognizer (0.1)
   - Reachability (3.2)
-  - SevenSwitch (2.1.0)
   - SMCoreLib (0.1.0):
     - AFNetworking
     - HPTextViewTapGestureRecognizer (~> 0.1)
@@ -82,9 +81,12 @@ PODS:
 
 DEPENDENCIES:
   - GoogleSignIn (= 4.0.2)
-  - SevenSwitch (~> 2.1)
-  - SyncServer
-  - SyncServer/Facebook
+  - SyncServer (from `..`)
+  - SyncServer/Facebook (from `..`)
+
+EXTERNAL SOURCES:
+  SyncServer:
+    :path: ..
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
@@ -100,12 +102,11 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5ad62e8200fa00ed011fe5e08d27fef72c5b1429
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  SevenSwitch: 5543327829b7bec5b29b73bad5f3cc3f92c1736d
   SMCoreLib: ff4726822b976fe8edaef419d1c283de06d0f9c7
   SwiftyBeaver: d4b551ba34b4206c52cc4684ae90444b8aaa5afd
-  SyncServer: 2e98ae5476abedf734ceb21c38d342cd5b8a9f5b
+  SyncServer: 4c059065b9ec87f998b7319ecf43331eff145528
   SyncServer-Shared: 20f100002e98e4b74d9332d3b633f4d3789fc120
 
-PODFILE CHECKSUM: bc5930d868e4e659ed5fcf672226015cdbb314cc
+PODFILE CHECKSUM: 102b1021b8f124c67692977045307ced3486d12a
 
-COCOAPODS: 1.3.0.rc.1
+COCOAPODS: 1.3.0
