@@ -53,20 +53,22 @@ class SignInStart : UIView, XibBasics {
         let signIns = SignInManager.session.getSignIns(for: signInType)
         let signInAccounts = SignInAccounts.create()!
         
+        var title:SignInAccountsTitle!
+        
         switch signInType {
         case SignInType.both:
-            signInAccounts.title.text = "Existing Account"
+            title = .existingAccount
             SignInStart.createOwningUser = false
             
         case SignInType.owningUser:
             SignInStart.createOwningUser = true
-            signInAccounts.title.text = "New Account"
+            title = .newAccount
             
         default:
             assert(false)
         }
         
-        signInAccounts.title.sizeToFit()
+        signInAccounts.changeTitle(title)
         
         signInAccounts.signIns = signIns
         superview!.addSubview(signInAccounts)

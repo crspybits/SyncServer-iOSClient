@@ -9,6 +9,13 @@
 
 import UIKit
 
+enum SignInAccountsTitle : String {
+    case existingAccount = "Existing Account"
+    case newAccount = "New Account"
+    case signedIn = "Signed In"
+}
+
+
 private class SignInButtonCell : UITableViewCell {
     var signInButton:UIView!
     
@@ -26,6 +33,11 @@ class SignInAccounts : UIView, XibBasics {
     let reuseIdentifier = "SignInAccountsCell"
     @IBOutlet weak var backButton: UIButton!
     @IBOutlet weak var title: UILabel!
+    
+    func changeTitle(_ title: SignInAccountsTitle) {
+        self.title.text = title.rawValue
+        self.title.sizeToFit()
+    }
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -48,6 +60,14 @@ class SignInAccounts : UIView, XibBasics {
     }
     
     func signInStateChanged() {
+        if SignInManager.session.userIsSignIn {
+            changeTitle(.signedIn)
+        }
+        else {
+            signIns = SignInManager.session.getSignIns(for: .both)
+            changeTitle(.existingAccount)
+        }
+        
         tableView.reloadData()
         setup()
     }
@@ -59,6 +79,8 @@ class SignInAccounts : UIView, XibBasics {
     
     func currentSignIns() -> [GenericSignIn] {
         if SignInManager.session.userIsSignIn {
+            changeTitle(.signedIn)
+
             // If user is signed in, only want to present that sign-in button, to allow them to sign out.
             return signIns.filter({$0.userIsSignedIn})
         }
@@ -76,7 +98,7 @@ extension SignInAccounts : UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! SignInButtonCell
-        let signInButton = currentSignIns()[indexPath.row].signInButton! as! UIView
+        let signInButton = currentSignIns()[indexPath.row].signInButton!
         
         // Get some oddness with origins being negative.
         signInButton.frameOrigin = CGPoint.zero
