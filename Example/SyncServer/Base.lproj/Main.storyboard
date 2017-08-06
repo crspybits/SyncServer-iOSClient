@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13156.6" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
     <device id="retina3_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13137.5"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -57,6 +58,7 @@
                             <constraint firstItem="Zgy-sw-fW0" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="50" id="MNy-9c-fYk"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="EhT-f8-VAK" secondAttribute="bottom" constant="34" id="Nth-af-Otd"/>
                             <constraint firstItem="lYq-xT-cLr" firstAttribute="top" secondItem="EhT-f8-VAK" secondAttribute="bottom" constant="5" id="VYJ-MF-HIz"/>
+                            <constraint firstItem="EhT-f8-VAK" firstAttribute="top" secondItem="tSZ-MM-XvG" secondAttribute="bottom" constant="19" id="gAS-Vy-yZl"/>
                             <constraint firstItem="EhT-f8-VAK" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="iNb-MR-m3L"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="lYq-xT-cLr" secondAttribute="bottom" constant="8" id="tFk-X4-E1B"/>
                         </constraints>
@@ -68,6 +70,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="138.75" y="132.5"/>
         </scene>
     </scenes>
 </document>

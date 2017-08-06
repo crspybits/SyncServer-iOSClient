@@ -18,6 +18,7 @@
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
 		8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */; };
+		833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
 		8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */; };
 		8344CC2B1E5FDD1800BEB263 /* Client_Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */; };
@@ -54,7 +55,6 @@
 		83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */; };
 		83F882131E6E5FDD008F644A /* Client_SyncServer_Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */; };
 		83F882151E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882141E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift */; };
-		83F8823A1E711E24008F644A /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882391E711E24008F644A /* GoogleSignIn.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,6 +93,7 @@
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
 		8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_DownloadDeletion.swift; sourceTree = "<group>"; };
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_Failure.swift; sourceTree = "<group>"; };
 		8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_UploadDeletion.swift; sourceTree = "<group>"; };
 		8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_Downloads.swift; sourceTree = "<group>"; };
@@ -128,7 +129,6 @@
 		83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_GetUploads.swift; sourceTree = "<group>"; };
 		83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Sync.swift; sourceTree = "<group>"; };
 		83F882141E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_UploadDeletion.swift; sourceTree = "<group>"; };
-		83F882391E711E24008F644A /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		950FA6AEF6E79D1648CC8B07 /* Pods-SyncServer_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SyncServer_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example.release.xcconfig"; sourceTree = "<group>"; };
 		99CC8F59D9EBD3C940A50230 /* SyncServer.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = SyncServer.podspec; path = ../SyncServer.podspec; sourceTree = "<group>"; };
 		A5DC520778F7EB9A2C2C2CA7 /* Pods-SyncServer_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SyncServer_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example.debug.xcconfig"; sourceTree = "<group>"; };
@@ -201,7 +201,7 @@
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
-				83AD481F1F0C6968002B39C6 /* SignIn */,
+				833768B91F2EC4A000650446 /* SignIn */,
 				836D4BEF1E1205CF005209F2 /* Consts.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
@@ -281,21 +281,22 @@
 			name = "Podspec Metadata";
 			sourceTree = "<group>";
 		};
+		833768B91F2EC4A000650446 /* SignIn */ = {
+			isa = PBXGroup;
+			children = (
+				833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */,
+			);
+			name = SignIn;
+			sourceTree = "<group>";
+		};
 		83544F851EF58B32007E0887 /* SyncServer_ExampleUITests */ = {
 			isa = PBXGroup;
 			children = (
+				83F882391E711E24008F644A /* GoogleSignIn.swift */,
 				83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */,
 				83544F881EF58B32007E0887 /* Info.plist */,
 			);
 			path = SyncServer_ExampleUITests;
-			sourceTree = "<group>";
-		};
-		83AD481F1F0C6968002B39C6 /* SignIn */ = {
-			isa = PBXGroup;
-			children = (
-				83F882391E711E24008F644A /* GoogleSignIn.swift */,
-			);
-			name = SignIn;
 			sourceTree = "<group>";
 		};
 		881D5EB56DAB9EE45ECC0D5E /* Pods */ = {
@@ -597,7 +598,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83F8823A1E711E24008F644A /* GoogleSignIn.swift in Sources */,
+				833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */,
 				836D4BF01E1205CF005209F2 /* Consts.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,

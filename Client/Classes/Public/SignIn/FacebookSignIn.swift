@@ -8,6 +8,9 @@
 
 // Enables you to sign in as a Facebook user to (a) create a new sharing user (must have an invitation from another SyncServer user), or (b) sign in as an existing sharing user.
 
+// See the .podspec file for this definition.
+#if SYNCSERVER_FACEBOOK_SIGNIN
+
 import Foundation
 import SMCoreLib
 import FacebookLogin
@@ -52,6 +55,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     public var delegate:GenericSignInDelegate?
     public var managerDelegate:SignInManagerDelegate!
     private let signInOutButton:FacebookSignInButton!
+    fileprivate var duringLaunch = true
     
     public init() {
         signInOutButton = FacebookSignInButton()
@@ -74,7 +78,12 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     self.signUserOut()
                     Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
                 }
+                
+                self.duringLaunch = false
             }
+        }
+        else {
+            duringLaunch = false
         }
     }
     
@@ -87,7 +96,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
         return signInOutButton
     }
     
-    public var signInButton:TappableButton? {
+    public var signInButton: /* TappableButton */ UIView? {
         return signInOutButton
     }
     
@@ -113,16 +122,29 @@ public class FacebookSyncServerSignIn : GenericSignIn {
         signOutDelegate?.userWasSignedOut(signIn: self)
         delegate?.userActionOccurred(action: .userSignedOut, signIn: self)
         managerDelegate?.signInStateChanged(to: .signedOut, for: self)
+        reallySignUserOut()
+    }
+    
+    // It seems really hard to fully sign a user out of Facebook. The following helps.
+    fileprivate func reallySignUserOut() {
+        let deletePermission = GraphRequest(graphPath: "me/permissions/", parameters: [:], accessToken: AccessToken.current, httpMethod: .DELETE)
+        deletePermission.start { (response, graphRequestResult) in
+            switch graphRequestResult {
+            case .success(_):
+                Log.error("Success logging out.")
+            case .failed(let error):
+                Log.error("Error: Failed logging out: \(error)")
+            }
+        }
     }
     
     // Call this on a successful sign in to Facebook.
-    fileprivate func completeSignInProcess(success: (()->())? = nil, failure: (()->())? = nil) {
+    fileprivate func completeSignInProcess() {
         managerDelegate?.signInStateChanged(to: .signedIn, for: self)
 
         guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
             // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
             SyncServerUser.session.creds = credentials
-            success?()
             return
         }
         
@@ -135,43 +157,49 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     case .noUser:
                         self.delegate?.userActionOccurred(action:
                             .userNotFoundOnSignInAttempt, signIn: self)
-                        failure?()
+                        self.signUserOut()
                         
                     case .owningUser:
                         // This should never happen!
-                        failure?()
+                        self.signUserOut()
                         Log.error("Somehow a Facebook user signed in as an owning user!!")
                         
-                    case .sharingUser(sharingPermission: let permission):
+                    case .sharingUser(sharingPermission: let permission, accessToken: let accessToken):
+                        Log.msg("Sharing user signed in: access token: \(String(describing: accessToken))")
                         self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
-                        success?()
                     }
                 }
                 else {
-                    // TODO: *0* Give the user an error indication.
-                    Log.error("Error checking for existing user: \(String(describing: error))")
-                    failure?()
+                    let message = "Error checking for existing user: \(error!)"
+                    if !self.duringLaunch {
+                        Alert.show(withTitle: "Alert!", message: message)
+                    }
+                    Log.error(message)
+                    self.signUserOut()
                 }
             }
             
         case .createOwningUser:
             // Facebook users cannot be owning users! They don't have cloud storage.
-            failure?()
-            Log.error("Somehow a Facebook user attempted to create an owning user!!")
+            Alert.show(withTitle: "Alert!", message: "Somehow a Facebook user attempted to create an owning user!!")
+            signUserOut()
             
         case .createSharingUser(invitationCode: let invitationCode):
-            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { error in
+            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { longLivedAccessToken, error in
                 if error == nil {
+                    Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
-                    success?()
                 }
                 else {
-                    failure?()
+                    Log.error("Error: \(error!)")
+                    Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
+                    self.signUserOut()
                 }
             }
             
         case .none:
-            failure?()
+            self.signUserOut()
+            break
         }
     }
 }
@@ -227,16 +255,19 @@ private class FacebookSignInButton : UIControl, Tappable {
                     
                 case .success(_, _, _):
                     print("Logged in!")
+                    self.signIn.managerDelegate?.signInStateChanged(to: .signedIn, for: self.signIn)
                     
                     // Seems the UserProfile isn't loaded yet.
                     UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
                         switch fetchResult {
                         case .success(_):
-                            self.signIn.completeSignInProcess(failure: {
-                                self.signIn.signUserOut()
-                            })
+                            self.signIn.completeSignInProcess()
                         case .failed(let error):
-                            Log.error("Error fetching UserProfile: \(error)")
+                            let message = "Error fetching UserProfile: \(error)"
+                            if !self.signIn.duringLaunch {
+                                Alert.show(withTitle: "Alert!", message: message)
+                            }
+                            Log.error(message)
                             self.signIn.signUserOut()
                         }
                     }
@@ -245,3 +276,5 @@ private class FacebookSignInButton : UIControl, Tappable {
         }
     }
 }
+
+#endif

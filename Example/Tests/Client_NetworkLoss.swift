@@ -64,6 +64,10 @@ class ServerAPI_NetworkLoss: TestCase {
     }
     
     func testRemoveUserNetworkLoss() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         apiCallNetworkLoss() { exp in
             ServerAPI.session.removeUser() { error in
                 XCTAssert(error != nil)

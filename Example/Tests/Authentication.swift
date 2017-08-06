@@ -28,6 +28,10 @@ class TestCreds : GenericCredentials {
 class ServerAPI_Authentication: TestCase {
     override func setUp() {
         super.setUp()
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         Log.msg("deviceUUID1: \(self.deviceUUID)")
 
         let exp = expectation(description: "\(#function)\(#line)")
@@ -47,6 +51,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testAddUserWithoutAuthenticationDelegateFails() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let expectation = self.expectation(description: "authentication")
         ServerNetworking.session.authenticationDelegate = nil
         
@@ -59,6 +67,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testAddUserWithAuthenticationDelegateWorks() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let expectation = self.expectation(description: "authentication")
         
         ServerAPI.session.addUser { error in
@@ -70,6 +82,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testCheckCredsWithValidUserCredsWorks() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let expectation = self.expectation(description: "authentication")
         let addUserExpectation = self.expectation(description: "addUser")
 
@@ -93,6 +109,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testCheckCredsWithBadAuthenticationValuesFail() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let addUserExpectation = self.expectation(description: "addUser")
         let expectation = self.expectation(description: "authentication")
         
@@ -116,6 +136,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testRemoveUserWithBadAccessTokenFails() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
         
@@ -136,6 +160,10 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testRemoveUserSucceeds() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
         

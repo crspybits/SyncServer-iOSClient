@@ -114,7 +114,6 @@ extension ViewController : GenericSignInDelegate {
         
         // A bit of a hack to test sharing users with Facebook.
         if ViewController.sharingInvitationUUID.stringValue != "" && signIn.signInTypesAllowed.contains(.sharingUser) {
-            
             result = .createSharingUser(invitationCode: ViewController.sharingInvitationUUID.stringValue)
             ViewController.sharingInvitationUUID.stringValue = ""
         } else {
@@ -149,7 +148,7 @@ extension ViewController : GenericSignInDelegate {
             break
             
         case .sharingUserCreated:
-            break
+            Alert.show(message: "Sharing user created!")
         }
     }
 }
@@ -180,5 +179,4 @@ extension ViewController : SyncServerDelegate {
         assert(false)
     }
 }
-
 

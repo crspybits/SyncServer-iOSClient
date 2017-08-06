@@ -1,6 +1,6 @@
 
 //
-//  SMGoogleUserSignIn.swift
+//  GoogleSignIn.swift
 //  SyncServer
 //
 //  Created by Christopher Prince on 11/26/15.
@@ -90,14 +90,13 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     }
 }
 
-
 // The class that you use to enable sign-in to Google should adopt this protocol. e.g., this should be the view controller on which your Google button is placed.
 // Renaming `GIDSignInUIDelegate` to my own protocol just so we don't have to expose Google's
 public protocol GoogleSignInUIProtocol : GIDSignInUIDelegate {
 }
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
-class GoogleSyncServerSignIn : NSObject, GenericSignIn {
+public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
     
     fileprivate let serverClientId:String!
     fileprivate let appClientId:String!
@@ -107,6 +106,8 @@ class GoogleSyncServerSignIn : NSObject, GenericSignIn {
     weak public var delegate:GenericSignInDelegate?    
     weak public var signOutDelegate:GenericSignOutDelegate?
     weak public var managerDelegate:SignInManagerDelegate!
+    
+    fileprivate var duringLaunch = true
    
     public init(serverClientId:String, appClientId:String) {
         self.serverClientId = serverClientId
@@ -126,7 +127,7 @@ class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         GGLContext.sharedInstance().configureWithError(&configureError)
         assert(configureError == nil, "Error configuring Google services: \(String(describing: configureError))")
         */
-    
+
         GIDSignIn.sharedInstance().delegate = self
         
         // Seem to need the following for accessing the serverAuthCode. Plus, you seem to need a "fresh" sign-in (not a silent sign-in). PLUS: serverAuthCode is *only* available when you don't do the silent sign in.
@@ -149,19 +150,20 @@ class GoogleSyncServerSignIn : NSObject, GenericSignIn {
             GIDSignIn.sharedInstance().signInSilently()
         }
         else {
+            duringLaunch = false
             // I'm doing this to force a user-signout, so that I get the serverAuthCode. Seems I only get this with the user explicitly signed out before hand.
             GIDSignIn.sharedInstance().signOut()
         }
     }
 
-    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+    public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         let annotation = options[UIApplicationOpenURLOptionsKey.annotation]
         let sourceApplication = options[UIApplicationOpenURLOptionsKey.sourceApplication] as! String
         return GIDSignIn.sharedInstance().handle(url, sourceApplication: sourceApplication,
             annotation: annotation)
     }
     
-    var userIsSignedIn: Bool {
+    public var userIsSignedIn: Bool {
         Log.msg("GIDSignIn.sharedInstance().currentUser: \(GIDSignIn.sharedInstance().currentUser)")
         return GIDSignIn.sharedInstance().hasAuthInKeychain()
     }
@@ -206,8 +208,8 @@ class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         return signInOutButton
     }
     
-    var signInButton: TappableButton? {
-        return _signInOutButton
+    public var signInButton: /* TappableButton */ UIView? {
+        return _signInOutButton as? UIView
     }
 }
 
@@ -253,13 +255,16 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                                 .userNotFoundOnSignInAttempt, signIn: self)
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
-                        case .sharingUser(sharingPermission: let permission):
+                        case .sharingUser(sharingPermission: let permission, _):
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
                         }
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
-                        Log.error("Error checking for existing user: \(String(describing: error))")
+                        let message = "Error checking for existing user: \(error!)"
+                        if !self.duringLaunch {
+                            SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
+                        }
+                        Log.error(message)
                         self.signUserOut()
                     }
                 }
@@ -270,18 +275,18 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
                         self.signUserOut()
                     }
                 }
                 
             case .createSharingUser(invitationCode: let invitationCode):
-                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { error in
+                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { accessToken, error in
                     if error == nil {
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                     }
                     else {
-                        // TODO: *0* Give the user an error indication.
+                        SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                         self.signUserOut()
                     }
                 }
@@ -291,12 +296,21 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             }
         }
         else {
-            Log.error("Error signing into Google: \(error)")
+            let message = "Error signing into Google: \(error!)"
+            if !duringLaunch {
+                // This assumes there is a root view controller present-- don't do it during launch
+                SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
+            }
+            Log.error(message)
+            
             // So we don't have the UI saying we're signed in, but we're actually not.
             signUserOut()
         }
+        
+        duringLaunch = false
     }
     
+    // TODO: *2* When does this get called?
     public func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!)
     {
     }
@@ -414,3 +428,5 @@ private class GoogleSignInOutButton : UIView, Tappable {
         }
     }
 }
+
+

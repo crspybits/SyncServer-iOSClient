@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import AFNetworking
 import SMCoreLib
 import SyncServer_Shared
 
@@ -24,7 +23,6 @@ case couldNotCreateNewFile
 }
 
 class ServerNetworking : NSObject {
-    //fileprivate let manager: AFHTTPSessionManager!
     static let session = ServerNetworking()
     
     private weak var _authenticationDelegate:ServerNetworkingAuthentication?
@@ -40,11 +38,7 @@ class ServerNetworking : NSObject {
     }
     
     func appLaunchSetup() {
-        // To get "spinner" in status bar when ever we have network activity.
-        // See http://cocoadocs.org/docsets/AFNetworking/2.0.0/Classes/AFNetworkActivityIndicatorManager.html
-        
-        // TODO: *3* I think this isn't working any more-- I'm not using AFNetworking. How can I have a networking spinner in the status bar now?
-        AFNetworkActivityIndicatorManager.shared().isEnabled = true
+        // TODO: *3* How can I have a networking spinner in the status bar? See https://github.com/crspybits/SyncServer-iOSClient/issues/7
     }
 
     enum ServerNetworkingError : Error {
@@ -174,8 +168,15 @@ class ServerNetworking : NSObject {
                 return
             }
             
+            var resultDict = jsonDict
+            
+            // Some responses (from endpoints doing sharing operations) have ServerConstants.httpResponseOAuth2AccessTokenKey in their header. Pass it up using the same key.
+            if let accessTokenResponse = response.allHeaderFields[ServerConstants.httpResponseOAuth2AccessTokenKey] {
+                resultDict[ServerConstants.httpResponseOAuth2AccessTokenKey] = accessTokenResponse
+            }
+            
             Log.msg("No errors on upload: jsonDict: \(jsonDict)")
-            completion?(jsonDict, response.statusCode, nil)
+            completion?(resultDict, response.statusCode, nil)
         }
         else {
             completion?(nil, nil, error)

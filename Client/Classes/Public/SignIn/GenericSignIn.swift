@@ -89,7 +89,7 @@ public protocol GenericSignIn : class {
     func setupSignInButton(params:[String:Any]?) -> TappableButton?
     
     // Returns the last value returned from `setupSignInButton`.
-    var signInButton:TappableButton? {get}
+    var signInButton:/* TappableButton*/ UIView? {get}
     
     var userIsSignedIn: Bool {get}
 

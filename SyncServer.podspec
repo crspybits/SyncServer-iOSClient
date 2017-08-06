@@ -1,3 +1,5 @@
+# Making use of subspecs to allow user of pod to select sign-in types. See also http://www.dbotha.com/2014/12/04/optional-cocoapod-dependencies/
+
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
   s.version          = '2.0.1'
@@ -22,6 +24,8 @@ Pod::Spec.new do |s|
   s.source_files = 'Client/Classes/**/*.{swift}'
   s.resources = 'Client/Assets/**/*'
   s.resources = 'Client/Classes/**/*.{xib}'
+
+  s.preserve_paths = 'Client/Assets/**/*'
 
   s.dependency 'SMCoreLib', '< 1.0'
   s.dependency 'Gloss'
