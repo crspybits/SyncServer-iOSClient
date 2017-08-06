@@ -3,18 +3,15 @@ source 'https://github.com/crspybits/Specs.git'
 
 use_frameworks!
 
-target 'SyncServer_Example' do
+target 'SyncServer_Example' do	
+	# This is needed because we can't put it in the SyncServer Cocoapod-- it apparently has static frameworks.
+	pod 'GoogleSignIn', '4.0.2'
+	
 	pod 'SyncServer', :path => '../'
+	pod 'SyncServer/Facebook', :path => '../'
 	
-	# These two should only be needed right now because I've not pushed the SyncServer pod up to a repo yet.
-	pod 'SMCoreLib', :path => '../../Common/SMCoreLib/'
-	pod 'SyncServer-Shared', :path => '../../SyncServer-Shared/'
-	
-    pod 'SevenSwitch', '~> 2.1'
-	pod 'Google/SignIn'
-	
-	pod 'FacebookLogin'
-	pod 'FacebookCore'		
+# 	pod 'SyncServer'
+# 	pod 'SyncServer/Facebook'
 
 	target 'SyncServer_Tests' do
     	inherit! :search_paths

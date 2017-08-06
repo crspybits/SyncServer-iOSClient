@@ -9,7 +9,6 @@
 // Enables you to sign in as a Facebook user to (a) create a new sharing user (must have an invitation from another SyncServer user), or (b) sign in as an existing sharing user.
 
 import Foundation
-import SyncServer
 import SMCoreLib
 import FacebookLogin
 import FacebookCore
@@ -33,7 +32,6 @@ public class FacebookCredentials : GenericCredentials {
     
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
-        result[ServerConstants.httpUsernameKey] = username
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.FacebookToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = accessToken.authenticationToken
         return result
@@ -49,7 +47,7 @@ public class FacebookCredentials : GenericCredentials {
     }
 }
 
-public class FacebookSignIn : GenericSignIn {
+public class FacebookSyncServerSignIn : GenericSignIn {
     public var signOutDelegate:GenericSignOutDelegate?
     public var delegate:GenericSignInDelegate?
     public var managerDelegate:SignInManagerDelegate!
@@ -70,6 +68,7 @@ public class FacebookSignIn : GenericSignIn {
             AccessToken.refreshCurrentToken() { (accessToken, error) in
                 if error == nil {
                     Log.msg("FacebookSignIn: Sucessfully refreshed current access token")
+                    self.completeSignInProcess()
                 }
                 else {
                     self.signUserOut()
@@ -83,6 +82,7 @@ public class FacebookSignIn : GenericSignIn {
         return SDKApplicationDelegate.shared.application(app, open: url, options: options)
     }
     
+    @discardableResult
     public func setupSignInButton(params:[String:Any]? = nil) -> TappableButton? {
         return signInOutButton
     }
@@ -117,6 +117,8 @@ public class FacebookSignIn : GenericSignIn {
     
     // Call this on a successful sign in to Facebook.
     fileprivate func completeSignInProcess(success: (()->())? = nil, failure: (()->())? = nil) {
+        managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+
         guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
             // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
             SyncServerUser.session.creds = credentials
@@ -176,7 +178,7 @@ public class FacebookSignIn : GenericSignIn {
 
 private class FacebookSignInButton : UIControl, Tappable {
     var signInButton:LoginButton!
-    weak var signIn: FacebookSignIn!
+    weak var signIn: FacebookSyncServerSignIn!
     private let permissions = [ReadPermission.publicProfile]
     
     init() {
@@ -225,7 +227,6 @@ private class FacebookSignInButton : UIControl, Tappable {
                     
                 case .success(_, _, _):
                     print("Logged in!")
-                    self.signIn.managerDelegate?.signInStateChanged(to: .signedIn, for: self.signIn)
                     
                     // Seems the UserProfile isn't loaded yet.
                     UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
@@ -244,159 +245,3 @@ private class FacebookSignInButton : UIControl, Tappable {
         }
     }
 }
-
-/*
-extension FacebookSignIn : LoginButtonDelegate {
-    public func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
-        switch result {
-        case .cancelled:
-            Log.msg("FacebookSignIn: Cancelled sign in.")
-            managerDelegate?.signInStateChanged(to: .signedOut, for: self)
-
-        case .failed(let error):
-            Log.msg("FacebookSignIn: Error signing in: \(error).")
-            managerDelegate?.signInStateChanged(to: .signedOut, for: self)
-            
-        case .success(grantedPermissions: _, declinedPermissions: _, token: _):
-            Log.msg("FacebookSignIn: Success signing in!")
-            managerDelegate?.signInStateChanged(to: .signedIn, for: self)
-        }
-    }
-
-    public func loginButtonDidLogOut(_ loginButton: LoginButton) {
-        Log.msg("FacebookSignIn: Button did logout.")
-        managerDelegate?.signInStateChanged(to: .signedOut, for: self)
-    }
-}
-*/
-
-
-/*
-extension SMFacebookUserSignIn : FBSDKLoginButtonDelegate {
-    public func loginButton(_ loginButton: FBSDKLoginButton!, didCompleteWithResult result: FBSDKLoginManagerLoginResult!, error: NSError!) {
-    
-        Log.msg("result: \(result); error: \(error)")
-        
-        if !result.isCancelled && error == nil {
-            self.finishSignIn()
-        }
-    }
-
-    public func loginButtonDidLogOut(_ loginButton: FBSDKLoginButton!) {
-        self.completeReallyLogOut()
-    }
-    
-    fileprivate func finishSignIn() {
-        Log.msg("FBSDKAccessToken.currentAccessToken().userID: \(FBSDKAccessToken.currentAccessToken().userID)")
-        
-        // Adapted from http://stackoverflow.com/questions/29323244/facebook-ios-sdk-4-0how-to-get-user-email-address-from-fbsdkprofile
-        let parameters = ["fields" : "email, id, name"]
-        FBSDKGraphRequest(graphPath: "me", parameters: parameters).startWithCompletionHandler { (connection:FBSDKGraphRequestConnection!, result: AnyObject!, error: NSError!) in
-            Log.msg("result: \(result); error: \(error)")
-            
-            if nil == error {
-                if let resultDict = result as? [String:AnyObject] {
-                    // I'm going to prefer the email address, if we get it, just because it's more distinctive than the name.
-                    if resultDict["email"] != nil {
-                        self.fbUserName = resultDict["email"] as? String
-                    }
-                    else {
-                        self.fbUserName = resultDict["name"] as? String
-                    }
-                }
-            }
-            
-            Log.msg("self.currentOwningUserId: \(self.currentOwningUserId)")
-            
-            let syncServerFacebookUser = SMUserCredentials.Facebook(userType: .SharingUser(owningUserId: self.currentOwningUserId), accessToken: FBSDKAccessToken.currentAccessToken().tokenString, userId: FBSDKAccessToken.currentAccessToken().userID, userName: self.fbUserName)
-            
-            // We are not going to allow the user to create a new sharing user without an invitation code. There just doesn't seem any point: They wouldn't have any access capabilities. So, if we don't have an invitation code, check to see if this user is already on the system.
-            let sharingInvitationCode = self.delegate.smUserSignIn(getSharingInvitationCodeForUserSignIn: self)
-            
-            if sharingInvitationCode == nil {
-                self.signInWithNoInvitation(facebookUser: syncServerFacebookUser)
-            }
-            else {
-                // Going to redeem the invitation even if we get an error checking for email/name (username). The username is optional.
-                
-                // redeemSharingInvitation creates a new user if needed at the same time as redeeming invitation.
-                // Success on redeeming does the sign callback in process.
-                /*
-                SMSyncServerUser.session.redeemSharingInvitation(invitationCode: sharingInvitationCode!, userCreds: syncServerFacebookUser) { (linkedOwningUserId, error) in
-                    if error == nil {
-                        // Now, when the Facebook creds get sent to the server, they'll have this linkedOwningUserId.
-                        self.currentOwningUserId = linkedOwningUserId
-                        Log.msg("redeemSharingInvitation self.currentOwningUserId: \(self.currentOwningUserId); linkedOwningUserId: \(linkedOwningUserId)")
-                        
-                        self.delegate.smUserSignIn(userJustSignedIn: self)
-                    
-                        // If we could not redeem the invitation (couldNotRedeemSharingInvitation is true), we want to set the invitation to nil-- it was bad. If we could redeem it, we also want to set it to nil-- no point in trying to redeem it again.
-                        self.delegate.smUserSignIn(resetSharingInvitationCodeForUserSignIn: self)
-                    }
-                    else if error != nil {
-                        // TODO: Give them a UI error message.
-                        // Hmmm. We have an odd state here. If it was a new user, we created the user, but we couldn't redeem the invitation. What to do??
-                        Log.error("Failed redeeming invitation.")
-                        self.reallyLogOut()
-                    }
-                }*/
-            }
-        }
-    }
-    
-    fileprivate func signInWithNoInvitation(facebookUser:SMUserCredentials) {
-        if self.currentOwningUserId == nil {
-            // No owning user id; need to select which one we're going to use.
-            /*
-            SMSyncServerUser.session.getLinkedAccountsForSharingUser(facebookUser) { (linkedAccounts, error) in
-                if error == nil {
-                    self.delegate.smUserSignIn(userSignIn: self, linkedAccountsForSharingUser: linkedAccounts!, selectLinkedAccount: { (internalUserId) in
-                        self.currentOwningUserId = internalUserId
-                        self.signInWithOwningUserId(facebookUser: facebookUser)
-                    })
-                }
-                else {
-                    Log.error("Failed getting linked accounts.")
-                    self.reallyLogOut()
-                }
-            }*/
-        }
-        else {
-            self.signInWithOwningUserId(facebookUser: facebookUser)
-        }
-    }
-    
-    fileprivate func signInWithOwningUserId(facebookUser:SMUserCredentials) {
-        SMSyncServerUser.session.checkForExistingUser(
-            facebookUser, completion: { error in
-            
-            if error == nil {
-                self.delegate.smUserSignIn(userJustSignedIn: self)
-            }
-            else {
-                // TODO: This does not necessarily the user is not on the system. E.g., on a server crash or a network failure, we'll also get here. Need to check an error return code from the server.
-                // TODO: Give them an error message. Tell them they need an invitation from user on the system first.
-                Log.error("User not on the system: Need an invitation!")
-                self.reallyLogOut()
-            }
-        })
-    }
-    
-    // It seems really hard to fully logout!!! The following helps.
-    fileprivate func reallyLogOut() {
-        let deletepermission = FBSDKGraphRequest(graphPath: "me/permissions/", parameters: nil, HTTPMethod: "DELETE")
-        deletepermission.startWithCompletionHandler({ (connection, result, error) in
-            print("the delete permission is \(result)")
-            FBSDKLoginManager().logOut()
-            self.completeReallyLogOut()
-        })
-    }
-    
-    fileprivate func completeReallyLogOut() {
-        self.delegate.smUserSignIn(userJustSignedOut: self)
-        
-        // So that the next time we sign in, we get a choice of which owningUserId's we'll use if there is more than one.
-        self.currentOwningUserId = nil
-    }
-}
-*/

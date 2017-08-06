@@ -12,7 +12,7 @@ import SMCoreLib
 public typealias AppMetaData = [String:AnyObject]
 public typealias UUIDString = String
 
-// Attributes for a data object being synced.
+// Attributes for a file being synced.
 public struct SyncAttributes {
     public var fileUUID:String!
     public var mimeType:String!

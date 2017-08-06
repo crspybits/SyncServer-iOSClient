@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '0.0.5'
+  s.version          = '2.0.1'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -16,15 +16,28 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
 
   s.pod_target_xcconfig = {
-    'OTHER_SWIFT_FLAGS[config=Debug]' => '-DDEBUG',
+    'OTHER_SWIFT_FLAGS[config=Debug]' => '$(inherited) -DDEBUG',
   }
 
   s.source_files = 'Client/Classes/**/*.{swift}'
   s.resources = 'Client/Assets/**/*'
-  s.preserve_paths = 'Client/Assets/**/*'
-    
-  s.dependency 'AFNetworking'
-  s.dependency 'SMCoreLib'
+  s.resources = 'Client/Classes/**/*.{xib}'
+
+  s.dependency 'SMCoreLib', '< 1.0'
   s.dependency 'Gloss'
-  s.dependency 'SyncServer-Shared'
+  s.dependency 'SyncServer-Shared', '< 2.0'
+  
+  s.default_subspec = 'Lite'
+  
+  s.subspec 'Lite' do |lite|
+    # subspec for users who don't want the sign-in's they don't use.
+  end
+  
+  s.subspec 'Facebook' do |facebook|
+    facebook.xcconfig =   
+        { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
+
+    facebook.dependency 'FacebookLogin', '0.2.0'
+    facebook.dependency 'FacebookCore', '0.2.0'
+  end
 end

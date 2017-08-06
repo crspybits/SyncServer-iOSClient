@@ -9,6 +9,7 @@
 
 import Foundation
 import SMCoreLib
+import SyncServer_Shared
 
 public class SignInManager {
     // These must be stored in user defaults-- so that if they delete the app, we lose it, and can start again. Storing both the currentUIDisplayName and userId because the userId (at least for Google) is just a number and not intelligible in the UI.
@@ -20,10 +21,25 @@ public class SignInManager {
 
     public static let session = SignInManager()
     
+    public var signInStateChanged:TargetsAndSelectors = NSObject()
+    
     private init() {
+        signInStateChanged.resetTargets!()
     }
     
     fileprivate var alternativeSignIns = [GenericSignIn]()
+    
+    public func getSignIns(`for` signInType: SignInType) -> [GenericSignIn]  {
+        var result = [GenericSignIn]()
+        
+        for signIn in alternativeSignIns {
+            if signInType == .both || signIn.signInTypesAllowed.contains(signInType) {
+                result += [signIn]
+            }
+        }
+        
+        return result
+    }
     
     // Set this to establish the current SignIn mechanism in use in the app.
     public var currentSignIn:GenericSignIn? {
@@ -90,19 +106,14 @@ extension SignInManager : SignInManagerDelegate {
         case .signedIn:
             // This is necessary for silent sign in's.
             currentSignIn = signIn
-            // Hide all other signIn's
-            for signIn in alternativeSignIns {
-                if SignInManager.currentSignInName.stringValue == stringNameForSignIn(signIn) {
-                    continue
-                }
-                signIn.signInButton?.isHidden = true
-            }
             
         case .signedOut:
             currentSignIn = nil
-            // Show all signIn's
-            for signIn in alternativeSignIns {
-                signIn.signInButton?.isHidden = false
+        }
+        
+        signInStateChanged.forEachTarget!() { (target, selector, dict) in
+            if let targetObject = target as? NSObject {
+                targetObject.performVoidReturn(selector)
             }
         }
     }

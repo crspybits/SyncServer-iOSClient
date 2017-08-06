@@ -8,17 +8,36 @@
 
 import UIKit
 import SMCoreLib
-@testable import SyncServer
-import SevenSwitch
+import SyncServer
 import SyncServer_Shared
 
-class ViewController: GoogleSignInViewController {
-    var googleSignInButton:TappableButton!
-    var facebookSignInButton:TappableButton!
-    fileprivate var signinTypeSwitch:SevenSwitch!
+class ViewController: UIViewController, GoogleSignInUIProtocol {
+    @IBOutlet weak var signInContainer: UIView!
+    var googleSignInButton: /* TappableButton */ UIView!
+    var facebookSignInButton:/* TappableButton */ UIView!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
     var syncServerSingleFileUploadCompleted: (()->())?
     @IBOutlet weak var testingOutcome: UILabel!
+    
+    static fileprivate var sharingInvitationUUID:SMPersistItemString = SMPersistItemString(name: "ViewController.sharingInvitationUUID", initialStringValue: "", persistType: .userDefaults)
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self]) as! UIView
+        SetupSignIn.session.googleSignIn.delegate = self
+        
+        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil) as! UIView
+        facebookSignInButton.frameWidth = googleSignInButton.frameWidth
+        SetupSignIn.session.facebookSignIn.delegate = self
+
+        let signIn = SignIn.create()!
+        signInContainer.addSubview(signIn)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    }
     
     // So far, this needs to be run manually, after you've signed in. Also-- you may need to delete the current FileIndex contents in the database, and delete the app.
     @IBAction func testCredentialsRefreshAction(_ sender: Any) {
@@ -69,45 +88,23 @@ class ViewController: GoogleSignInViewController {
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         SyncServer.session.sync()
     }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
-        googleSignInButton.frameY = 100
-        view.addSubview(googleSignInButton)
-        googleSignInButton.centerHorizontallyInSuperview()
-        SetupSignIn.session.googleSignIn.delegate = self
-        
-        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil)
-        facebookSignInButton.frameY = googleSignInButton.frameMaxY + 20
-        facebookSignInButton.frameWidth = googleSignInButton.frameWidth
-        view.addSubview(facebookSignInButton)
-        facebookSignInButton.centerHorizontallyInSuperview()
-        SetupSignIn.session.facebookSignIn.delegate = self
-        
-        // Existing/New user switch
-        signinTypeSwitch = SevenSwitch()
-        signinTypeSwitch.offLabel.text = "Existing user"
-        signinTypeSwitch.offLabel.textColor = UIColor.black
-        signinTypeSwitch.onLabel.text = "New user"
-        signinTypeSwitch.onLabel.textColor = UIColor.black
-        signinTypeSwitch.frameY = facebookSignInButton.frameMaxY + 30
-        signinTypeSwitch.frameWidth = 120
-        signinTypeSwitch.inactiveColor =  UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
-        signinTypeSwitch.onTintColor = UIColor(red: 16.0/255.0, green: 125.0/255.0, blue: 247.0/255.0, alpha: 1)
-        view.addSubview(signinTypeSwitch)
-        signinTypeSwitch.centerHorizontallyInSuperview()
-        
-        setSignInTypeState()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-    }
-    
-    func setSignInTypeState() {
-        signinTypeSwitch?.isHidden = SignInManager.session.userIsSignIn
+ 
+    @IBAction func createSharingInvitationAction(_ sender: Any) {
+        Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
+            SyncServerUser.session.createSharingInvitation(withPermission: .admin) { (invitationUUID, error)  in
+                guard error == nil else {
+                    Thread.runSync(onMainThread: {
+                        Alert.show(message: "Error: Could not create sharing invitation: \(error!)")
+                    })
+                    return
+                }
+                
+                ViewController.sharingInvitationUUID.stringValue = invitationUUID!
+                Thread.runSync(onMainThread: {
+                    Alert.show(message: "You can now sign out, and sign in as a Facebook user.")
+                })
+            }
+        }
     }
 }
 
@@ -115,14 +112,22 @@ extension ViewController : GenericSignInDelegate {
     func shouldDoUserAction(signIn: GenericSignIn) -> UserActionNeeded {
         var result:UserActionNeeded = .none
         
-        if signinTypeSwitch.isOn() {
-            // User wants to create a new user. We only allow the user to request this directly in the case of a sign in that allows owning users. E.g., Google Drive. For a sign-in that only allows sharing users (e.g., Facebook), the user first needs a sharing invitation.
-            if signIn.signInTypesAllowed.contains(.owningUser) {
+        // A bit of a hack to test sharing users with Facebook.
+        if ViewController.sharingInvitationUUID.stringValue != "" && signIn.signInTypesAllowed.contains(.sharingUser) {
+            
+            result = .createSharingUser(invitationCode: ViewController.sharingInvitationUUID.stringValue)
+            ViewController.sharingInvitationUUID.stringValue = ""
+        } else {
+            switch SignIn.userInterfaceState {
+            case .createNewAccount:
                 result = .createOwningUser
+            
+            case .existingAccount:
+                result = .signInExistingUser
+                
+            case .initialSignInViewShowing:
+                break
             }
-        }
-        else {
-            result = .signInExistingUser
         }
         
         return result
@@ -135,6 +140,7 @@ extension ViewController : GenericSignInDelegate {
             
         case .userNotFoundOnSignInAttempt:
             Log.error("User not found on sign in attempt")
+            signIn.signUserOut()
             
         case .existingUserSignedIn(_):
             break
@@ -145,8 +151,6 @@ extension ViewController : GenericSignInDelegate {
         case .sharingUserCreated:
             break
         }
-        
-        setSignInTypeState()
     }
 }
 
@@ -173,10 +177,6 @@ extension ViewController : SyncServerDelegate {
     }
     
     func syncServerSingleFileDownloadCompleted(next: @escaping ()->()) {
-        assert(false)
-    }
-    
-    func uploadDeletion(fileToDelete:ServerAPI.FileToDelete, masterVersion:MasterVersionInt) {
         assert(false)
     }
 }

@@ -62,20 +62,10 @@ public protocol SignInManagerDelegate : class {
 }
 
 // A `UIView` is used to enable a broader description-- we're really thinking UIControl or UIButton.
-public typealias TappableButton = UIView & Tappable
+public typealias TappableButton = /* UIView & */ Tappable
 public protocol Tappable {
     // The intent is that this will cause a touchUpInside action to be sent to the underlying button.
     func tap()
-}
-
-public struct SignInType: OptionSet {
-    public let rawValue: Int
-    
-    public init(rawValue: Int) { self.rawValue = rawValue }
-    
-    public static let owningUser = SignInType(rawValue: 1 << 0)
-    public static let sharingUser = SignInType(rawValue: 1 << 1)
-    public static let both:SignInType = [.owningUser, .sharingUser]
 }
 
 public protocol GenericSignIn : class {
