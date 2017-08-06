@@ -7,11 +7,11 @@ target 'SyncServer_Example' do
 	# This is needed because we can't put it in the SyncServer Cocoapod-- it apparently has static frameworks.
 	pod 'GoogleSignIn', '4.0.2'
 	
-	pod 'SyncServer', :path => '..'
-	pod 'SyncServer/Facebook', :path => '..'
+# 	pod 'SyncServer', :path => '..'
+# 	pod 'SyncServer/Facebook', :path => '..'
 	
-# 	pod 'SyncServer'
-# 	pod 'SyncServer/Facebook'
+	pod 'SyncServer'
+	pod 'SyncServer/Facebook'
 
 	target 'SyncServer_Tests' do
     	inherit! :search_paths
