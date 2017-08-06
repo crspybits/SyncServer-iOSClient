@@ -13,13 +13,13 @@ public class SignIn : UIView, XibBasics {
     typealias ViewType = SignIn
     
     public enum SignInUIState {
-        // asking if user wants to sign-in as existing or new user)
+        // asking if user wants to sign-in as existing or new user
         case initialSignInViewShowing
         
         // view showing allows user to create a new (owning) user
         case createNewAccount
         
-        // view allowing user to sign in as existing user.
+        // view allowing user to sign in as existing user
         case existingAccount
     }
 

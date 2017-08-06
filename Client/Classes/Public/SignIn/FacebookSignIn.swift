@@ -118,11 +118,13 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     }
 
     public func signUserOut() {
+        // Seem to have to do this before the `LoginManager().logOut()`, so we still have a valid token.
+        reallySignUserOut()
+        
         LoginManager().logOut()
         signOutDelegate?.userWasSignedOut(signIn: self)
         delegate?.userActionOccurred(action: .userSignedOut, signIn: self)
         managerDelegate?.signInStateChanged(to: .signedOut, for: self)
-        reallySignUserOut()
     }
     
     // It seems really hard to fully sign a user out of Facebook. The following helps.
@@ -131,7 +133,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
         deletePermission.start { (response, graphRequestResult) in
             switch graphRequestResult {
             case .success(_):
-                Log.error("Success logging out.")
+                Log.msg("Success logging out.")
             case .failed(let error):
                 Log.error("Error: Failed logging out: \(error)")
             }
@@ -255,13 +257,13 @@ private class FacebookSignInButton : UIControl, Tappable {
                     
                 case .success(_, _, _):
                     print("Logged in!")
-                    self.signIn.managerDelegate?.signInStateChanged(to: .signedIn, for: self.signIn)
                     
                     // Seems the UserProfile isn't loaded yet.
                     UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
                         switch fetchResult {
                         case .success(_):
                             self.signIn.completeSignInProcess()
+                            
                         case .failed(let error):
                             let message = "Error fetching UserProfile: \(error)"
                             if !self.signIn.duringLaunch {
