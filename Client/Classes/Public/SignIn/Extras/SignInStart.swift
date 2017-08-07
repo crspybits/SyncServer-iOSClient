@@ -10,8 +10,7 @@
 import UIKit
 import SyncServer_Shared
 
-class SignInStart : UIView, XibBasics {
-    typealias ViewType = SignInStart
+class SignInStart : UIView {
     @IBOutlet weak var signIn: UIButton!
     static private(set) var createOwningUser:Bool?
 
@@ -51,7 +50,7 @@ class SignInStart : UIView, XibBasics {
     
     func showSignIns(`for` signInType: SignInType) {
         let signIns = SignInManager.session.getSignIns(for: signInType)
-        let signInAccounts = SignInAccounts.create()!
+        let signInAccounts:SignInAccounts = SignInAccounts.createFromXib()!
         
         var title:SignInAccountsTitle!
         

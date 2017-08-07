@@ -1,5 +1,5 @@
 //
-//  XibBasics.swift
+//  UIView+Extras.swift
 //  SyncServer
 //
 //  Created by Christopher G Prince on 7/31/17.
@@ -9,14 +9,10 @@
 import Foundation
 import UIKit
 
-protocol XibBasics {
-    associatedtype ViewType
-}
-
-extension XibBasics {
-    public static func create() -> ViewType? {
+extension UIView {
+    public static func createFromXib<T>() -> T? {
         let bundle = Bundle(for: SignInManager.self)
-        guard let viewType = bundle.loadNibNamed(typeName(self), owner: self, options: nil)?[0] as? ViewType else {
+        guard let viewType = bundle.loadNibNamed(typeName(self), owner: self, options: nil)?[0] as? T else {
             assert(false)
             return nil
         }

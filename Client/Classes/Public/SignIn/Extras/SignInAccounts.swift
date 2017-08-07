@@ -26,8 +26,7 @@ private class SignInButtonCell : UITableViewCell {
     }
 }
 
-class SignInAccounts : UIView, XibBasics {
-    typealias ViewType = SignInAccounts
+class SignInAccounts : UIView {
     @IBOutlet weak var tableView: UITableView!
     var signIns:[GenericSignIn]!
     let reuseIdentifier = "SignInAccountsCell"
@@ -73,7 +72,7 @@ class SignInAccounts : UIView, XibBasics {
     }
     
     @IBAction func backAction(_ sender: Any) {
-        superview!.addSubview(SignInStart.create()!)
+        superview!.addSubview(SignInStart.createFromXib()!)
         removeFromSuperview()
     }
     
