@@ -190,6 +190,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
             SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { longLivedAccessToken, error in
                 if error == nil {
                     Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
+                    Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                 }
                 else {

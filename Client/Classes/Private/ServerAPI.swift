@@ -186,7 +186,7 @@ class ServerAPI {
         var params = [String : Any]()
         
 #if DEBUG
-        if let serverSleep = delegate.fileIndexRequestServerSleep(forServerAPI: self) {
+        if let serverSleep = delegate?.fileIndexRequestServerSleep(forServerAPI: self) {
             params[FileIndexRequest.testServerSleepKey] = Int32(serverSleep)
         }
 #endif
@@ -324,7 +324,7 @@ class ServerAPI {
         params[DoneUploadsRequest.masterVersionKey] = serverMasterVersion
         
 #if DEBUG
-        if let testLockSync = delegate.doneUploadsRequestTestLockSync(forServerAPI: self) {
+        if let testLockSync = delegate?.doneUploadsRequestTestLockSync(forServerAPI: self) {
             params[DoneUploadsRequest.testLockSyncKey] = Int32(testLockSync)
         }
 #endif
@@ -635,7 +635,8 @@ extension ServerAPI : ServerNetworkingAuthentication {
             }
         }
         
-        result[ServerConstants.httpRequestDeviceUUID] = self.delegate.deviceUUID(forServerAPI: self).uuidString
+        // August/2017-- I got a couple of crashes that seemed to have occurred right here. They occurred when the app launched. Previously, I had delegate.deviceUUID. I've now changed that to device?.deviceUUID.
+        result[ServerConstants.httpRequestDeviceUUID] = delegate?.deviceUUID(forServerAPI: self).uuidString
         
 #if DEBUG
         if failNextEndpoint {

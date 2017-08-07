@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
   }
 
   s.source_files = 'Client/Classes/**/*.{swift}'
-  s.resources = 'Client/Assets/**/*'
-  s.resources = 'Client/Classes/**/*.{xib}'
+  
+  s.resources = ['Client/Assets/**/*', 'Client/Classes/**/*.{xib}']
 
   s.preserve_paths = 'Client/Assets/**/*'
 

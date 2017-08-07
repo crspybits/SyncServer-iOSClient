@@ -48,6 +48,8 @@ public protocol GenericSignOutDelegate : class {
 
 public protocol GenericSignInDelegate : class {
     func shouldDoUserAction(signIn:GenericSignIn) -> UserActionNeeded
+    
+    // Before calling this delegate method, the implementing code this present any UI alerts as needed. E.g., if an owning user was successfully created, present an alert to tell the user.
     func userActionOccurred(action:UserActionOccurred, signIn:GenericSignIn)
 }
 

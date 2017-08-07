@@ -24,6 +24,9 @@ public class SyncServerUser {
     }
     
     public static let session = SyncServerUser()
+    
+    func appLaunchSetup() {
+    }
 
     // A distinct UUID for this user mobile device.
     // I'm going to persist this in the keychain not so much because it needs to be secure, but rather because it will survive app deletions/reinstallations.
@@ -71,7 +74,9 @@ public class SyncServerUser {
             switch checkCredsResult {
             case .none:
                 self.creds = nil
-                SignInManager.session.currentSignIn!.signUserOut()
+                Thread.runSync(onMainThread: {
+                    SignInManager.session.currentSignIn!.signUserOut()
+                })
                 if error == nil {
                     Log.msg("Did not find user!")
                     checkForUserResult = .noUser
@@ -83,7 +88,9 @@ public class SyncServerUser {
             
             case .some(.noUser):
                 self.creds = nil
-                SignInManager.session.currentSignIn!.signUserOut()
+                Thread.runSync(onMainThread: {
+                    SignInManager.session.currentSignIn!.signUserOut()
+                })
                 checkForUserResult = .noUser
                 
             case .some(.owningUser):
@@ -94,10 +101,14 @@ public class SyncServerUser {
             }
             
             if case .some(.noUser) = checkForUserResult {
-                self.showAlert(with: "\(creds.uiDisplayName) doesn't exist on the system.", and: "You can sign in as a \"New user\", or get a sharing invitation from another user.")
+                Thread.runSync(onMainThread: {
+                    self.showAlert(with: "\(creds.uiDisplayName) doesn't exist on the system.", and: "You can sign in as a \"New user\", or get a sharing invitation from another user.")
+                })
             }
             else if errorResult != nil {
-                 self.showAlert(with: "Error trying to sign in: \(errorResult!)")
+                Thread.runSync(onMainThread: {
+                    self.showAlert(with: "Error trying to sign in: \(errorResult!)")
+                })
             }
             
             Thread.runSync(onMainThread: {

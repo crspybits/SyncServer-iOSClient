@@ -253,6 +253,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         case .noUser:
                             self.delegate?.userActionOccurred(action:
                                 .userNotFoundOnSignInAttempt, signIn: self)
+                            self.signUserOut()
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
                         case .sharingUser(sharingPermission: let permission, _):
@@ -272,6 +273,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             case .createOwningUser:
                 SyncServerUser.session.addUser(creds: creds) { error in
                     if error == nil {
+                        SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new owning user! You are now signed in too!")
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
                     }
                     else {
@@ -283,6 +285,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             case .createSharingUser(invitationCode: let invitationCode):
                 SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) { accessToken, error in
                     if error == nil {
+                        SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
                     }
                     else {

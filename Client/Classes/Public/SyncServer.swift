@@ -168,6 +168,9 @@ public class SyncServer {
         ]);
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
+        
+        // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
+        SyncServerUser.session.appLaunchSetup()
     }
     
     public enum SyncClientAPIError: Error {

@@ -22,15 +22,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        
-        SetupSignIn.session.appLaunch(options:launchOptions)
 
         let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
         let urlString = try! plist.getString(varName: "ServerURL")
         let serverURL = URL(string: urlString)!
         let cloudFolderName = try! plist.getString(varName: "CloudFolderName")
         
+        // Call this as soon as possible in your launch sequence.
         SyncServer.session.appLaunchSetup(withServerURL: serverURL, cloudFolderName:cloudFolderName)
+        
+        SetupSignIn.session.appLaunch(options:launchOptions)
         
         return true
     }

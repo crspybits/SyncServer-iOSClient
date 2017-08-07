@@ -139,8 +139,7 @@ extension ViewController : GenericSignInDelegate {
             
         case .userNotFoundOnSignInAttempt:
             Log.error("User not found on sign in attempt")
-            signIn.signUserOut()
-            
+
         case .existingUserSignedIn(_):
             break
             
@@ -148,7 +147,7 @@ extension ViewController : GenericSignInDelegate {
             break
             
         case .sharingUserCreated:
-            Alert.show(message: "Sharing user created!")
+            break
         }
     }
 }
