@@ -2,7 +2,7 @@
 //  FileTracker+CoreDataProperties.swift
 //  Pods
 //
-//  Created by Christopher Prince on 6/9/17.
+//  Created by Christopher G Prince on 8/26/17.
 //
 //
 
@@ -23,7 +23,5 @@ extension FileTracker {
     @NSManaged public var localURLData: NSData?
     @NSManaged public var mimeType: String?
     @NSManaged public var statusRaw: String?
-    @NSManaged public var creationDate: NSDate?
-    @NSManaged public var updateDate: NSDate?
 
 }

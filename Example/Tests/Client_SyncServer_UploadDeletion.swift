@@ -74,7 +74,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
@@ -145,7 +145,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testUploadImmediatelyFollowedByDeletionWorks() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
         // Include events other than syncDone just as a means of ensuring they don't occur.
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
@@ -194,6 +194,65 @@ class Client_SyncServer_UploadDeletion: TestCase {
             try SyncServer.session.delete(fileWithUUID: uuid)
             XCTFail()
         } catch {
+        }
+    }
+    
+    func testMultipleFileDeletionWorks() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let fileUUID2 = UUID().uuidString
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let syncDone1 = self.expectation(description: "SyncDone1")
+        let syncDone2 = self.expectation(description: "SyncDone2")
+
+        var syncDoneCount = 0
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                syncDoneCount += 1
+                switch syncDoneCount {
+                case 1:
+                    syncDone1.fulfill()
+                    
+                case 2:
+                    syncDone2.fulfill()
+                default:
+                    XCTFail()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
+        SyncServer.session.sync()
+        
+        try! SyncServer.session.delete(fileWithUUID: attr1.fileUUID)
+        try! SyncServer.session.delete(fileWithUUID: attr2.fileUUID)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        // Need to make sure the file is marked as deleted on the server.
+        let fileIndex = getFileIndex(expectedFiles:
+            [(fileUUID: attr1.fileUUID, fileSize: nil),
+                (fileUUID: attr2.fileUUID, fileSize: nil)
+            ])
+        XCTAssert(fileIndex[0].deleted)
+        XCTAssert(fileIndex[1].deleted)
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
+            XCTAssert(result1!.deletedOnServer)
+            let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
+            XCTAssert(result2!.deletedOnServer)
         }
     }
     

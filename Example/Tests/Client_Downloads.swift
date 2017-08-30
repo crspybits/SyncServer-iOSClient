@@ -51,12 +51,6 @@ class Client_Downloads: TestCase {
                         $0.fileVersion == file.fileVersion
                     }
                     XCTAssert(dftsResult.count == 1)
-                    if file.creationDate != nil {
-                        XCTAssert(DateExtras.equals(dftsResult[0].creationDate! as Date, file.creationDate), "dftsResult[0].creationDate: \(String(describing: dftsResult[0].creationDate)); file.creationDate: \(file.creationDate)")
-                        
-                        XCTAssert(DateExtras.equals(dftsResult[0].updateDate! as Date, file.updateDate)
-, "dftsResult[0].updateDate: \(String(describing: dftsResult[0].updateDate)); file.updateDate: \(file.updateDate)")
-                    }
                 }
                 
                 let entries = DirectoryEntry.fetchAll()

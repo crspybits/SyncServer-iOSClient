@@ -224,8 +224,6 @@ class ServerAPI {
         let deviceUUID:String!
         let appMetaData:String?
         let fileVersion:FileVersionInt!
-        let creationDate:Date!
-        let updateDate:Date!
     }
     
     enum UploadFileError : Error {
@@ -250,9 +248,7 @@ class ServerAPI {
             UploadFileRequest.cloudFolderNameKey: file.cloudFolderName,
             UploadFileRequest.appMetaDataKey: file.appMetaData as Any,
             UploadFileRequest.fileVersionKey: file.fileVersion,
-            UploadFileRequest.masterVersionKey: serverMasterVersion,
-            UploadFileRequest.creationDateKey: DateExtras.date(file.creationDate, toFormat: .DATETIME),
-            UploadFileRequest.updateDateKey: DateExtras.date(file.updateDate, toFormat: .DATETIME)
+            UploadFileRequest.masterVersionKey: serverMasterVersion
         ]
         
         guard let uploadRequest = UploadFileRequest(json: params) else {

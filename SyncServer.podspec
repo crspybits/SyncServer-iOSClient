@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
 
   s.dependency 'SMCoreLib', '< 1.0'
   s.dependency 'Gloss'
-  s.dependency 'SyncServer-Shared', '< 2.0'
+  s.dependency 'SyncServer-Shared', '~> 2.0'
   
   s.default_subspec = 'Lite'
   

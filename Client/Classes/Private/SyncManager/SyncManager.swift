@@ -182,8 +182,7 @@ class SyncManager {
     private func checkForPendingUploads() {
         let nextResult = Upload.session.next { nextCompletion in
             switch nextCompletion {
-            case .fileUploaded(let uft):
-                let attr = SyncAttributes(fileUUID: uft.fileUUID, mimeType:uft.mimeType!, creationDate: uft.creationDate! as Date, updateDate: uft.updateDate! as Date)
+            case .fileUploaded(let attr):
                 EventDesired.reportEvent(.singleFileUploadComplete(attr: attr), mask: self.desiredEvents, delegate: self.delegate)
                 
                 func after() {

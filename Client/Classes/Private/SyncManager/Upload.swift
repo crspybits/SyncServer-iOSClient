@@ -181,7 +181,7 @@ class Upload {
     
         var file:ServerAPI.File!
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-            file = ServerAPI.File(localURL: nextToUpload.localURL! as URL!, fileUUID: nextToUpload.fileUUID, mimeType: nextToUpload.mimeType, cloudFolderName: self.cloudFolderName, deviceUUID:self.deviceUUID, appMetaData: nextToUpload.appMetaData, fileVersion: nextToUpload.fileVersion, creationDate: nextToUpload.creationDate as Date!, updateDate: nextToUpload.updateDate as Date!)
+            file = ServerAPI.File(localURL: nextToUpload.localURL! as URL!, fileUUID: nextToUpload.fileUUID, mimeType: nextToUpload.mimeType, cloudFolderName: self.cloudFolderName, deviceUUID:self.deviceUUID, appMetaData: nextToUpload.appMetaData, fileVersion: nextToUpload.fileVersion)
         }
         
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion) { (uploadResult, error) in
@@ -218,7 +218,7 @@ class Upload {
                         return
                     }
 
-                    let attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, mimeType:nextToUpload.mimeType!, creationDate: nextToUpload.creationDate! as Date, updateDate: nextToUpload.updateDate! as Date)
+                    let attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, mimeType:nextToUpload.mimeType!)
                     completionResult = .fileUploaded(attr)
                 }
                 

@@ -16,11 +16,11 @@ public typealias UUIDString = String
 public struct SyncAttributes {
     public var fileUUID:String!
     public var mimeType:String!
-    public var creationDate:Date!
-    public var updateDate:Date!
+    public var creationDate:Date?
+    public var updateDate:Date?
     public var appMetaData:String?
     
-    public init(fileUUID:String, mimeType:String, creationDate: Date, updateDate: Date) {
+    public init(fileUUID:String, mimeType:String, creationDate: Date? = nil, updateDate: Date? = nil) {
         self.fileUUID = fileUUID
         self.mimeType = mimeType
         self.creationDate = creationDate

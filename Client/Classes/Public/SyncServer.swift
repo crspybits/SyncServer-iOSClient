@@ -169,6 +169,9 @@ public class SyncServer {
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
         
+        // 8/25/17; I added an undo manager to deal with queing up the deletion of a series of files, and undoing if one of them fails.
+        CoreData.sessionNamed(Constants.coreDataName).context.undoManager = UndoManager()
+        
         // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
         SyncServerUser.session.appLaunchSetup()
     }
@@ -221,8 +224,6 @@ public class SyncServer {
             newUft.appMetaData = attr.appMetaData
             newUft.fileUUID = attr.fileUUID
             newUft.mimeType = attr.mimeType
-            newUft.creationDate = attr.creationDate as NSDate?
-            newUft.updateDate = attr.updateDate as NSDate?
             
             // TODO: *1* I think this mechanism for setting the file version of the UploadFileTracker is not correct. Analogous to the deletion case, where we wait until the last moment prior to the upload deletion, I think we have to wait until the last moment of file upload to figure out the file version of the upload. The issue comes in with a series of upload/sync/upload/sync's, where we won't get all of the file version's correct.
             if entry!.fileVersion == nil {
@@ -257,10 +258,35 @@ public class SyncServer {
         }
     }
     
-    // Enqueue a upload deletion operation. The operation persists across app launches. It is an error to try again later to upload, or delete the file referenced by this UUID. You can only delete files that are already known to the SyncServer (e.g., that you've uploaded).
+    // The following two methods enqueue upload deletion operation(s). The operation(s) persists across app launches. It is an error to try again later to upload, or delete the file(s) referenced by the(se) UUID. You can only delete files that are already known to the SyncServer (e.g., that you've uploaded).
     // If there is a file with the same uuid, which has been enqueued for upload but not yet `sync`'ed, it will be removed.
-    // This operation does not access the server, and thus runs quickly and synchronously.
+    // These operations do not access the server, and thus run quickly and synchronously.
+    // These operations undo their work if they throw errors.
+    
     public func delete(fileWithUUID uuid:UUIDString) throws {
+        try delete(filesWithUUIDs: [uuid])
+    }
+    
+    public func delete(filesWithUUIDs uuids:[UUIDString]) throws {
+        do {
+            for uuid in uuids {
+                try delete(uuid: uuid)
+            }
+        } catch (let error) {
+            CoreData.sessionNamed(Constants.coreDataName).context.undo()
+            throw error
+        }
+        
+        do {
+            try CoreData.sessionNamed(Constants.coreDataName).context.save()
+        } catch (let error) {
+            CoreData.sessionNamed(Constants.coreDataName).context.undo()
+            throw error
+        }
+    }
+    
+    // This does not do a Core Data context save.
+    private func delete(uuid:UUIDString) throws {
         var errorToThrow:Error?
 
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
@@ -298,8 +324,6 @@ public class SyncServer {
                         if results.count == 0 {
                             // This is a slight mis-representation of terms. The file never actually made it to the server.
                             entry.deletedOnServer = true
-                            
-                            try CoreData.sessionNamed(Constants.coreDataName).context.save()
                             return
                         }
                     }
@@ -314,7 +338,6 @@ public class SyncServer {
                     */
                     
                     try Upload.pendingSync().addToUploadsOverride(newUft)
-                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
                 } catch (let error) {
                     errorToThrow = error
                 }

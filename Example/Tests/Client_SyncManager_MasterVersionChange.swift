@@ -57,7 +57,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             XCTAssert(masterVersion! >= 0)
             
             let mimeType:String! = "text/plain"
-            let file = ServerAPI.File(localURL: url, fileUUID: fileUUID, mimeType: mimeType, cloudFolderName: self.cloudFolderName, deviceUUID: self.deviceUUID.uuidString, appMetaData: nil, fileVersion: 0, creationDate:Date(), updateDate:Date())
+            let file = ServerAPI.File(localURL: url, fileUUID: fileUUID, mimeType: mimeType, cloudFolderName: self.cloudFolderName, deviceUUID: self.deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
             
             ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion!) { uploadFileResult, error in
                 XCTAssert(error == nil)
@@ -98,8 +98,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
 
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         
@@ -202,10 +202,10 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, creationDate:Date(), updateDate:Date())
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, creationDate:Date(), updateDate:Date())
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
@@ -223,8 +223,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
 
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
@@ -329,7 +329,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, creationDate:Date(), updateDate:Date())
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
@@ -337,7 +337,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     func testMasterVersionUpdateOnUploadDeletion() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
 
         // 1) Preparation: Upload a file, identified by UUID1. This is the file we'll delete below. We have to use the SyncServer.session client interface so that it will get recorded in the local meta data for the client.
 
@@ -368,7 +368,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // File to upload which will cause a SyncServer event which will allow us to upload fileUUID2
         let fileUUID3 = UUID().uuidString
         
-        let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: "text/plain", creationDate: Date(), updateDate: Date())
+        let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: "text/plain")
 
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted]
         

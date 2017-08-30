@@ -1,0 +1,8 @@
+SyncServer-iOSClient
+
+8/29/17
+	* Removed usage of creation/update dates from upload tracker.
+	* Added new version to Core Data model because of this.
+	* Fix bug with creation date where upload would crash
+	* Added new client method to delete an array of files atomically.
+	
