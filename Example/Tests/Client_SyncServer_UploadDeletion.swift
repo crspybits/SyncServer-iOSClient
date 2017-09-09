@@ -256,5 +256,111 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
     }
     
+    func testMultipleSimultaneousFileDeletionWorks() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let fileUUID2 = UUID().uuidString
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let syncDone1 = self.expectation(description: "SyncDone1")
+        let syncDone2 = self.expectation(description: "SyncDone2")
+
+        var syncDoneCount = 0
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                syncDoneCount += 1
+                switch syncDoneCount {
+                case 1:
+                    syncDone1.fulfill()
+                    
+                case 2:
+                    syncDone2.fulfill()
+                default:
+                    XCTFail()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
+        SyncServer.session.sync()
+        
+        try! SyncServer.session.delete(filesWithUUIDs: [attr1.fileUUID, attr2.fileUUID])
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        // Need to make sure the file is marked as deleted on the server.
+        let fileIndex = getFileIndex(expectedFiles:
+            [(fileUUID: attr1.fileUUID, fileSize: nil),
+                (fileUUID: attr2.fileUUID, fileSize: nil)
+            ])
+        XCTAssert(fileIndex[0].deleted)
+        XCTAssert(fileIndex[1].deleted)
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
+            XCTAssert(result1!.deletedOnServer)
+            let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
+            XCTAssert(result2!.deletedOnServer)
+        }
+    }
+    
+    func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let syncDone1 = self.expectation(description: "SyncDone1")
+        let syncDone2 = self.expectation(description: "SyncDone2")
+
+        var syncDoneCount = 0
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                syncDoneCount += 1
+                switch syncDoneCount {
+                case 1:
+                    syncDone1.fulfill()
+                    
+                case 2:
+                    syncDone2.fulfill()
+                default:
+                    XCTFail()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
+        SyncServer.session.sync()
+        
+        var gotError = false
+        do {
+            try SyncServer.session.delete(filesWithUUIDs: [attr1.fileUUID,  "foobar"])
+        } catch {
+            gotError = true
+        }
+        
+        XCTAssert(gotError)
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
     // TODO: *2* Attempt to delete a file with a version different than on the server. i.e., the local directory version is V1, but the server version is V2, V2 != V1. (This will have to wait until we have multi-version file support).
 }

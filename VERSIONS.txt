@@ -1,8 +1,18 @@
 SyncServer-iOSClient
 
-8/29/17
-	* Removed usage of creation/update dates from upload tracker.
-	* Added new version to Core Data model because of this.
+9/9/17
+
+	* Using version 2.1 of SyncServer-Shared-- to deal with NGNIX issue.
+
+8/29/17	
+
+	* Removed usage of update/creation dates from code internally.
+	
+	* Added new version (version 3) to Core Data model because of this.
+		Lightweight migration on Core Data in order to remove update/creation dates from the upload tracker.
+	
 	* Fix bug with creation date where upload would crash
+	
 	* Added new client method to delete an array of files atomically.
+		This required the addition of an undo manager to Core Data.
 	

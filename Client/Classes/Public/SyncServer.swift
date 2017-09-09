@@ -169,9 +169,6 @@ public class SyncServer {
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
         
-        // 8/25/17; I added an undo manager to deal with queing up the deletion of a series of files, and undoing if one of them fails.
-        CoreData.sessionNamed(Constants.coreDataName).context.undoManager = UndoManager()
-        
         // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
         SyncServerUser.session.appLaunchSetup()
     }
@@ -268,79 +265,89 @@ public class SyncServer {
     }
     
     public func delete(filesWithUUIDs uuids:[UUIDString]) throws {
-        do {
-            for uuid in uuids {
-                try delete(uuid: uuid)
+        var errorToThrow:Error?
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            // 8/25/17; I added an undo manager to deal with queueing up the deletion of a series of files, and undoing if one of them fails.
+            CoreData.sessionNamed(Constants.coreDataName).context.undoManager = UndoManager()
+
+            do {
+                for uuid in uuids {
+                    try self.delete(uuid: uuid)
+                }
+            } catch (let error) {
+                CoreData.sessionNamed(Constants.coreDataName).context.rollback()
+                errorToThrow = error
             }
-        } catch (let error) {
-            CoreData.sessionNamed(Constants.coreDataName).context.undo()
-            throw error
+            
+            if errorToThrow == nil {
+                do {
+                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                } catch (let error) {
+                    CoreData.sessionNamed(Constants.coreDataName).context.rollback()
+                    errorToThrow = error
+                }
+            }
+            
+            CoreData.sessionNamed(Constants.coreDataName).context.undoManager = nil
         }
         
-        do {
-            try CoreData.sessionNamed(Constants.coreDataName).context.save()
-        } catch (let error) {
-            CoreData.sessionNamed(Constants.coreDataName).context.undo()
-            throw error
+        guard errorToThrow == nil else {
+            throw errorToThrow!
         }
     }
     
     // This does not do a Core Data context save.
     private func delete(uuid:UUIDString) throws {
+        // We must already know about this file in our local Directory.
+        guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: uuid) else {
+            throw SyncClientAPIError.deletingUnknownFile
+        }
+
+        guard !entry.deletedOnServer else {
+            throw SyncClientAPIError.fileAlreadyDeleted
+        }
+
+        // Check to see if there is a pending upload deletion with this UUID.
+        let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.deleteOnServer }
+        if pendingUploadDeletions.count > 0 {
+            throw SyncClientAPIError.fileQueuedForDeletion
+        }
+        
         var errorToThrow:Error?
 
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-            // We must already know about this file in our local Directory.
-            guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: uuid) else {
-                errorToThrow = SyncClientAPIError.deletingUnknownFile
-                return
-            }
-
-            guard !entry.deletedOnServer else {
-                errorToThrow = SyncClientAPIError.fileAlreadyDeleted
-                return
-            }
-
-            // Check to see if there is a pending upload deletion with this UUID.
-            let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.deleteOnServer }
-            if pendingUploadDeletions.count > 0 {
-                errorToThrow = SyncClientAPIError.fileQueuedForDeletion
-                return
-            }
-            
-            Synchronized.block(self) {
-                do {
-                    // Remove any upload for this UUID from the pendingSync queue.
-                    let pendingSync = try Upload.pendingSync().uploadFileTrackers.filter
-                        {$0.fileUUID == uuid }
-                    _ = pendingSync.map { uft in
-                        CoreData.sessionNamed(Constants.coreDataName).remove(uft)
-                    }
-                    
-                    // If we just removed any references to a new file, by removing the reference from pendingSync, then we're done.
-                    // TODO: *1* We need a little better locking of data here. I think it's possible an upload is concurrently happening, and we'll mess up here. i.e., I think there could be a race condition between uploads and this deletion process, and we haven't locked out the Core Data info sufficiently. We could end up in a situation with a recently uploaded file, and a file marked only-locally as deleted.
-                    if entry.fileVersion == nil {
-                        let results = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid}
-                        if results.count == 0 {
-                            // This is a slight mis-representation of terms. The file never actually made it to the server.
-                            entry.deletedOnServer = true
-                            return
-                        }
-                    }
-                    
-                    let newUft = UploadFileTracker.newObject() as! UploadFileTracker
-                    newUft.deleteOnServer = true
-                    newUft.fileUUID = uuid
-                    
-                    /* [1]: `entry.fileVersion` will be nil if we are in the process of uploading a new file. Which causes the following to fail:
-                            newUft.fileVersion = entry.fileVersion
-                        AND: In general, there can be any number of uploads queued and sync'ed prior to this upload deletion, which would mean we can't simply determine the version to delete at this point in time. It seems easiest to wait until the last possible moment to determine the file version we are deleting.
-                    */
-                    
-                    try Upload.pendingSync().addToUploadsOverride(newUft)
-                } catch (let error) {
-                    errorToThrow = error
+        Synchronized.block(self) {
+            do {
+                // Remove any upload for this UUID from the pendingSync queue.
+                let pendingSync = try Upload.pendingSync().uploadFileTrackers.filter
+                    {$0.fileUUID == uuid }
+                _ = pendingSync.map { uft in
+                    CoreData.sessionNamed(Constants.coreDataName).remove(uft)
                 }
+                
+                // If we just removed any references to a new file, by removing the reference from pendingSync, then we're done.
+                // TODO: *1* We need a little better locking of data here. I think it's possible an upload is concurrently happening, and we'll mess up here. i.e., I think there could be a race condition between uploads and this deletion process, and we haven't locked out the Core Data info sufficiently. We could end up in a situation with a recently uploaded file, and a file marked only-locally as deleted.
+                if entry.fileVersion == nil {
+                    let results = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid}
+                    if results.count == 0 {
+                        // This is a slight mis-representation of terms. The file never actually made it to the server.
+                        entry.deletedOnServer = true
+                        return
+                    }
+                }
+                
+                let newUft = UploadFileTracker.newObject() as! UploadFileTracker
+                newUft.deleteOnServer = true
+                newUft.fileUUID = uuid
+                
+                /* [1]: `entry.fileVersion` will be nil if we are in the process of uploading a new file. Which causes the following to fail:
+                        newUft.fileVersion = entry.fileVersion
+                    AND: In general, there can be any number of uploads queued and sync'ed prior to this upload deletion, which would mean we can't simply determine the version to delete at this point in time. It seems easiest to wait until the last possible moment to determine the file version we are deleting.
+                */
+                
+                try Upload.pendingSync().addToUploadsOverride(newUft)
+            } catch (let error) {
+                errorToThrow = error
             }
         }
         

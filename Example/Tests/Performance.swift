@@ -112,7 +112,5 @@ class Performance: TestCase {
     
     func test50Deletions() {
         deleteNFiles(50, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
-    }
-    
-    // TODO: *0* Delete 50 files in the same done uploads.
+    }    
 }

@@ -400,6 +400,7 @@ class ServerAPI {
             let resultError = self.checkForError(statusCode: statusCode, error: error)
 
             if resultError == nil {
+                Log.msg("response!.allHeaderFields: \(response!.allHeaderFields)")
                 if let parms = response!.allHeaderFields[ServerConstants.httpResponseMessageParams] as? String,
                     let jsonDict = self.toJSONDictionary(jsonString: parms) {
                     Log.msg("jsonDict: \(jsonDict)")
