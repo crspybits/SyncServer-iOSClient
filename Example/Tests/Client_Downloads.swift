@@ -135,7 +135,7 @@ class Client_Downloads: TestCase {
         let expectation = self.expectation(description: "next")
 
         let result = Download.session.next() { completionResult in
-            guard case .fileDownloaded = completionResult else {
+            guard case .fileDownloaded(let url, _, _) = completionResult else {
                 XCTFail()
                 return
             }
@@ -147,8 +147,7 @@ class Client_Downloads: TestCase {
                 XCTAssert(dfts[0].status == .downloaded)
 
                 let fileData1 = try? Data(contentsOf: file.localURL)
-                XCTAssert(Int64(fileData1!.count) == dfts[0].fileSizeBytes)
-                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: dfts[0].localURL! as URL))
+                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
             }
             
             expectation.fulfill()

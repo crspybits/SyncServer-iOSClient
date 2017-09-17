@@ -202,6 +202,10 @@ class Download {
             case .success(let downloadedFile):
                 var nextCompletionResult:NextCompletion!
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                    // 9/16/17; Not really crucial since we'll be deleting this DownloadFileTracker quickly. But, useful for testing.
+                    nextToDownload.status = .downloaded
+                    CoreData.sessionNamed(Constants.coreDataName).saveContext()
+                    
                     // TODO: Not using downloadedFile.fileSizeBytes. Why?
                     
                     var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: nextToDownload.mimeType!, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)

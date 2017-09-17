@@ -451,6 +451,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // Next, use the client interface to sync files.
         // When a single file has been downloaded, upload another file (*not* using the client upload)
         // This should trigger the master version update.
+        // 9/16/17; Since we're now doing the downloads incrementally, we should just get a total of 3 downloads.
         
         let masterVersion = getMasterVersion()
         
@@ -489,12 +490,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         var downloadCount = 0
         
+        // This captures the second two downloads.
         shouldSaveDownload = { url, attr in
             downloadCount += 1
-            // In the end, the call to `shouldSaveDownloads` should be for 3 files: The two initially uploaded, and the third uploaded after the first download. The master version update will then cause all three to then be downloaded.
-            XCTAssert(downloadCount <= 3)
+            XCTAssert(downloadCount <= 2)
             
-            if downloadCount >= 3 {
+            if downloadCount >= 2 {
                 shouldSaveDownloadsExp.fulfill()
             }
         }
@@ -506,6 +507,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
 
         let fileUUID3 = UUID().uuidString
 
+        // This captures the first successful file download.
         syncServerSingleFileDownloadCompleted = { next in
             // Simulate the Upload of fileUUID3 as a different device
             let previousDeviceUUID = self.deviceUUID

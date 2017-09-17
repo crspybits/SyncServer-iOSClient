@@ -316,11 +316,19 @@ class TestCase: XCTestCase {
         var numberDeletions:Int!
         
         ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
-            numberDeletions = fileIndex?.count
+            
             XCTAssert(error == nil)
             XCTAssert(masterVersion! >= 0)
             
-            filesToDelete = fileIndex
+            if actualDeletion {
+                filesToDelete = fileIndex
+            }
+            else {
+                filesToDelete = fileIndex!.filter({$0.deleted! == false})
+            }
+            
+            numberDeletions = filesToDelete?.count
+            
             recursiveRemoval(indexToRemove: 0)
         }
         
@@ -583,6 +591,12 @@ class TestCase: XCTestCase {
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         
         waitForExpectations(timeout: 60.0, handler: nil)
+        
+        // 9/16/17; I'm getting an odd test interaction. The test immediately after this one is failing seemingly because there is a download available *after* this test. This is to check to see if somehow there is a DownloadFileTracker still available. There shouldn't be.
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let dfts = DownloadFileTracker.fetchAll()
+            XCTAssert(dfts.count == 0)
+        }
     }
     
     func uploadDeletion(fileToDelete:ServerAPI.FileToDelete, masterVersion:MasterVersionInt) {

@@ -204,6 +204,7 @@ class Client_SyncServer_Error: TestCase {
         let previousSyncServerSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
     
         syncServerSingleFileDownloadCompleted = {next in
+            // The intent is to fail the next /DownloadFile/ endpoint request-- after the first one succeeds.
             ServerAPI.session.failEndpoints = true
 
             self.syncServerSingleFileDownloadCompleted = previousSyncServerSingleFileDownloadCompleted
@@ -240,13 +241,9 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            var downloadCount = 0
+            // 9/16/17; Since we are now doing downloads incrementally (and deleting the DownloadFileTracker's after each one), we'll just get a single download here.
             shouldSaveDownload = { url, attr in
-                downloadCount += 1
-                XCTAssert(downloadCount <= 2)
-                if downloadCount >= 2 {
-                    shouldSaveDownloadsExp.fulfill()
-                }
+                shouldSaveDownloadsExp.fulfill()
             }
             
             SyncServer.session.sync()

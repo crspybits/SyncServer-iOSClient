@@ -52,7 +52,7 @@ class Performance: TestCase {
         // Next, initiate the download using .sync()
         SyncServer.session.sync()
         
-        waitForExpectations(timeout: Double(N) * 20.0, handler: nil)
+        waitForExpectations(timeout: Double(N) * 30.0, handler: nil)
     }
     
     func test10SmallTextFileDownloads() {
