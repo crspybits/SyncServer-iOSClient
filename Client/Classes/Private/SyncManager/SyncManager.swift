@@ -12,6 +12,27 @@ import SMCoreLib
 class SyncManager {
     static let session = SyncManager()
     weak var delegate:SyncServerDelegate?
+    private var _stopSync = false
+    
+    // The getter returns the current value and sets it to false. Operates in an atomic manner.
+    var stopSync: Bool {
+        set {
+            Synchronized.block(self) {
+                _stopSync = newValue
+            }
+        }
+        
+        get {
+            var result: Bool = false
+            
+            Synchronized.block(self) {
+                result = _stopSync
+                _stopSync = false
+            }
+            
+            return result
+        }
+    }
 
 #if DEBUG
     weak var testingDelegate:SyncServerTestingDelegate?
@@ -27,11 +48,26 @@ class SyncManager {
     case error(String)
     }
     
+    private func needToStop() -> Bool {
+        if stopSync {
+            EventDesired.reportEvent(.syncStopping, mask: self.desiredEvents, delegate: self.delegate)
+            callback?(nil)
+            return true
+        }
+        else {
+            return false
+        }
+    }
+    
     // TODO: *1* If we get an app restart when we call this method, and an upload was previously in progress, and we now have download(s) available, we need to reset those uploads prior to doing the downloads.
     func start(_ callback:((Error?)->())? = nil) {
         self.callback = callback
         
         // TODO: *1* This is probably the level at which we should ensure that multiple download operations are not taking place concurrently. E.g., some locking mechanism?
+        
+        if self.needToStop() {
+            return
+        }
         
         // First: Do we have previously queued downloads that need to be downloaded?
         let nextResult = Download.session.next() { nextCompletionResult in
@@ -47,7 +83,7 @@ class SyncManager {
                     }
                     
                     // Recursively check for any next download. Using `async` so we don't consume extra space on the stack.
-                    DispatchQueue.main.async {
+                    DispatchQueue.global().async {
                         self.start(callback)
                     }
                 }
@@ -159,6 +195,10 @@ class SyncManager {
 
     // No DownloadFileTracker's queued up. Check the FileIndex to see if there are pending downloads on the server.
     private func checkForDownloads() {
+        if self.needToStop() {
+            return
+        }
+        
         Download.session.check() { checkCompletion in
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
@@ -180,6 +220,10 @@ class SyncManager {
     }
     
     private func checkForPendingUploads() {
+        if self.needToStop() {
+            return
+        }
+        
         let nextResult = Upload.session.next { nextCompletion in
             switch nextCompletion {
             case .fileUploaded(let attr):
@@ -187,7 +231,9 @@ class SyncManager {
                 
                 func after() {
                     // Recursively see if there is a next upload to do.
-                    self.checkForPendingUploads()
+                    DispatchQueue.global().async {
+                        self.checkForPendingUploads()
+                    }
                 }
                 
 #if DEBUG

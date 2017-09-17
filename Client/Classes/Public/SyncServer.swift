@@ -19,6 +19,10 @@ public enum SyncEvent {
     case uploadDeletionsCompleted(numberOfFiles:Int)
     
     case syncStarted
+    
+    // Occurs after call to stopSync, when the synchronization is just about to stop. syncDone will be the next event (if desired).
+    case syncStopping
+    
     case syncDone
     
     case refreshingCredentials
@@ -38,12 +42,14 @@ public struct EventDesired: OptionSet {
     public static let syncStarted = EventDesired(rawValue: 1 << 5)
     public static let syncDone = EventDesired(rawValue: 1 << 6)
     
-    public static let refreshingCredentials = EventDesired(rawValue: 1 << 7)
+    public static let syncStopping = EventDesired(rawValue: 1 << 7)
+
+    public static let refreshingCredentials = EventDesired(rawValue: 1 << 8)
 
     public static let defaults:EventDesired =
         [.singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted,
          .uploadDeletionsCompleted]
-    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.refreshingCredentials, EventDesired.willStartDownloads])
+    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.syncStopping, EventDesired.refreshingCredentials, EventDesired.willStartDownloads])
     
     static func reportEvent(_ event:SyncEvent, mask:EventDesired, delegate:SyncServerDelegate?) {
     
@@ -64,6 +70,9 @@ public struct EventDesired: OptionSet {
             
         case .syncDone:
             eventIsDesired = .syncDone
+            
+        case .syncStopping:
+            eventIsDesired = .syncStopping
             
         case .singleFileUploadComplete(_):
             eventIsDesired = .singleFileUploadComplete
@@ -115,6 +124,7 @@ public class SyncServer {
     public static let session = SyncServer()
     private var syncOperating = false
     private var delayedSync = false
+    private var stoppingSync = false
     
     private init() {
     }
@@ -358,6 +368,11 @@ public class SyncServer {
         var doStart = true
         
         Synchronized.block(self) {
+            if stoppingSync {
+                doStart = false
+                return
+            }
+            
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 // TODO: *0* Need an error reporting mechanism. These should not be `try!`
                 if try! Upload.pendingSync().uploadFileTrackers.count > 0  {
@@ -376,6 +391,17 @@ public class SyncServer {
         
         if doStart {
             start(completion: completion)
+        }
+    }
+    
+    // Stop an ongoing sync operation. This will stop the operation at the next "natural" stopping point. E.g., after a next download completes. No effect if no ongoing sync operation. Any delayed sync is cancelled.
+    public func stopSync() {
+        Synchronized.block(self) {
+            if syncOperating {
+                delayedSync = false
+                stoppingSync = true
+                SyncManager.session.stopSync = true
+            }
         }
     }
     
@@ -501,7 +527,7 @@ public class SyncServer {
             
             Synchronized.block(self) {
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    if Upload.haveSyncQueue()  || self.delayedSync {
+                    if !self.stoppingSync && (Upload.haveSyncQueue()  || self.delayedSync) {
                         self.delayedSync = false
                         doStart = true
                     }
