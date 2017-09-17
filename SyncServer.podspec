@@ -27,7 +27,8 @@ Pod::Spec.new do |s|
 
   s.preserve_paths = 'Client/Assets/**/*'
 
-  s.dependency 'SMCoreLib', '< 1.0'
+  s.dependency 'SMCoreLib', '~> 1.0'
+  
   s.dependency 'Gloss'
   s.dependency 'SyncServer-Shared', '~> 2.1'
   

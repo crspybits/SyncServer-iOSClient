@@ -53,9 +53,14 @@ class Client_SyncServer_Download: TestCase {
         let expectation = self.expectation(description: "test1")
         self.deviceUUID = Foundation.UUID()
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == 2)
-            expectation.fulfill()
+        var downloadCount = 0
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount <= 2)
+            if downloadCount >= 2 {
+                expectation.fulfill()
+            }
         }
         
         // Next, initiate the download using .sync()

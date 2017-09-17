@@ -32,9 +32,10 @@ class Client_Downloads: TestCase {
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
                 XCTAssert(expectedFiles.count == 0)
-                
-            case .downloadsOrDeletionsAvailable(numberOfFiles: let numDownloads):
-                XCTAssert(Int32(expectedFiles.count) == numDownloads, "numDownloads: \(numDownloads); expectedFiles.count: \(expectedFiles.count)")
+            
+            case .downloadsAvailable(numberOfDownloadFiles: let numDownloads, numberOfDownloadDeletions: let numDeletions):
+                let total = numDownloads + numDeletions
+                XCTAssert(Int32(expectedFiles.count) == total, "numDownloads: \(total); expectedFiles.count: \(expectedFiles.count)")
                 
             case .error(_):
                 XCTFail()

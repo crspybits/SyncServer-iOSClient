@@ -11,10 +11,7 @@ import SMCoreLib
 
 // This information is for testing purposes and for UI (e.g., for displaying download progress).
 public enum SyncEvent {
-    // The url/attr here may not be consistent with the results from shouldSaveDownloads in the SyncServerDelegate.
-    case singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
-    case fileDownloadsCompleted(numberOfFiles:Int)
-    case downloadDeletionsCompleted(numberOfFiles:Int)
+    case willStartDownloads(numberDownloads:UInt)
     
     case singleFileUploadComplete(attr:SyncAttributes)
     case singleUploadDeletionComplete(fileUUID:UUIDString)
@@ -31,41 +28,33 @@ public struct EventDesired: OptionSet {
     public let rawValue: Int
     public init(rawValue:Int){ self.rawValue = rawValue}
 
-    public static let singleFileDownloadComplete = EventDesired(rawValue: 1 << 0)
-    public static let fileDownloadsCompleted = EventDesired(rawValue: 1 << 1)
-    public static let downloadDeletionsCompleted = EventDesired(rawValue: 1 << 2)
+    public static let willStartDownloads = EventDesired(rawValue: 1 << 0)
     
-    public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 3)
-    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 4)
-    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 5)
-    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 6)
+    public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 1)
+    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 2)
+    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 3)
+    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 4)
     
-    public static let syncStarted = EventDesired(rawValue: 1 << 7)
-    public static let syncDone = EventDesired(rawValue: 1 << 8)
+    public static let syncStarted = EventDesired(rawValue: 1 << 5)
+    public static let syncDone = EventDesired(rawValue: 1 << 6)
     
-    public static let refreshingCredentials = EventDesired(rawValue: 1 << 9)
-    
+    public static let refreshingCredentials = EventDesired(rawValue: 1 << 7)
+
     public static let defaults:EventDesired =
-        [.singleFileDownloadComplete, .fileDownloadsCompleted, .downloadDeletionsCompleted,
-        .singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted, .uploadDeletionsCompleted]
-    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.refreshingCredentials])
+        [.singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted,
+         .uploadDeletionsCompleted]
+    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.refreshingCredentials, EventDesired.willStartDownloads])
     
     static func reportEvent(_ event:SyncEvent, mask:EventDesired, delegate:SyncServerDelegate?) {
     
         var eventIsDesired:EventDesired
         
         switch event {
-        case .downloadDeletionsCompleted(_):
-            eventIsDesired = .downloadDeletionsCompleted
-            
-        case .fileDownloadsCompleted(_):
-            eventIsDesired = .fileDownloadsCompleted
+        case .willStartDownloads(numberDownloads: _):
+            eventIsDesired = .willStartDownloads
 
         case .fileUploadsCompleted(_):
             eventIsDesired = .fileUploadsCompleted
-            
-        case .singleFileDownloadComplete(_):
-            eventIsDesired = .singleFileDownloadComplete
             
         case .uploadDeletionsCompleted(_):
             eventIsDesired = .uploadDeletionsCompleted
@@ -97,26 +86,30 @@ public struct EventDesired: OptionSet {
 // These delegate methods are called on the main thread.
 
 public protocol SyncServerDelegate : class {
-    /* Called at the end of all downloads, on non-error conditions. Only called when there was at least one download.
-    The client owns the files referenced by the NSURL's after this call completes. These files are temporary in the sense that they will not be backed up to iCloud, could be removed when the device or app is restarted, and should be moved to a more permanent location. This is received/called in an atomic manner: This reflects the current state of files on the server.
-    Client should replace their existing data with that from the files.
+    /* Called at the end of a single download, on non-error conditions.
+    The client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be moved to a more permanent location.
+    Client should replace their existing data with that from the given file.
     */
-    func shouldSaveDownloads(downloads: [(downloadedFile: NSURL, downloadedFileAttributes: SyncAttributes)])
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
 
-    // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of files on the server. Clients should delete the files referenced by the SMSyncAttributes's (i.e., the UUID's).
+    // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SMSyncAttributes's (i.e., the UUID's).
     func shouldDoDeletions(downloadDeletions:[SyncAttributes])
     
     func syncServerErrorOccurred(error:Error)
 
     // Reports events. Useful for testing and UI.
     func syncServerEventOccurred(event:SyncEvent)
-    
-#if DEBUG
-    // With each of these two callbacks, you *must* call `next` before returning.
-    func syncServerSingleFileUploadCompleted(next: @escaping ()->())
-    func syncServerSingleFileDownloadCompleted(next: @escaping ()->())
-#endif
 }
+
+#if DEBUG
+public protocol SyncServerTestingDelegate : class {
+    // You *must* call `next` before returning.
+    func syncServerSingleFileUploadCompleted(next: @escaping ()->())
+    
+     // You *must* call `next` before returning. If this delegate is given in testing, then `SyncServerDelegate` is not used for the corresponding method (without `next`).
+     func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->())
+}
+#endif
 
 public class SyncServer {
     public static let session = SyncServer()

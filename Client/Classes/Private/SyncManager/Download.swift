@@ -52,7 +52,7 @@ class Download {
     
     enum CheckCompletion {
     case noDownloadsOrDeletionsAvailable
-    case downloadsOrDeletionsAvailable(numberOfFiles:Int32)
+    case downloadsAvailable(numberOfDownloadFiles:Int32, numberOfDownloadDeletions:Int32)
     case error(Error)
     }
     
@@ -76,6 +76,9 @@ class Download {
                     }
                     else {
                         let allFiles = (fileDownloads ?? []) + (downloadDeletions ?? [])
+                        var numberFileDownloads:Int32 = 0
+                        var numberDownloadDeletions:Int32 = 0
+                        
                         for file in allFiles {
                             if file.fileVersion != 0 {
                                 // TODO: *5* We're considering this an error currently because we're not yet supporting multiple file versions.
@@ -87,13 +90,21 @@ class Download {
                             dft.fileVersion = file.fileVersion
                             dft.mimeType = file.mimeType
                             dft.deletedOnServer = file.deleted!
+                            
+                            if file.deleted! {
+                                numberDownloadDeletions += 1
+                            }
+                            else {
+                                numberFileDownloads += 1
+                            }
+                            
                             if file.creationDate != nil {
                                 dft.creationDate = file.creationDate! as NSDate
                                 dft.updateDate = file.updateDate! as NSDate
                             }
                         }
                         
-                        completionResult = .downloadsOrDeletionsAvailable(numberOfFiles: Int32(allFiles.count))
+                        completionResult = .downloadsAvailable(numberOfDownloadFiles:numberFileDownloads, numberOfDownloadDeletions:numberDownloadDeletions)
                     }
                     
                     do {
@@ -117,7 +128,7 @@ class Download {
     }
     
     enum NextCompletion {
-    case fileDownloaded(url:SMRelativeLocalURL, attr:SyncAttributes)
+    case fileDownloaded(url:SMRelativeLocalURL, attr:SyncAttributes, dft: DownloadFileTracker)
     case masterVersionUpdate
     case error(String)
     }
@@ -191,26 +202,16 @@ class Download {
             case .success(let downloadedFile):
                 var nextCompletionResult:NextCompletion!
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    nextToDownload.status = .downloaded
-                    Log.msg("downloadedFile.appMetaData: \(String(describing: downloadedFile.appMetaData))")
-                    nextToDownload.appMetaData = downloadedFile.appMetaData
-                    nextToDownload.fileSizeBytes = downloadedFile.fileSizeBytes
-                    nextToDownload.localURL = downloadedFile.url
+                    // TODO: Not using downloadedFile.fileSizeBytes. Why?
                     
-                    do {
-                        try CoreData.sessionNamed(Constants.coreDataName).context.save()
-                    } catch (let error) {
-                        nextCompletionResult = .error("\(error)")
-                        return
-                    }
-                    
-                    let url = nextToDownload.localURL
                     var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: nextToDownload.mimeType!, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
-                    attr.appMetaData = nextToDownload.appMetaData
+                    attr.appMetaData = downloadedFile.appMetaData
                     attr.creationDate = nextToDownload.creationDate as Date?
                     attr.updateDate = nextToDownload.updateDate as Date?
                     
-                    nextCompletionResult = .fileDownloaded(url:url!, attr:attr)
+                    // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
+                    
+                    nextCompletionResult = .fileDownloaded(url:downloadedFile.url, attr:attr, dft: nextToDownload)
                 }
         
                 completion?(nextCompletionResult)

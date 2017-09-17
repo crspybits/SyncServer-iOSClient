@@ -54,7 +54,7 @@ class TestCase: XCTestCase {
     var fileIndexServerSleep: TimeInterval?
     var testLockSyncCalled:Bool = false
     
-    var shouldSaveDownloads: ((_ downloads: [(downloadedFile: NSURL, downloadedFileAttributes: SyncAttributes)]) -> ())!
+    var shouldSaveDownload: ((_ downloadedFile: NSURL, _ downloadedFileAttributes: SyncAttributes) -> ())!
     var syncServerEventOccurred: (SyncEvent) -> () = {event in }
     var shouldDoDeletions: (_ downloadDeletions: [SyncAttributes]) -> () = { downloadDeletions in }
     var syncServerErrorOccurred: (Error) -> () = { error in
@@ -359,39 +359,25 @@ class TestCase: XCTestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         let expectedFiles = [file]
+        var downloadCount = 0
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == 1)
-            XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: downloads[0].downloadedFile as URL))
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount == 1)
+            XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
         }
         
         let expectation = self.expectation(description: "start")
 
-        var eventsOccurred = 0
-        var downloadsOccurred = 0
-        
-        syncServerEventOccurred = { event in
-            switch event {
-            case .fileDownloadsCompleted(numberOfFiles: let downloads):
-                XCTAssert(downloads == 1)
-                eventsOccurred += 1
-            
-            case .singleFileDownloadComplete(_):
-                downloadsOccurred += 1
-                
-            default:
-                XCTFail()
-            }
-        }
-
         SyncManager.session.start { (error) in
             XCTAssert(error == nil)
+            XCTAssert(downloadCount == 1)
             
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 let entries = DirectoryEntry.fetchAll()
                 
                 // There may be more directory entries than just accounted for in this single function call, so don't do this:
-                //XCTAssert(entries.count == expectedFiles.count)
+                // XCTAssert(entries.count == expectedFiles.count)
 
                 for file in expectedFiles {
                     let entriesResult = entries.filter { $0.fileUUID == file.fileUUID &&
@@ -400,8 +386,6 @@ class TestCase: XCTestCase {
                     XCTAssert(entriesResult.count == 1)
                 }
                 
-                XCTAssert(downloadsOccurred == 1, "downloadsOccurred: \(downloadsOccurred)")
-                XCTAssert(eventsOccurred == 1, "eventsOccurred: \(eventsOccurred)")
                 expectation.fulfill()
             }
         }
@@ -584,9 +568,12 @@ class TestCase: XCTestCase {
         let expectation = self.expectation(description: "test1")
         self.deviceUUID = Foundation.UUID()
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == 1)
-            XCTAssert(downloads[0].downloadedFileAttributes.appMetaData == appMetaData)
+        var downloadCount = 0
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount == 1)
+            XCTAssert(attr.appMetaData == appMetaData)
             expectation.fulfill()
         }
         
@@ -596,6 +583,21 @@ class TestCase: XCTestCase {
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         
         waitForExpectations(timeout: 60.0, handler: nil)
+    }
+    
+    func uploadDeletion(fileToDelete:ServerAPI.FileToDelete, masterVersion:MasterVersionInt) {
+        let uploadDeletion = self.expectation(description: "uploadDeletion")
+
+        ServerAPI.session.uploadDeletion(file: fileToDelete, serverMasterVersion: masterVersion) { (result, error) in
+            XCTAssert(error == nil)
+            guard case .success = result! else {
+                XCTFail()
+                return
+            }
+            uploadDeletion.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
     }
 }
 
@@ -635,8 +637,8 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
-    func shouldSaveDownloads(downloads: [(downloadedFile: NSURL, downloadedFileAttributes: SyncAttributes)]) {
-        shouldSaveDownloads(downloads)
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
+        shouldSaveDownload(url, attr)
     }
     
     func syncServerEventOccurred(event: SyncEvent) {
@@ -650,7 +652,9 @@ extension TestCase : SyncServerDelegate {
     func syncServerErrorOccurred(error:Error) {
         syncServerErrorOccurred(error)
     }
-    
+}
+
+extension TestCase : SyncServerTestingDelegate {
     func syncServerSingleFileUploadCompleted(next: @escaping ()->()) {
         if syncServerSingleFileUploadCompleted == nil {
             next()
@@ -660,27 +664,12 @@ extension TestCase : SyncServerDelegate {
         }
     }
     
-    func syncServerSingleFileDownloadCompleted(next: @escaping ()->()) {
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->()) {
         if syncServerSingleFileDownloadCompleted == nil {
             next()
         }
         else {
             syncServerSingleFileDownloadCompleted!(next)
         }
-    }
-    
-    func uploadDeletion(fileToDelete:ServerAPI.FileToDelete, masterVersion:MasterVersionInt) {
-        let uploadDeletion = self.expectation(description: "uploadDeletion")
-
-        ServerAPI.session.uploadDeletion(file: fileToDelete, serverMasterVersion: masterVersion) { (result, error) in
-            XCTAssert(error == nil)
-            guard case .success = result! else {
-                XCTFail()
-                return
-            }
-            uploadDeletion.fulfill()
-        }
-        
-        waitForExpectations(timeout: 10.0, handler: nil)
-    }
+     }
 }

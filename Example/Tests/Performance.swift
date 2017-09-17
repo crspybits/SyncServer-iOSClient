@@ -39,9 +39,14 @@ class Performance: TestCase {
         let expectation = self.expectation(description: "downloadNFiles")
         self.deviceUUID = Foundation.UUID()
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == Int(N), "Number of downloads were: \(downloads.count)")
-            expectation.fulfill()
+        var downloadCount = 0
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
+            if downloadCount >= N {
+                expectation.fulfill()
+            }
         }
         
         // Next, initiate the download using .sync()

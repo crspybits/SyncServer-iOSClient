@@ -82,8 +82,10 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            shouldSaveDownloads = { downloads in
-                XCTAssert(downloads.count == 1)
+            var downloadCount = 0
+            shouldSaveDownload = { url, attr in
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
                 shouldSaveDownloadsExp.fulfill()
             }
             
@@ -110,11 +112,13 @@ class Client_SyncServer_Error: TestCase {
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
     
         let previousSyncServerSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
-    
+        SyncManager.session.testingDelegate = self
+        
         syncServerSingleFileUploadCompleted = {next in
             ServerAPI.session.failEndpoints = true
 
             self.syncServerSingleFileUploadCompleted = previousSyncServerSingleFileUploadCompleted
+            SyncManager.session.testingDelegate = nil
             next()
         }
         
@@ -195,13 +199,15 @@ class Client_SyncServer_Error: TestCase {
         }
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
-    
+        SyncManager.session.testingDelegate = self
+
         let previousSyncServerSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
     
         syncServerSingleFileDownloadCompleted = {next in
             ServerAPI.session.failEndpoints = true
 
             self.syncServerSingleFileDownloadCompleted = previousSyncServerSingleFileDownloadCompleted
+            SyncManager.session.testingDelegate = nil
             next()
         }
         
@@ -219,38 +225,28 @@ class Client_SyncServer_Error: TestCase {
         if retry {
             ServerAPI.session.failEndpoints = false
 
-            SyncServer.session.eventsDesired = [.syncDone, .fileDownloadsCompleted, .singleFileDownloadComplete]
+            SyncServer.session.eventsDesired = [.syncDone]
             
             let syncDone = self.expectation(description: "syncDone")
-            let fileDownloadsCompletedExp = self.expectation(description: "fileDownloadsCompletedExp")
             let shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
-
-            var singleDownloadsCompleted = 0
             
             syncServerEventOccurred = {event in
                 switch event {
                 case .syncDone:
                     syncDone.fulfill()
                     
-                case .fileDownloadsCompleted(numberOfFiles: let number):
-                    XCTAssert(number == 2)
-                    
-                    // One because only a single file needs to be uploaded the second time-- the first was uploaded before the error.
-                    XCTAssert(singleDownloadsCompleted == 1, "Uploads actually completed: \(singleDownloadsCompleted)")
-                    
-                    fileDownloadsCompletedExp.fulfill()
-                    
-                case .singleFileDownloadComplete(_):
-                    singleDownloadsCompleted += 1
-                    
                 default:
                     XCTFail()
                 }
             }
             
-            shouldSaveDownloads = { downloads in
-                XCTAssert(downloads.count == 2)
-                shouldSaveDownloadsExp.fulfill()
+            var downloadCount = 0
+            shouldSaveDownload = { url, attr in
+                downloadCount += 1
+                XCTAssert(downloadCount <= 2)
+                if downloadCount >= 2 {
+                    shouldSaveDownloadsExp.fulfill()
+                }
             }
             
             SyncServer.session.sync()

@@ -140,12 +140,17 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let previousSyncServerSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
         
         if !withDeletion {
-            shouldSaveDownloads = { downloads in
-                XCTAssert(downloads.count == 1)
+            var downloadCount = 0
+            
+            shouldSaveDownload = { url, attr in
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
                 shouldSaveDownloadsExp!.fulfill()
             }
         }
-    
+
+        SyncManager.session.testingDelegate = self
+
         syncServerSingleFileUploadCompleted = {next in
             // A single upload was completed. Let's upload another file by "another" client. This code is a little ugly because I can't kick off another `waitForExpectations`.
             
@@ -167,6 +172,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                     self.deviceUUID = previousDeviceUUID
                     self.syncServerSingleFileUploadCompleted = previousSyncServerSingleFileUploadCompleted
                     syncServerSingleFileUploadCompletedExp.fulfill()
+                    SyncManager.session.testingDelegate = nil
                     next()
                 }
                 
@@ -288,7 +294,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
     
         let previousSyncServerSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
-    
+        SyncManager.session.testingDelegate = self
+
         syncServerSingleFileUploadCompleted = {next in
             // SIMULATE A DEVICE CHANGE: Change to a new new deviceUUID
             let previousDeviceUUID = self.deviceUUID
@@ -308,6 +315,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                     
                     self.syncServerSingleFileUploadCompleted = previousSyncServerSingleFileUploadCompleted
                     syncServerSingleFileUploadCompletedExp.fulfill()
+                    SyncManager.session.testingDelegate = nil
                     next()
                 }
             }
@@ -403,12 +411,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == 1)
+        shouldSaveDownload = { url, attr in
             shouldSaveDownloadsExp.fulfill()
         }
     
         let previousSyncSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
+        SyncManager.session.testingDelegate = self
 
         syncServerSingleFileUploadCompleted = { next in
             // Simulate the Upload of fileUUID2 as a different device
@@ -420,6 +428,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 self.deviceUUID = previousDeviceUUID
                 syncServerSingleUploadCompletedExp.fulfill()
                 self.syncServerSingleFileUploadCompleted = previousSyncSingleFileUploadCompleted
+                SyncManager.session.testingDelegate = nil
                 next()
             }
         }
@@ -462,43 +471,38 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileDownloadsCompleted, .singleFileDownloadComplete]
+        SyncServer.session.eventsDesired = [.syncDone]
         
         let syncDoneExp = self.expectation(description: "syncDoneExp")
         let syncServerSingleFileDownloadCompletedExp = self.expectation(description: "syncServerSingleFileDownloadCompletedExp")
         let shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
-        let fileDownloadsCompletedExp = self.expectation(description: "fileDownloadsCompletedExp")
-        
-        var singleDownloadCount = 0
         
         syncServerEventOccurred = {event in
             switch event {
             case .syncDone:
                 syncDoneExp.fulfill()
-
-            case .fileDownloadsCompleted(numberOfFiles: let number):
-                XCTAssert(number == 3)
-                
-                XCTAssert(singleDownloadCount == 4, "Downloads actually completed: \(singleDownloadCount)")
-                
-                fileDownloadsCompletedExp.fulfill()
-                
-            case .singleFileDownloadComplete(_):
-                singleDownloadCount += 1
                 
             default:
                 XCTFail()
             }
         }
         
-        shouldSaveDownloads = { downloads in
+        var downloadCount = 0
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
             // In the end, the call to `shouldSaveDownloads` should be for 3 files: The two initially uploaded, and the third uploaded after the first download. The master version update will then cause all three to then be downloaded.
-            XCTAssert(downloads.count == 3)
+            XCTAssert(downloadCount <= 3)
             
-            shouldSaveDownloadsExp.fulfill()
+            if downloadCount >= 3 {
+                shouldSaveDownloadsExp.fulfill()
+            }
         }
     
+        SyncManager.session.testingDelegate = self
+
         let previousSyncSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
+        SyncManager.session.testingDelegate = self
 
         let fileUUID3 = UUID().uuidString
 
@@ -512,6 +516,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 self.deviceUUID = previousDeviceUUID
                 syncServerSingleFileDownloadCompletedExp.fulfill()
                 self.syncServerSingleFileDownloadCompleted = previousSyncSingleFileDownloadCompleted
+                SyncManager.session.testingDelegate = nil
                 next()
             }
         }
