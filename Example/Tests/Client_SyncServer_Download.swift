@@ -53,6 +53,8 @@ class Client_SyncServer_Download: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
         
         let expectation = self.expectation(description: "test1")
+        let willStartDownloadsExp = self.expectation(description: "willStartDownloads")
+        
         self.deviceUUID = Foundation.UUID()
         
         var downloadCount = 0
@@ -64,6 +66,19 @@ class Client_SyncServer_Download: TestCase {
             XCTAssert(downloadCount <= 2)
             if downloadCount >= 2 {
                 expectation.fulfill()
+            }
+        }
+        
+        SyncServer.session.eventsDesired = [.willStartDownloads]
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .willStartDownloads(numberDownloads: let numberDownloads):
+                XCTAssert(numberDownloads == 2)
+                willStartDownloadsExp.fulfill()
+                
+            default:
+                XCTFail()
             }
         }
         

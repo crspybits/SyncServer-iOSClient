@@ -341,8 +341,15 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
-    // Test getting a master version update an UploadDeletion
+    // Test getting a master version update on UploadDeletion
     func testMasterVersionUpdateOnUploadDeletion() {
+        /* Algorithm:
+             1) Upload file with fileUUID1
+             2) Upload file fileUUID3 along with upload delete fileUUID1
+                 When the file fileUUID3 has been uploaded, use the event callback to upload file fileUUID2-- as a "different" device.
+                 The intent is that this will now force a master version change. And the upload of file fileUUID3 will have to be repeated.
+        */
+    
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
@@ -445,7 +452,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
-    func testMasterVersionChangeDuringDownload() {
+    //  9/18/17; This is also a test of the new incremental download functionality. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
+    func testMasterVersionChangeByUploadDuringDownload() {
         // Algorithm:
         // Upload two files *not* using the client upload.
         // Next, use the client interface to sync files.
@@ -454,18 +462,39 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // 9/16/17; Since we're now doing the downloads incrementally, we should just get a total of 3 downloads.
         
         let masterVersion = getMasterVersion()
-        
+        var files:[(uuid: String, url: URL)]!
+
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
-
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let fileUUID3 = UUID().uuidString
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        let fileURL1 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe2", withExtension: "txt")!
+        let fileURL3 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe3", withExtension: "txt")!
+        
+        files = [
+            (uuid: fileUUID1, url: fileURL1),
+            (uuid: fileUUID2, url: fileURL2),
+            (uuid: fileUUID3, url: fileURL3)
+        ]
+        
+        func findAndRemoveFile(uuid: String, url: URL) -> Bool {
+            guard let fileIndex = files.index(where: {$0.uuid == uuid}) else {
+                return false
+            }
+
+            let result = FilesMisc.compareFiles(file1: files[fileIndex].url, file2: url as URL)
+            files.remove(at: fileIndex)
+
+            return result
+        }
+        
+        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -489,31 +518,32 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
         
         var downloadCount = 0
-        
+
         // This captures the second two downloads.
         shouldSaveDownload = { url, attr in
             downloadCount += 1
-            XCTAssert(downloadCount <= 2)
             
+            // After a master version change, what happens to DownloadFileTracker(s) that were around before the change? They get deleted. And the server is again checked for downloads.
+            
+            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+
             if downloadCount >= 2 {
                 shouldSaveDownloadsExp.fulfill()
             }
         }
     
-        SyncManager.session.testingDelegate = self
-
         let previousSyncSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
         SyncManager.session.testingDelegate = self
 
-        let fileUUID3 = UUID().uuidString
-
         // This captures the first successful file download.
-        syncServerSingleFileDownloadCompleted = { next in
+        syncServerSingleFileDownloadCompleted = { url, attr, next in
             // Simulate the Upload of fileUUID3 as a different device
             let previousDeviceUUID = self.deviceUUID
             self.deviceUUID = UUID()
             
-            self.fullUploadOfFile(url: fileURL, fileUUID: fileUUID3, mimeType: "text/plain") { masterVersion in
+            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            
+            self.fullUploadOfFile(url: fileURL3, fileUUID: fileUUID3, mimeType: "text/plain") { masterVersion in
             
                 self.deviceUUID = previousDeviceUUID
                 syncServerSingleFileDownloadCompletedExp.fulfill()
@@ -526,5 +556,120 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    enum FileToDelete {
+        case alreadyDownloadedFile
+        case notYetDownloadedFile
+    }
+    
+    //  9/18/17; This is also a test of the new incremental download functionality. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
+    func masterVersionChangeByDeletionDuringDownload(deleteFile: FileToDelete) {
+        // Algorithm:
+        // Upload two files *not* using the client upload.
+        // Next, use the client interface to sync files.
+        // When a single file has been downloaded, upload delete a file (*not* using the client upload).
+        // This should trigger the master version update.
+        
+        let masterVersion = getMasterVersion()
+        var files:[(uuid: String, url: URL)]!
+
+        let fileUUID1 = UUID().uuidString
+        let fileUUID2 = UUID().uuidString
+        
+        let fileURL1 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe2", withExtension: "txt")!
+        
+        files = [
+            (uuid: fileUUID1, url: fileURL1),
+            (uuid: fileUUID2, url: fileURL2)
+        ]
+        
+        func findAndRemoveFile(uuid: String, url: URL) -> Bool {
+            guard let fileIndex = files.index(where: {$0.uuid == uuid}) else {
+                return false
+            }
+
+            let result = FilesMisc.compareFiles(file1: files[fileIndex].url, file2: url as URL)
+            files.remove(at: fileIndex)
+
+            return result
+        }
+        
+        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: Int64(files.count))
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let syncDoneExp = self.expectation(description: "syncDoneExp")
+        let syncServerSingleFileDownloadCompletedExp = self.expectation(description: "syncServerSingleFileDownloadCompletedExp")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                syncDoneExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        // If we're doing case alreadyDownloadedFile, we expect a second downloaded file. That is, if we delete the not yet downloaded file-- we don't get a second file to download.
+        var shouldSaveDownloadsExp:XCTestExpectation?
+        if deleteFile == .alreadyDownloadedFile {
+            shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
+        }
+        
+        shouldSaveDownload = { url, attr in
+            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            shouldSaveDownloadsExp!.fulfill()
+        }
+    
+        let previousSyncSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
+        SyncManager.session.testingDelegate = self
+
+        // This captures the first successful file download.
+        syncServerSingleFileDownloadCompleted = { url, attr, next in
+            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            
+            var fileUUIDToDelete:String
+            
+            switch deleteFile {
+            case .alreadyDownloadedFile:
+                fileUUIDToDelete = attr.fileUUID
+                
+            case .notYetDownloadedFile:
+                fileUUIDToDelete = files[0].uuid
+            }
+            
+            let ftd = ServerAPI.FileToDelete(fileUUID: fileUUIDToDelete, fileVersion: 0)
+            self.deleteFile(file: ftd, masterVersion: masterVersion + 1) {
+                self.syncServerSingleFileDownloadCompleted = previousSyncSingleFileDownloadCompleted
+                syncServerSingleFileDownloadCompletedExp.fulfill()
+                SyncManager.session.testingDelegate = nil
+                next()
+            }
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testMasterVersionChangeByDeletionDuringDownloadOfAlreadyDownloadedFile() {
+        masterVersionChangeByDeletionDuringDownload(deleteFile: .alreadyDownloadedFile)
+    }
+    
+    func testMasterVersionChangeByDeletionDuringDownloadOfNotYetDownloadedFile() {
+        masterVersionChangeByDeletionDuringDownload(deleteFile: .notYetDownloadedFile)
     }
 }

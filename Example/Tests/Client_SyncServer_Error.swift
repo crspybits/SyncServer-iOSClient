@@ -203,7 +203,7 @@ class Client_SyncServer_Error: TestCase {
 
         let previousSyncServerSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
     
-        syncServerSingleFileDownloadCompleted = {next in
+        syncServerSingleFileDownloadCompleted = { url, attr, next in
             // The intent is to fail the next /DownloadFile/ endpoint request-- after the first one succeeds.
             ServerAPI.session.failEndpoints = true
 

@@ -62,7 +62,7 @@ class TestCase: XCTestCase {
     }
     
     var syncServerSingleFileUploadCompleted:((_ next: @escaping ()->())->())?
-    var syncServerSingleFileDownloadCompleted:((_ next: @escaping ()->())->())?
+    var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
     override func setUp() {
         super.setUp()
@@ -683,7 +683,7 @@ extension TestCase : SyncServerTestingDelegate {
             next()
         }
         else {
-            syncServerSingleFileDownloadCompleted!(next)
+            syncServerSingleFileDownloadCompleted!(url, attr, next)
         }
      }
 }
