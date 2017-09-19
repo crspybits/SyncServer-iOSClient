@@ -462,7 +462,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // 9/16/17; Since we're now doing the downloads incrementally, we should just get a total of 3 downloads.
         
         let masterVersion = getMasterVersion()
-        var files:[(uuid: String, url: URL)]!
+        var files = [FileUUIDURL]()
 
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
@@ -477,17 +477,6 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID2, url: fileURL2),
             (uuid: fileUUID3, url: fileURL3)
         ]
-        
-        func findAndRemoveFile(uuid: String, url: URL) -> Bool {
-            guard let fileIndex = files.index(where: {$0.uuid == uuid}) else {
-                return false
-            }
-
-            let result = FilesMisc.compareFiles(file1: files[fileIndex].url, file2: url as URL)
-            files.remove(at: fileIndex)
-
-            return result
-        }
         
         guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
@@ -525,7 +514,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             
             // After a master version change, what happens to DownloadFileTracker(s) that were around before the change? They get deleted. And the server is again checked for downloads.
             
-            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
 
             if downloadCount >= 2 {
                 shouldSaveDownloadsExp.fulfill()
@@ -541,7 +530,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             let previousDeviceUUID = self.deviceUUID
             self.deviceUUID = UUID()
             
-            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
             
             self.fullUploadOfFile(url: fileURL3, fileUUID: fileUUID3, mimeType: "text/plain") { masterVersion in
             
@@ -572,7 +561,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // This should trigger the master version update.
         
         let masterVersion = getMasterVersion()
-        var files:[(uuid: String, url: URL)]!
+        var files = [FileUUIDURL]()
 
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
@@ -584,17 +573,6 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID1, url: fileURL1),
             (uuid: fileUUID2, url: fileURL2)
         ]
-        
-        func findAndRemoveFile(uuid: String, url: URL) -> Bool {
-            guard let fileIndex = files.index(where: {$0.uuid == uuid}) else {
-                return false
-            }
-
-            let result = FilesMisc.compareFiles(file1: files[fileIndex].url, file2: url as URL)
-            files.remove(at: fileIndex)
-
-            return result
-        }
         
         guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
@@ -630,7 +608,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
         
         shouldSaveDownload = { url, attr in
-            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
             shouldSaveDownloadsExp!.fulfill()
         }
     
@@ -639,7 +617,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
 
         // This captures the first successful file download.
         syncServerSingleFileDownloadCompleted = { url, attr, next in
-            XCTAssert(findAndRemoveFile(uuid: attr.fileUUID, url: url as URL))
+            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
             
             var fileUUIDToDelete:String
             

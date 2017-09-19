@@ -359,7 +359,8 @@ public class SyncServer {
         }
     }
     
-    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again. Non-blocking in all cases.
+    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again. If a stopSync is currently pending, then this will be ignored.
+    // Non-blocking in all cases.
     public func sync() {
         sync(completion:nil)
     }
@@ -368,6 +369,7 @@ public class SyncServer {
         var doStart = true
         
         Synchronized.block(self) {
+            // If we're in the process of stopping synchronizatoin, ignore sync attempts.
             if stoppingSync {
                 doStart = false
                 return
@@ -535,6 +537,8 @@ public class SyncServer {
                         self.syncOperating = false
                     }
                 }
+                
+                self.stoppingSync = false
             }
             
             if doStart {

@@ -83,6 +83,18 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    typealias FileUUIDURL = (uuid: String, url: URL)
+    func findAndRemoveFile(uuid: String, url: URL, in files: inout [FileUUIDURL]) -> Bool {
+        guard let fileIndex = files.index(where: {$0.uuid == uuid}) else {
+            return false
+        }
+
+        let result = FilesMisc.compareFiles(file1: files[fileIndex].url, file2: url as URL)
+        files.remove(at: fileIndex)
+
+        return result
+    }
+    
     func getMasterVersion() -> MasterVersionInt {
         let expectation1 = self.expectation(description: "fileIndex")
 

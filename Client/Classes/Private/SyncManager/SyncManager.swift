@@ -77,7 +77,7 @@ class SyncManager {
                     CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                         Directory.session.updateAfterDownloadingFiles(downloads: [dft])
                     
-                        // 9/16/17; We're doing downloads individually. Remove the DownloadFileTracker-- we don't want to repeat this download. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
+                        // 9/16/17; We're doing downloads in an eventually consistent manner. Remove the DownloadFileTracker-- we don't want to repeat this download. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
                         CoreData.sessionNamed(Constants.coreDataName).remove(dft)
                         CoreData.sessionNamed(Constants.coreDataName).saveContext()
                     }
@@ -290,7 +290,7 @@ class SyncManager {
             case .error(let error):
                 self.callback?(StartError.error(error))
                 
-            // `numTransferred` may not be accurrate in the case of retries/recovery.
+            // `numTransferred` may not be accurate in the case of retries/recovery.
             case .doneUploads(numberTransferred: _):
                 var uploadQueue:UploadQueue!
                 var fileUploads:[UploadFileTracker]!
