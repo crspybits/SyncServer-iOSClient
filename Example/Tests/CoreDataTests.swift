@@ -22,9 +22,9 @@ class CoreDataTests: TestCase {
         super.tearDown()
     }
     
-    func testLocalURLOnDownloadFileTracker() {
+    func testLocalURLOnUploadFileTracker() {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
-            let obj = DownloadFileTracker.newObject() as! DownloadFileTracker
+            let obj = UploadFileTracker.newObject() as! UploadFileTracker
             obj.localURL = SMRelativeLocalURL(withRelativePath: "foobar", toBaseURLType: .documentsDirectory)
             XCTAssert(obj.localURL != nil)
         }

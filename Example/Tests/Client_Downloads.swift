@@ -142,11 +142,9 @@ class Client_Downloads: TestCase {
             
             CoreData.sessionNamed(Constants.coreDataName).performAndWait {
                 let dfts = DownloadFileTracker.fetchAll()
-                XCTAssert(dfts[0].appMetaData == nil)
                 XCTAssert(dfts[0].fileVersion == file.fileVersion)
                 XCTAssert(dfts[0].status == .downloaded)
 
-                let fileData1 = try? Data(contentsOf: file.localURL)
                 XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
             }
             

@@ -1,8 +1,8 @@
 //
 //  DownloadFileTracker+CoreDataProperties.swift
-//  Pods
+//  SyncServer
 //
-//  Created by Christopher G Prince on 8/26/17.
+//  Created by Christopher G Prince on 9/19/17.
 //
 //
 
@@ -16,8 +16,8 @@ extension DownloadFileTracker {
         return NSFetchRequest<DownloadFileTracker>(entityName: "DownloadFileTracker")
     }
 
-    @NSManaged public var deletedOnServer: Bool
     @NSManaged public var creationDate: NSDate?
+    @NSManaged public var deletedOnServer: Bool
     @NSManaged public var updateDate: NSDate?
 
 }
