@@ -11,6 +11,9 @@ import SMCoreLib
 import SyncServer_Shared
 
 class Download {
+    var desiredEvents:EventDesired!
+    weak var delegate:SyncServerDelegate?
+    
     static let session = Download()
     
     private init() {
@@ -134,11 +137,12 @@ class Download {
     }
     
     // Starts download of next file, if there is one. There should be no files downloading already. Only if .started is the NextResult will the completion handler be called. With a masterVersionUpdate response for NextCompletion, the MasterVersion Core Data object is updated by this method, and all the DownloadFileTracker objects have been reset.
-    func next(completion:((NextCompletion)->())?) -> NextResult {
+    func next(first: Bool = false, completion:((NextCompletion)->())?) -> NextResult {
         var masterVersion:MasterVersionInt!
         var nextResult:NextResult?
         var downloadFile:FilenamingObject!
         var nextToDownload:DownloadFileTracker!
+        var numberToDownload = 0
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
@@ -146,6 +150,8 @@ class Download {
                 nextResult = .noDownloadsOrDeletions
                 return
             }
+            
+            numberToDownload = dfts.count
 
             let alreadyDownloading = dfts.filter {$0.status == .downloading}
             guard alreadyDownloading.count == 0 else {
@@ -179,7 +185,11 @@ class Download {
         guard nextResult == nil else {
             return nextResult!
         }
-
+        
+        if first {
+            EventDesired.reportEvent( .willStartDownloads(numberDownloads: UInt(numberToDownload)), mask: desiredEvents, delegate: delegate)
+        }
+        
         ServerAPI.session.downloadFile(file: downloadFile, serverMasterVersion: masterVersion) { (result, error)  in
         
             // Don't hold the performAndWait while we do completion-- easy to get a deadlock!

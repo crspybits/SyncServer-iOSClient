@@ -11,6 +11,7 @@ import SMCoreLib
 
 // This information is for testing purposes and for UI (e.g., for displaying download progress).
 public enum SyncEvent {
+    // This can repeat if there is a change to the files on the server (a master version update), and downloads restart.
     case willStartDownloads(numberDownloads:UInt)
     
     case singleFileUploadComplete(attr:SyncAttributes)
@@ -133,6 +134,7 @@ public class SyncServer {
         set {
             SyncManager.session.desiredEvents = newValue
             ServerAPI.session.desiredEvents = newValue
+            Download.session.desiredEvents = newValue
         }
         
         get {
@@ -144,6 +146,7 @@ public class SyncServer {
         set {
             SyncManager.session.delegate = newValue
             ServerAPI.session.syncServerDelegate = newValue
+            Download.session.delegate = newValue
         }
         
         get {
@@ -506,7 +509,7 @@ public class SyncServer {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        SyncManager.session.start { error in
+        SyncManager.session.start(first: true) { error in
             if error != nil {
                 Thread.runSync(onMainThread: {
                     self.delegate?.syncServerErrorOccurred(error: error!)

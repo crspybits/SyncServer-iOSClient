@@ -60,7 +60,7 @@ class SyncManager {
     }
     
     // TODO: *1* If we get an app restart when we call this method, and an upload was previously in progress, and we now have download(s) available, we need to reset those uploads prior to doing the downloads.
-    func start(_ callback:((Error?)->())? = nil) {
+    func start(first: Bool = false, _ callback:((Error?)->())? = nil) {
         self.callback = callback
         
         // TODO: *1* This is probably the level at which we should ensure that multiple download operations are not taking place concurrently. E.g., some locking mechanism?
@@ -70,7 +70,7 @@ class SyncManager {
         }
         
         // First: Do we have previously queued downloads that need to be downloaded?
-        let nextResult = Download.session.next() { nextCompletionResult in
+        let nextResult = Download.session.next(first: first) { nextCompletionResult in
             switch nextCompletionResult {
             case .fileDownloaded(let url, let attr, let dft):
                 func after() {
