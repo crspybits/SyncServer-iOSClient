@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 4.0.0; 9/19/17
+Version 4.0.0; 9/23/17
 	* Added event (willStartDownloads) to indicate the number of downloads that will happen.
 
 	* Making Downloads More Flexible in the SyncServer
