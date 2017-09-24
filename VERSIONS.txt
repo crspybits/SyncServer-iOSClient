@@ -1,11 +1,28 @@
 SyncServer-iOSClient
 
-9/9/17
+Version 4.0.0; 9/23/17
+	* Added event (willStartDownloads) to indicate the number of downloads that will happen.
 
+	* Making Downloads More Flexible in the SyncServer
+		http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
+		We are no longer going to discard all files if a failure occurs in the download. The local meta data is going to get updated with *every* download. We're moving to a more "eventual consistency" type of approach for downloads at least.
+		
+	* Removed various events, and replaced a SyncServerDelegate method. This is a breaking change relative to prior versions of the client interface.
+	
+	* Added more test cases for this eventual consistency change.
+		
+	* Add client call to cancel ongoing sync operation.
+		E.g., this should be useful if downloads stall for some reason. 
+	
+	* Add tests for cancelling ongoing sync operation.
+	
+	* Removed unused properties on DownloadFileTracker objects due to these changes:
+	     appMetaData, fileSizeBytes, localURL
+
+Version 3.2.0; 9/9/17; 
 	* Using version 2.1 of SyncServer-Shared-- to deal with NGNIX issue.
 
 8/29/17	
-
 	* Removed usage of update/creation dates from code internally.
 	
 	* Added new version (version 3) to Core Data model because of this.

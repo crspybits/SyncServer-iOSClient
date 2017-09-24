@@ -8,7 +8,7 @@
 
 import UIKit
 import SMCoreLib
-import SyncServer
+@testable import SyncServer
 import SyncServer_Shared
 
 class ViewController: UIViewController, GoogleSignInUIProtocol {
@@ -65,6 +65,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
                 else {
                     self.testingOutcome.text = "failed"
                 }
+                SyncManager.session.testingDelegate = nil
                 
             case .refreshingCredentials:
                 refresh += 1
@@ -77,6 +78,8 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
                 assert(false)
             }
         }
+        
+        SyncManager.session.testingDelegate = self
         
         syncServerSingleFileUploadCompleted = {
             numberUploads += 1
@@ -153,7 +156,7 @@ extension ViewController : GenericSignInDelegate {
 }
 
 extension ViewController : SyncServerDelegate {
-    func shouldSaveDownloads(downloads: [(downloadedFile: NSURL, downloadedFileAttributes: SyncAttributes)]) {
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         assert(false)
     }
     
@@ -168,13 +171,15 @@ extension ViewController : SyncServerDelegate {
     func syncServerErrorOccurred(error:Error) {
         assert(false)
     }
-    
+}
+
+extension ViewController : SyncServerTestingDelegate {
     func syncServerSingleFileUploadCompleted(next: @escaping ()->()) {
         syncServerSingleFileUploadCompleted?()
         next()
     }
-    
-    func syncServerSingleFileDownloadCompleted(next: @escaping ()->()) {
+
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->()) {
         assert(false)
     }
 }

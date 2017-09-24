@@ -166,7 +166,8 @@ class ServerAPI_Authentication: TestCase {
         
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
-        
+        let addUserExpectation2 = self.expectation(description: "addUser2")
+
         ServerAPI.session.addUser { error in
             XCTAssert(error == nil)
             addUserExpectation.fulfill()
@@ -174,6 +175,12 @@ class ServerAPI_Authentication: TestCase {
             ServerAPI.session.removeUser { error in
                 XCTAssert(error == nil)
                 removeUserExpectation.fulfill()
+                
+                // Because we don't want to leave tests in a state where we don't hav the user we need.
+                ServerAPI.session.addUser { error in
+                    XCTAssert(error == nil)
+                    addUserExpectation2.fulfill()
+                }
             }
         }
         

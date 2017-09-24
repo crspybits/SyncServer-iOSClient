@@ -30,6 +30,8 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testDownloadTwoFilesBackToBack() {
+        Log.msg("Start of testDownloadTwoFilesBackToBack")
+
         let initialDeviceUUID = self.deviceUUID
 
         // First upload two files.
@@ -51,12 +53,36 @@ class Client_SyncServer_Download: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
         
         let expectation = self.expectation(description: "test1")
+        let willStartDownloadsExp = self.expectation(description: "willStartDownloads")
+        
         self.deviceUUID = Foundation.UUID()
         
-        shouldSaveDownloads = { downloads in
-            XCTAssert(downloads.count == 2)
-            expectation.fulfill()
+        var downloadCount = 0
+        
+        Log.msg("Before assignment to shouldSaveDownload")
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount <= 2)
+            if downloadCount >= 2 {
+                expectation.fulfill()
+            }
         }
+        
+        SyncServer.session.eventsDesired = [.willStartDownloads]
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .willStartDownloads(numberDownloads: let numberDownloads):
+                XCTAssert(numberDownloads == 2)
+                willStartDownloadsExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        Log.msg("After assignment to shouldSaveDownload")
         
         // Next, initiate the download using .sync()
         SyncServer.session.sync()

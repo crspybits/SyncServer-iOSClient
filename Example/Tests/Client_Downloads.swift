@@ -32,9 +32,10 @@ class Client_Downloads: TestCase {
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
                 XCTAssert(expectedFiles.count == 0)
-                
-            case .downloadsOrDeletionsAvailable(numberOfFiles: let numDownloads):
-                XCTAssert(Int32(expectedFiles.count) == numDownloads, "numDownloads: \(numDownloads); expectedFiles.count: \(expectedFiles.count)")
+            
+            case .downloadsAvailable(numberOfDownloadFiles: let numDownloads, numberOfDownloadDeletions: let numDeletions):
+                let total = numDownloads + numDeletions
+                XCTAssert(Int32(expectedFiles.count) == total, "numDownloads: \(total); expectedFiles.count: \(expectedFiles.count)")
                 
             case .error(_):
                 XCTFail()
@@ -134,20 +135,17 @@ class Client_Downloads: TestCase {
         let expectation = self.expectation(description: "next")
 
         let result = Download.session.next() { completionResult in
-            guard case .fileDownloaded = completionResult else {
+            guard case .fileDownloaded(let url, _, _) = completionResult else {
                 XCTFail()
                 return
             }
             
             CoreData.sessionNamed(Constants.coreDataName).performAndWait {
                 let dfts = DownloadFileTracker.fetchAll()
-                XCTAssert(dfts[0].appMetaData == nil)
                 XCTAssert(dfts[0].fileVersion == file.fileVersion)
                 XCTAssert(dfts[0].status == .downloaded)
 
-                let fileData1 = try? Data(contentsOf: file.localURL)
-                XCTAssert(Int64(fileData1!.count) == dfts[0].fileSizeBytes)
-                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: dfts[0].localURL! as URL))
+                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
             }
             
             expectation.fulfill()

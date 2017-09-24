@@ -31,6 +31,28 @@ public class UploadFileTracker: FileTracker, AllOperations {
         }
     }
     
+    var localURL:SMRelativeLocalURL? {
+        get {
+            if localURLData == nil {
+                return nil
+            }
+            else {
+                let url = NSKeyedUnarchiver.unarchiveObject(with: localURLData! as Data) as? SMRelativeLocalURL
+                Assert.If(url == nil, thenPrintThisString: "UploadFileTracker: Yikes: No URL!")
+                return url
+            }
+        }
+        
+        set {
+            if newValue == nil {
+                localURLData = nil
+            }
+            else {
+                localURLData = NSKeyedArchiver.archivedData(withRootObject: newValue!) as NSData
+            }
+        }
+    }
+    
     public class func entityName() -> String {
         return "UploadFileTracker"
     }

@@ -11,10 +11,8 @@ import SMCoreLib
 
 // This information is for testing purposes and for UI (e.g., for displaying download progress).
 public enum SyncEvent {
-    // The url/attr here may not be consistent with the results from shouldSaveDownloads in the SyncServerDelegate.
-    case singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
-    case fileDownloadsCompleted(numberOfFiles:Int)
-    case downloadDeletionsCompleted(numberOfFiles:Int)
+    // This can repeat if there is a change to the files on the server (a master version update), and downloads restart.
+    case willStartDownloads(numberDownloads:UInt)
     
     case singleFileUploadComplete(attr:SyncAttributes)
     case singleUploadDeletionComplete(fileUUID:UUIDString)
@@ -22,6 +20,10 @@ public enum SyncEvent {
     case uploadDeletionsCompleted(numberOfFiles:Int)
     
     case syncStarted
+    
+    // Occurs after call to stopSync, when the synchronization is just about to stop. syncDone will be the next event (if desired).
+    case syncStopping
+    
     case syncDone
     
     case refreshingCredentials
@@ -31,41 +33,35 @@ public struct EventDesired: OptionSet {
     public let rawValue: Int
     public init(rawValue:Int){ self.rawValue = rawValue}
 
-    public static let singleFileDownloadComplete = EventDesired(rawValue: 1 << 0)
-    public static let fileDownloadsCompleted = EventDesired(rawValue: 1 << 1)
-    public static let downloadDeletionsCompleted = EventDesired(rawValue: 1 << 2)
+    public static let willStartDownloads = EventDesired(rawValue: 1 << 0)
     
-    public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 3)
-    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 4)
-    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 5)
-    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 6)
+    public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 1)
+    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 2)
+    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 3)
+    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 4)
     
-    public static let syncStarted = EventDesired(rawValue: 1 << 7)
-    public static let syncDone = EventDesired(rawValue: 1 << 8)
+    public static let syncStarted = EventDesired(rawValue: 1 << 5)
+    public static let syncDone = EventDesired(rawValue: 1 << 6)
     
-    public static let refreshingCredentials = EventDesired(rawValue: 1 << 9)
-    
+    public static let syncStopping = EventDesired(rawValue: 1 << 7)
+
+    public static let refreshingCredentials = EventDesired(rawValue: 1 << 8)
+
     public static let defaults:EventDesired =
-        [.singleFileDownloadComplete, .fileDownloadsCompleted, .downloadDeletionsCompleted,
-        .singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted, .uploadDeletionsCompleted]
-    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.refreshingCredentials])
+        [.singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted,
+         .uploadDeletionsCompleted]
+    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.syncStopping, EventDesired.refreshingCredentials, EventDesired.willStartDownloads])
     
     static func reportEvent(_ event:SyncEvent, mask:EventDesired, delegate:SyncServerDelegate?) {
     
         var eventIsDesired:EventDesired
         
         switch event {
-        case .downloadDeletionsCompleted(_):
-            eventIsDesired = .downloadDeletionsCompleted
-            
-        case .fileDownloadsCompleted(_):
-            eventIsDesired = .fileDownloadsCompleted
+        case .willStartDownloads(numberDownloads: _):
+            eventIsDesired = .willStartDownloads
 
         case .fileUploadsCompleted(_):
             eventIsDesired = .fileUploadsCompleted
-            
-        case .singleFileDownloadComplete(_):
-            eventIsDesired = .singleFileDownloadComplete
             
         case .uploadDeletionsCompleted(_):
             eventIsDesired = .uploadDeletionsCompleted
@@ -75,6 +71,9 @@ public struct EventDesired: OptionSet {
             
         case .syncDone:
             eventIsDesired = .syncDone
+            
+        case .syncStopping:
+            eventIsDesired = .syncStopping
             
         case .singleFileUploadComplete(_):
             eventIsDesired = .singleFileUploadComplete
@@ -97,31 +96,36 @@ public struct EventDesired: OptionSet {
 // These delegate methods are called on the main thread.
 
 public protocol SyncServerDelegate : class {
-    /* Called at the end of all downloads, on non-error conditions. Only called when there was at least one download.
-    The client owns the files referenced by the NSURL's after this call completes. These files are temporary in the sense that they will not be backed up to iCloud, could be removed when the device or app is restarted, and should be moved to a more permanent location. This is received/called in an atomic manner: This reflects the current state of files on the server.
-    Client should replace their existing data with that from the files.
+    /* Called at the end of a single download, on non-error conditions.
+    The client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be moved to a more permanent location.
+    Client should replace their existing data with that from the given file.
     */
-    func shouldSaveDownloads(downloads: [(downloadedFile: NSURL, downloadedFileAttributes: SyncAttributes)])
+    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
 
-    // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of files on the server. Clients should delete the files referenced by the SMSyncAttributes's (i.e., the UUID's).
+    // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SMSyncAttributes's (i.e., the UUID's).
     func shouldDoDeletions(downloadDeletions:[SyncAttributes])
     
     func syncServerErrorOccurred(error:Error)
 
     // Reports events. Useful for testing and UI.
     func syncServerEventOccurred(event:SyncEvent)
-    
-#if DEBUG
-    // With each of these two callbacks, you *must* call `next` before returning.
-    func syncServerSingleFileUploadCompleted(next: @escaping ()->())
-    func syncServerSingleFileDownloadCompleted(next: @escaping ()->())
-#endif
 }
+
+#if DEBUG
+public protocol SyncServerTestingDelegate : class {
+    // You *must* call `next` before returning.
+    func syncServerSingleFileUploadCompleted(next: @escaping ()->())
+    
+     // You *must* call `next` before returning. If this delegate is given in testing, then `SyncServerDelegate` is not used for the corresponding method (without `next`).
+     func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->())
+}
+#endif
 
 public class SyncServer {
     public static let session = SyncServer()
     private var syncOperating = false
     private var delayedSync = false
+    private var stoppingSync = false
     
     private init() {
     }
@@ -130,6 +134,7 @@ public class SyncServer {
         set {
             SyncManager.session.desiredEvents = newValue
             ServerAPI.session.desiredEvents = newValue
+            Download.session.desiredEvents = newValue
         }
         
         get {
@@ -141,6 +146,7 @@ public class SyncServer {
         set {
             SyncManager.session.delegate = newValue
             ServerAPI.session.syncServerDelegate = newValue
+            Download.session.delegate = newValue
         }
         
         get {
@@ -356,7 +362,8 @@ public class SyncServer {
         }
     }
     
-    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again. Non-blocking in all cases.
+    // If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this will wait until after that is done, and try again. If a stopSync is currently pending, then this will be ignored.
+    // Non-blocking in all cases.
     public func sync() {
         sync(completion:nil)
     }
@@ -365,6 +372,12 @@ public class SyncServer {
         var doStart = true
         
         Synchronized.block(self) {
+            // If we're in the process of stopping synchronizatoin, ignore sync attempts.
+            if stoppingSync {
+                doStart = false
+                return
+            }
+            
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 // TODO: *0* Need an error reporting mechanism. These should not be `try!`
                 if try! Upload.pendingSync().uploadFileTrackers.count > 0  {
@@ -383,6 +396,17 @@ public class SyncServer {
         
         if doStart {
             start(completion: completion)
+        }
+    }
+    
+    // Stop an ongoing sync operation. This will stop the operation at the next "natural" stopping point. E.g., after a next download completes. No effect if no ongoing sync operation. Any delayed sync is cancelled.
+    public func stopSync() {
+        Synchronized.block(self) {
+            if syncOperating {
+                delayedSync = false
+                stoppingSync = true
+                SyncManager.session.stopSync = true
+            }
         }
     }
     
@@ -467,9 +491,9 @@ public class SyncServer {
                 // Elements in directory that are missing in client
                 let directoryMissing = directory.subtracting(intersection)
                 
-                print("clientMissingAndDeleted: \(clientMissingAndDeleted)")
-                print("clientMissingNotDeleted: \(clientMissingNotDeleted)")
-                print("directoryMissing: \(directoryMissing)")
+                Log.msg("clientMissingAndDeleted: \(clientMissingAndDeleted)")
+                Log.msg("clientMissingNotDeleted: \(clientMissingNotDeleted)")
+                Log.msg("directoryMissing: \(directoryMissing)")
                 results = LocalConsistencyResults(clientMissingAndDeleted: clientMissingAndDeleted, clientMissingNotDeleted: clientMissingNotDeleted, directoryMissing: directoryMissing)
             }
         }
@@ -485,7 +509,7 @@ public class SyncServer {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        SyncManager.session.start { error in
+        SyncManager.session.start(first: true) { error in
             if error != nil {
                 Thread.runSync(onMainThread: {
                     self.delegate?.syncServerErrorOccurred(error: error!)
@@ -508,7 +532,7 @@ public class SyncServer {
             
             Synchronized.block(self) {
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    if Upload.haveSyncQueue()  || self.delayedSync {
+                    if !self.stoppingSync && (Upload.haveSyncQueue()  || self.delayedSync) {
                         self.delayedSync = false
                         doStart = true
                     }
@@ -516,6 +540,8 @@ public class SyncServer {
                         self.syncOperating = false
                     }
                 }
+                
+                self.stoppingSync = false
             }
             
             if doStart {

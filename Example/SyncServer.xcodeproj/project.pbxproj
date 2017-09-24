@@ -40,6 +40,9 @@
 		83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */; };
 		83CD30831E15880000A0C7AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30811E15880000A0C7AD /* GoogleService-Info.plist */; };
 		83CD30841E15880000A0C7AD /* Server.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30821E15880000A0C7AD /* Server.plist */; };
+		83D829D01F70B8B30030E9F7 /* UploadMe2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83D829CE1F70B20F0030E9F7 /* UploadMe2.txt */; };
+		83D829D11F70B8B60030E9F7 /* UploadMe3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83D829CF1F70B20F0030E9F7 /* UploadMe3.txt */; };
+		83D829D61F70C8EC0030E9F7 /* Client_SyncServer_StopSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D829D41F70C8460030E9F7 /* Client_SyncServer_StopSync.swift */; };
 		83D95C9E1E6A923700DF3BF3 /* Client_SyncManager_MasterVersionChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D95C9D1E6A923700DF3BF3 /* Client_SyncManager_MasterVersionChange.swift */; };
 		83D95CA01E6A971000DF3BF3 /* Client_SyncManager_FileUpload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D95C9F1E6A971000DF3BF3 /* Client_SyncManager_FileUpload.swift */; };
 		83D95CA41E6B546500DF3BF3 /* UploadMe2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */; };
@@ -116,6 +119,9 @@
 		83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CatBehaviors.jpg; sourceTree = "<group>"; };
 		83CD30811E15880000A0C7AD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		83CD30821E15880000A0C7AD /* Server.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Server.plist; sourceTree = "<group>"; };
+		83D829CE1F70B20F0030E9F7 /* UploadMe2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = UploadMe2.txt; sourceTree = "<group>"; };
+		83D829CF1F70B20F0030E9F7 /* UploadMe3.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = UploadMe3.txt; sourceTree = "<group>"; };
+		83D829D41F70C8460030E9F7 /* Client_SyncServer_StopSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_StopSync.swift; sourceTree = "<group>"; };
 		83D95C9D1E6A923700DF3BF3 /* Client_SyncManager_MasterVersionChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_MasterVersionChange.swift; sourceTree = "<group>"; };
 		83D95C9F1E6A971000DF3BF3 /* Client_SyncManager_FileUpload.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_FileUpload.swift; sourceTree = "<group>"; };
 		83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe2.txt; sourceTree = "<group>"; };
@@ -227,6 +233,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				83D829D41F70C8460030E9F7 /* Client_SyncServer_StopSync.swift */,
 				8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */,
 				838ED40B1ED2B46200078E9F /* Performance.swift */,
 				83709F7F1EA4718F00BCDC32 /* ServerAPI_Sharing.swift */,
@@ -252,6 +259,8 @@
 				831DE3CC1EDA850F0084070F /* SmallerCat.jpg */,
 				83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */,
 				83F37A211E46D52500479175 /* UploadMe.txt */,
+				83D829CE1F70B20F0030E9F7 /* UploadMe2.txt */,
+				83D829CF1F70B20F0030E9F7 /* UploadMe3.txt */,
 				83F37A1F1E46D40500479175 /* UploadFile.swift */,
 				83F37A191E44478100479175 /* FileIndex.swift */,
 				837244551E419EE600155E89 /* TestCase.swift */,
@@ -292,7 +301,6 @@
 		83544F851EF58B32007E0887 /* SyncServer_ExampleUITests */ = {
 			isa = PBXGroup;
 			children = (
-				83F882391E711E24008F644A /* GoogleSignIn.swift */,
 				83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */,
 				83544F881EF58B32007E0887 /* Info.plist */,
 			);
@@ -441,9 +449,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */,
+				83D829D01F70B8B30030E9F7 /* UploadMe2.txt in Resources */,
 				83F37A241E46E8C700479175 /* Cat.jpg in Resources */,
 				831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */,
 				831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */,
+				83D829D11F70B8B60030E9F7 /* UploadMe3.txt in Resources */,
 				83F37A171E4445CB00479175 /* Server.plist in Resources */,
 				83F37A221E46D52500479175 /* UploadMe.txt in Resources */,
 			);
@@ -514,7 +524,6 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
 				"${BUILT_PRODUCTS_DIR}/Bolts/Bolts.framework",
 				"${BUILT_PRODUCTS_DIR}/FBSDKCoreKit/FBSDKCoreKit.framework",
 				"${BUILT_PRODUCTS_DIR}/FBSDKLoginKit/FBSDKLoginKit.framework",
@@ -533,7 +542,6 @@
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AFNetworking.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Bolts.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBSDKCoreKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBSDKLoginKit.framework",
@@ -624,6 +632,7 @@
 				8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */,
 				83F37A201E46D40500479175 /* UploadFile.swift in Sources */,
 				8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */,
+				83D829D61F70C8EC0030E9F7 /* Client_SyncServer_StopSync.swift in Sources */,
 				83F882151E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift in Sources */,
 				837244541E419E7B00155E89 /* DoneUploads.swift in Sources */,
 				83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */,

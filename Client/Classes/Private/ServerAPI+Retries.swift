@@ -48,7 +48,7 @@ private class RequestWithRetries {
     }
     
     deinit {
-        print("deinit: RequestWithRetries")
+        Log.msg("deinit: RequestWithRetries")
     }
     
     // Make sure self.creds is non-nil before you call this!

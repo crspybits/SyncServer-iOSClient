@@ -32,26 +32,4 @@ public class FileTracker: NSManagedObject, Filenaming {
             fileVersionInternal = newValue
         }
     }
-    
-    var localURL:SMRelativeLocalURL? {
-        get {
-            if localURLData == nil {
-                return nil
-            }
-            else {
-                let url = NSKeyedUnarchiver.unarchiveObject(with: localURLData! as Data) as? SMRelativeLocalURL
-                Assert.If(url == nil, thenPrintThisString: "Yikes: No URL!")
-                return url
-            }
-        }
-        
-        set {
-            if newValue == nil {
-                localURLData = nil
-            }
-            else {
-                localURLData = NSKeyedArchiver.archivedData(withRootObject: newValue!) as NSData
-            }
-        }
-    }
 }

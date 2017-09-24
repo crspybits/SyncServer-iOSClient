@@ -377,7 +377,7 @@ private class GoogleSignInOutButton : UIView, Tappable {
         signOutButtonContainer.backgroundColor = UIColor.white
     }
     
-    func signInButtonAction() {
+    @objc func signInButtonAction() {
         if buttonShowing == .signIn {
             signIn.managerDelegate.signInStateChanged(to: .signInStarted, for: signIn)
         }
