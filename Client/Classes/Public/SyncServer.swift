@@ -491,9 +491,9 @@ public class SyncServer {
                 // Elements in directory that are missing in client
                 let directoryMissing = directory.subtracting(intersection)
                 
-                print("clientMissingAndDeleted: \(clientMissingAndDeleted)")
-                print("clientMissingNotDeleted: \(clientMissingNotDeleted)")
-                print("directoryMissing: \(directoryMissing)")
+                Log.msg("clientMissingAndDeleted: \(clientMissingAndDeleted)")
+                Log.msg("clientMissingNotDeleted: \(clientMissingNotDeleted)")
+                Log.msg("directoryMissing: \(directoryMissing)")
                 results = LocalConsistencyResults(clientMissingAndDeleted: clientMissingAndDeleted, clientMissingNotDeleted: clientMissingNotDeleted, directoryMissing: directoryMissing)
             }
         }

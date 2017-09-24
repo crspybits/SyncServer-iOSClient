@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '3.2.0'
+  s.version          = '4.0.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
 
   s.pod_target_xcconfig = {
-    'OTHER_SWIFT_FLAGS[config=Debug]' => '$(inherited) -DDEBUG',
+    'OTHER_SWIFT_FLAGS[config=Debug]' => '$(inherited) -DDEBUG'
   }
 
   s.source_files = 'Client/Classes/**/*.{swift}'
@@ -30,6 +30,7 @@ Pod::Spec.new do |s|
   s.dependency 'SMCoreLib', '~> 1.0'
   
   s.dependency 'Gloss'
+  
   s.dependency 'SyncServer-Shared', '~> 2.1'
   
   s.default_subspec = 'Lite'

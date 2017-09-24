@@ -38,7 +38,7 @@ public class UploadFileTracker: FileTracker, AllOperations {
             }
             else {
                 let url = NSKeyedUnarchiver.unarchiveObject(with: localURLData! as Data) as? SMRelativeLocalURL
-                Assert.If(url == nil, thenPrintThisString: "Yikes: No URL!")
+                Assert.If(url == nil, thenPrintThisString: "UploadFileTracker: Yikes: No URL!")
                 return url
             }
         }
