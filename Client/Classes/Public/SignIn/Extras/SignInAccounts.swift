@@ -12,9 +12,9 @@ import UIKit
 enum SignInAccountsTitle : String {
     case existingAccount = "Existing Account"
     case newAccount = "New Account"
+    case sharingAccount = "New Sharing Account"
     case signedIn = "Signed In"
 }
-
 
 private class SignInButtonCell : UITableViewCell {
     var signInButton:UIView!

@@ -10,11 +10,11 @@
 import UIKit
 import SyncServer_Shared
 
-class SignInStart : UIView {
+public class SignInStart : UIView {
     @IBOutlet weak var signIn: UIButton!
     static private(set) var createOwningUser:Bool?
 
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         signIn.titleLabel?.textAlignment = .center
         
@@ -48,29 +48,37 @@ class SignInStart : UIView {
         showSignIns(for: .owningUser)
     }
     
-    func showSignIns(`for` signInType: SignInType) {
+    public func showSignIns(`for` signInType: SignInType) {
         let signIns = SignInManager.session.getSignIns(for: signInType)
         let signInAccounts:SignInAccounts = SignInAccounts.createFromXib()!
         
         var title:SignInAccountsTitle!
         
         switch signInType {
-        case SignInType.both:
+        case .both:
             title = .existingAccount
             SignInStart.createOwningUser = false
             
-        case SignInType.owningUser:
+        case .owningUser:
             SignInStart.createOwningUser = true
             title = .newAccount
             
+        case .sharingUser:
+            SignInStart.createOwningUser = false
+            title = .sharingAccount
+            
         default:
+            // It's odd that this is needed. `SignInType` only has three possible values.
             assert(false)
         }
         
         signInAccounts.changeTitle(title)
         
         signInAccounts.signIns = signIns
+        
+        // 10/1/17; Getting a crash right here-- after I have an error creating a sharing account with Facebook. I think there is no superview.
         superview!.addSubview(signInAccounts)
+        
         removeFromSuperview()
     }
 }

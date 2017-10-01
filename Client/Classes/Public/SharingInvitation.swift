@@ -47,6 +47,10 @@ public class SharingInvitation {
     public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         Log.msg("url: \(url)")
         
+#if false
+        Alert.show(withTitle: "SharingInvitation", message: "url: \(url)")
+#endif
+        
         var returnResult = false
         
         // Use case insensitive comparison because the incoming url scheme will be lower case.
@@ -69,6 +73,10 @@ public class SharingInvitation {
                         Log.msg("queryItemPermission.value: \(queryItemPermission.value!)")
                         permission = SharingPermission(rawValue: queryItemPermission.value!)
                     }
+                    
+#if false
+                    Alert.show(withTitle: "SharingInvitation", message: "code: \(String(describing: code)); permission: \(String(describing: permission)); delegate: \(String(describing: delegate))")
+#endif
                     
                     if code != nil && permission != nil {
                         sharingInvitationCode = code
