@@ -9,7 +9,9 @@
 
 import UIKit
 
-public class SignIn : UIView {    
+public class SignIn : UIView {
+    public var signInStart:SignInStart!
+    
     public enum SignInUIState {
         // asking if user wants to sign-in as existing or new user
         case initialSignInViewShowing
@@ -37,7 +39,7 @@ public class SignIn : UIView {
     public override func awakeFromNib() {
         super.awakeFromNib()
         
-        let signInStart:SignInStart = SignInStart.createFromXib()!
+        signInStart = SignInStart.createFromXib()!
         addSubview(signInStart)
     }
 }

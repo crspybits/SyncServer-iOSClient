@@ -103,7 +103,8 @@ public class SignInManager : NSObject {
             }
         }
         
-        assert(false)
+        // 10/1/17; Up until today, I had this assert here. For some reason, I was assuming that if I got a `open url` call, the user *had* to be signed in. But this is incorrect. For example, I could get a call for a sharing invitation.
+        // assert(false)
         
         return false
     }

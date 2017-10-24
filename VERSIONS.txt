@@ -1,5 +1,12 @@
 SyncServer-iOSClient
 
+Version 4.1.0
+	* fixed bug where call to func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+	in the SyncManager would fail with an assertion if user was not signed in.
+	
+	* Enabled more general sign-in when redeeming sharing invitation.
+		See also https://github.com/crspybits/SharedImages/issues/43
+
 Version 4.0.0; 9/23/17
 	* Added event (willStartDownloads) to indicate the number of downloads that will happen.
 
