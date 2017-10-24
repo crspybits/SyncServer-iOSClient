@@ -31,7 +31,7 @@ public enum UserActionNeeded {
     case createSharingUser(invitationCode:String)
     case createOwningUser
     case signInExistingUser
-    case none // e.g., error
+    case error
 }
 
 public enum UserActionOccurred {
@@ -83,9 +83,13 @@ public protocol GenericSignIn : class {
     // Used exclusively by the SignInManager.
     var managerDelegate:SignInManagerDelegate! {get set}
     
-    func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?)
+    // `userSignedIn`, when true, indicates that the user was signed-in with this GenericSignIn last time, and not signed out.
+    func appLaunchSetup(userSignedIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?)
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any]) -> Bool
+    
+    // To enable sticky sign-in, and the GenericSignIn to refresh credentials if that wasn't possible at app launch, this will be called when network connectivity changes state.
+    func networkChangedState(networkIsOnline: Bool)
 
     // The UI element to use to allow signing in. A successful result will give a non-nil UI element. Each time this method is called, the same element instance is returned. Passing nil will bypass the parameters required if any.
     func setupSignInButton(params:[String:Any]?) -> TappableButton?
@@ -93,6 +97,7 @@ public protocol GenericSignIn : class {
     // Returns the last value returned from `setupSignInButton`.
     var signInButton:/* TappableButton*/ UIView? {get}
     
+    // Sign-in is sticky. Once signed-in, they tend to stay signed-in.
     var userIsSignedIn: Bool {get}
 
     // Non-nil if userIsSignedIn is true.

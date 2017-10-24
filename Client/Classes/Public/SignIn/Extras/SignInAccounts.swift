@@ -55,11 +55,11 @@ class SignInAccounts : UIView {
     
     func setup() {
         // Hiding the back button when a user is signed in because the only action we want to allow is signing out in this case. If no user is signed, then user should be able to go back, and create a new user (not sign-in) if they want.
-        backButton.isHidden = SignInManager.session.userIsSignIn
+        backButton.isHidden = SignInManager.session.userIsSignedIn
     }
     
     func signInStateChanged() {
-        if SignInManager.session.userIsSignIn {
+        if SignInManager.session.userIsSignedIn {
             changeTitle(.signedIn)
         }
         else {
@@ -77,7 +77,7 @@ class SignInAccounts : UIView {
     }
     
     func currentSignIns() -> [GenericSignIn] {
-        if SignInManager.session.userIsSignIn {
+        if SignInManager.session.userIsSignedIn {
             changeTitle(.signedIn)
 
             // If user is signed in, only want to present that sign-in button, to allow them to sign out.

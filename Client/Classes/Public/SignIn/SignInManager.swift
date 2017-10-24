@@ -11,20 +11,30 @@ import Foundation
 import SMCoreLib
 import SyncServer_Shared
 
-public class SignInManager {
+// This class needs to be derived from NSObject because of use of `Network.session().connectionStateCallbacks` below.
+public class SignInManager : NSObject {
     // These must be stored in user defaults-- so that if they delete the app, we lose it, and can start again. Storing both the currentUIDisplayName and userId because the userId (at least for Google) is just a number and not intelligible in the UI.
     public static var currentUIDisplayName = SMPersistItemString(name:"SignInManager.currentUIDisplayName", initialStringValue:"",  persistType: .userDefaults)
     public static var currentUserId = SMPersistItemString(name:"SignInManager.currentUserId", initialStringValue:"",  persistType: .userDefaults)
     
     // The class name of the current GenericSignIn
-    static var currentSignInName = SMPersistItemString(name:"SignInManager.currentSignIn", initialStringValue:"",  persistType: .userDefaults)
+    static var currentSignInName = SMPersistItemString(name:"SignInManager.currentSignIn", initialStringValue:"", persistType: .userDefaults)
 
     public static let session = SignInManager()
     
     public var signInStateChanged:TargetsAndSelectors = NSObject()
     
-    private init() {
+    private override init() {
+        super.init()
         signInStateChanged.resetTargets!()
+        _ = Network.session().connectionStateCallbacks.addTarget!(self, with: #selector(networkChangedState))
+    }
+    
+    @objc private func networkChangedState() {
+        let networkOnline = Network.session().connected()
+        for signIn in alternativeSignIns {
+            signIn.networkChangedState(networkIsOnline: networkOnline)
+        }
     }
     
     fileprivate var alternativeSignIns = [GenericSignIn]()
@@ -62,8 +72,8 @@ public class SignInManager {
     }
     
     // A shorthand-- because it's often used.
-    public var userIsSignIn:Bool {
-        return currentSignIn?.userIsSignedIn ?? false
+    public var userIsSignedIn:Bool {
+        return currentSignIn != nil && currentSignIn!.userIsSignedIn
     }
     
     // At launch, you must set up all the SignIn's that you'll be presenting to the user. This will call their `appLaunchSetup` method.
@@ -75,8 +85,13 @@ public class SignInManager {
         
         alternativeSignIns.append(signIn)
         signIn.managerDelegate = self
-        let silentSignIn = SignInManager.currentSignInName.stringValue == name
-        signIn.appLaunchSetup(silentSignIn: silentSignIn, withLaunchOptions: options)
+        let userSignedIn = SignInManager.currentSignInName.stringValue == name
+        signIn.appLaunchSetup(userSignedIn: userSignedIn, withLaunchOptions: options)
+        
+        // To accomodate sticky sign-in's-- we might as well have a `currentSignIn` value immediately after addSignIn's are called.
+        if userSignedIn {
+            currentSignIn = signIn
+        }
     }
     
     // Based on the currently active signin method, this will call the corresponding method on that class.

@@ -18,7 +18,7 @@ class SignInStart : UIView {
         super.awakeFromNib()
         signIn.titleLabel?.textAlignment = .center
         
-        if SignInManager.session.userIsSignIn {
+        if SignInManager.session.userIsSignedIn {
             showSignIns(for: .both)
         }
         
@@ -34,7 +34,7 @@ class SignInStart : UIView {
     func signInStateChanged() {
         // If displayed
         if superview != nil {
-            if SignInManager.session.userIsSignIn {
+            if SignInManager.session.userIsSignedIn {
                 showSignIns(for: .both)
             }
         }

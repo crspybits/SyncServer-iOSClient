@@ -34,7 +34,7 @@ public class SyncServerUser {
     
     private init() {
         // Check to see if the device has a UUID already.
-        if SyncServerUser.mobileDeviceUUID.stringValue.characters.count == 0 {
+        if SyncServerUser.mobileDeviceUUID.stringValue.count == 0 {
             SyncServerUser.mobileDeviceUUID.stringValue = UUID.make()
         }
         
