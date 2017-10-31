@@ -164,6 +164,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
     public func networkChangedState(networkIsOnline: Bool) {
         if stickySignIn && networkIsOnline && credentials == nil {
             autoSignIn = true
+            Log.msg("GoogleSignIn: Trying autoSignIn...")
             GIDSignIn.sharedInstance().signInSilently()
         }
     }
@@ -234,6 +235,7 @@ extension GoogleSyncServerSignIn {
         stickySignIn = false
         GIDSignIn.sharedInstance().signOut()
         signInOutButton.buttonShowing = .signIn
+        managerDelegate?.signInStateChanged(to: .signedOut, for: self)
         signOutDelegate?.userWasSignedOut(signIn: self)
         delegate?.userActionOccurred(action: .userSignedOut, signIn: self)
     }
@@ -250,6 +252,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             guard let userAction = self.delegate?.shouldDoUserAction(signIn: self) else {
                 // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
                 SyncServerUser.session.creds = creds
+                managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                 return
             }
 
@@ -268,15 +271,20 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                             self.signUserOut()
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
+                            self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                         case .sharingUser(sharingPermission: let permission, _):
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                            self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                         }
                     }
                     else {
                         let message = "Error checking for existing user: \(error!)"
                         Log.error(message)
 
-                        if !self.autoSignIn {
+                        if self.autoSignIn {
+                            self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+                        }
+                        else {
                             // 10/22/17; See reasoning in FacebookSignIn at about this point in the code for signUserOut issue.
                             self.signUserOut()
                             SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
@@ -289,6 +297,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                     if error == nil {
                         SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new owning user! You are now signed in too!")
                         self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
@@ -302,6 +311,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                     if error == nil {
                         SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
                         self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
@@ -319,10 +329,11 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             let message = "Error signing into Google: \(error!)"
             Log.error(message)
 
-            // 10/22/17; Not generally signing the user out here. It doesn't make sense if we get an error during launch. It doesn't make sense if we're attempting to do a creds refresh automatically when the app is running. It can make sense, however, if this is an explicit request by the user to sign-in.
+            // 10/22/17; Not always signing the user out here. It doesn't make sense if we get an error during launch. It doesn't make sense if we're attempting to do a creds refresh automatically when the app is running. It can make sense, however, if this is an explicit request by the user to sign-in.
             
             if autoSignIn {
                 self.signInOutButton.buttonShowing = .signOut
+                self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
             }
             else {
                 // Must be an explicit request by user.
@@ -432,12 +443,10 @@ private class GoogleSignInOutButton : UIView, Tappable {
             case .signIn:
                 self.signInButton.isHidden = false
                 self.signOutButtonContainer.isHidden = true
-                signIn?.managerDelegate?.signInStateChanged(to: .signedOut, for: signIn)
             
             case .signOut:
                 self.signInButton.isHidden = true
                 self.signOutButtonContainer.isHidden = false
-                signIn?.managerDelegate?.signInStateChanged(to: .signedIn, for: signIn)
             }
             
             self.setNeedsDisplay()

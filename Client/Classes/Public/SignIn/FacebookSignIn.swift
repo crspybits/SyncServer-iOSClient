@@ -80,6 +80,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     
     public func networkChangedState(networkIsOnline: Bool) {
         if stickySignIn && networkIsOnline && credentials == nil {
+            Log.msg("FacebookSignIn: Trying autoSignIn...")
             autoSignIn()
         }
     }
@@ -154,11 +155,11 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     
     fileprivate func completeSignInProcess(autoSignIn:Bool) {
         stickySignIn = true
-        managerDelegate?.signInStateChanged(to: .signedIn, for: self)
 
         guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
             // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
             SyncServerUser.session.creds = credentials
+            managerDelegate?.signInStateChanged(to: .signedIn, for: self)
             return
         }
         
@@ -183,6 +184,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     case .sharingUser(sharingPermission: let permission, accessToken: let accessToken):
                         Log.msg("Sharing user signed in: access token: \(String(describing: accessToken))")
                         self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                     }
                 }
                 else {
@@ -190,7 +192,11 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     Log.error(message)
                     
                     // 10/22/17; It doesn't seem legit to sign user out if we're doing this during a launch sign-in. That is, the user was signed in last time the app launched. And this is a generic error (e.g., a network error). However, if we're not doing this during app launch, i.e., this is a sign-in request explicitly by the user, if that fails it means we're not already signed-in, so it's safe to force the sign out.
-                    if !autoSignIn {
+                    
+                    if autoSignIn {
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+                    }
+                    else {
                         self.signUserOut()
                         Alert.show(withTitle: "Alert!", message: message)
                     }
@@ -209,6 +215,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
                     Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+                    self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                 }
                 else {
                     Log.error("Error: \(error!)")

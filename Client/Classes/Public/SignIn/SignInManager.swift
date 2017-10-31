@@ -23,6 +23,7 @@ public class SignInManager : NSObject {
     public static let session = SignInManager()
     
     public var signInStateChanged:TargetsAndSelectors = NSObject()
+    public fileprivate(set) var lastStateChangeSignedUserIn = false
     
     private override init() {
         super.init()
@@ -112,6 +113,8 @@ public class SignInManager : NSObject {
 
 extension SignInManager : SignInManagerDelegate {
     public func signInStateChanged(to state: SignInState, for signIn:GenericSignIn) {
+        let priorSignIn = currentSignIn
+        
         switch state {
         case .signInStarted:
             // Must not have any other signin's active when attempting to sign in.
@@ -126,6 +129,8 @@ extension SignInManager : SignInManagerDelegate {
         case .signedOut:
             currentSignIn = nil
         }
+        
+        lastStateChangeSignedUserIn = priorSignIn == nil && currentSignIn != nil
         
         signInStateChanged.forEachTarget!() { (target, selector, dict) in
             if let targetObject = target as? NSObject {
