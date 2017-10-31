@@ -12,21 +12,16 @@ import SyncServer_Shared
 
 public class SignInStart : UIView {
     @IBOutlet weak var signIn: UIButton!
-    static private(set) var createOwningUser:Bool?
+    var delegate:SignInSubviewDelegate?
 
     public override func awakeFromNib() {
         super.awakeFromNib()
         signIn.titleLabel?.textAlignment = .center
         
-        if SignInManager.session.userIsSignIn {
-            showSignIns(for: .both)
-        }
-        
-        _ = SignInManager.session.signInStateChanged.addTarget!(self, with: #selector(signInStateChanged))
-        
-        SignInStart.createOwningUser = nil
+        //_ = SignInManager.session.signInStateChanged.addTarget!(self, with: #selector(signInStateChanged))
     }
     
+    /*
     deinit {
         SignInManager.session.signInStateChanged.removeTarget!(self, with: #selector(signInStateChanged))
     }
@@ -34,51 +29,17 @@ public class SignInStart : UIView {
     func signInStateChanged() {
         // If displayed
         if superview != nil {
-            if SignInManager.session.userIsSignIn {
-                showSignIns(for: .both)
+            if SignInManager.session.userIsSignedIn {
+                delegate?.showSignIns(for: .signedIn, forSignInSubView: self)
             }
         }
-    }
+    }*/
     
     @IBAction func signInAction(_ sender: Any) {
-        showSignIns(for: .both)
+        delegate?.showSignIns(for: .existingAccount, forSignInSubView: self)
     }
     
     @IBAction func createNewAccountAction(_ sender: Any) {
-        showSignIns(for: .owningUser)
-    }
-    
-    public func showSignIns(`for` signInType: SignInType) {
-        let signIns = SignInManager.session.getSignIns(for: signInType)
-        let signInAccounts:SignInAccounts = SignInAccounts.createFromXib()!
-        
-        var title:SignInAccountsTitle!
-        
-        switch signInType {
-        case .both:
-            title = .existingAccount
-            SignInStart.createOwningUser = false
-            
-        case .owningUser:
-            SignInStart.createOwningUser = true
-            title = .newAccount
-            
-        case .sharingUser:
-            SignInStart.createOwningUser = false
-            title = .sharingAccount
-            
-        default:
-            // It's odd that this is needed. `SignInType` only has three possible values.
-            assert(false)
-        }
-        
-        signInAccounts.changeTitle(title)
-        
-        signInAccounts.signIns = signIns
-        
-        // 10/1/17; Getting a crash right here-- after I have an error creating a sharing account with Facebook. I think there is no superview.
-        superview!.addSubview(signInAccounts)
-        
-        removeFromSuperview()
+        delegate?.showSignIns(for: .newAccount, forSignInSubView: self)
     }
 }

@@ -1,5 +1,11 @@
 SyncServer-iOSClient
 
+Version 5.0.0
+	* Enabled sticky sign-in's: So user's don't have to signed-in as much. This is a breaking change because it changed the signature of methods in sign-in protocols and added a method in a sign-in protocol. Sticky sign-in also changes the character or emphasis of sign-in's in the SyncServer client. This required changes to the Google and Facebook signin's. 
+
+Version 4.1.1
+	* ?? 
+	
 Version 4.1.0
 	* fixed bug where call to func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
 	in the SyncManager would fail with an assertion if user was not signed in.

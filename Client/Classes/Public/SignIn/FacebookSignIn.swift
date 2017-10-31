@@ -51,11 +51,12 @@ public class FacebookCredentials : GenericCredentials {
 }
 
 public class FacebookSyncServerSignIn : GenericSignIn {
+    private var stickySignIn = false
+
     public var signOutDelegate:GenericSignOutDelegate?
     public var delegate:GenericSignInDelegate?
     public var managerDelegate:SignInManagerDelegate!
     private let signInOutButton:FacebookSignInButton!
-    fileprivate var duringLaunch = true
     
     public init() {
         signInOutButton = FacebookSignInButton()
@@ -64,33 +65,43 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     
     public var signInTypesAllowed:SignInType = .sharingUser
     
-    public func appLaunchSetup(silentSignIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
+    public func appLaunchSetup(userSignedIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     
         SDKApplicationDelegate.shared.application(UIApplication.shared, didFinishLaunchingWithOptions: options)
         
-        if silentSignIn {
-            AccessToken.refreshCurrentToken() { (accessToken, error) in
-                if error == nil {
-                    Log.msg("FacebookSignIn: Sucessfully refreshed current access token")
-                    self.completeSignInProcess()
-                }
-                else {
-                    self.signUserOut()
-                    Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
-                }
-                
-                self.duringLaunch = false
+        if userSignedIn {
+            stickySignIn = true
+            if let creds = credentials {
+                SyncServerUser.session.creds = creds
             }
+            autoSignIn()
         }
-        else {
-            duringLaunch = false
+    }
+    
+    public func networkChangedState(networkIsOnline: Bool) {
+        if stickySignIn && networkIsOnline && credentials == nil {
+            Log.msg("FacebookSignIn: Trying autoSignIn...")
+            autoSignIn()
+        }
+    }
+    
+    private func autoSignIn() {
+        AccessToken.refreshCurrentToken() { (accessToken, error) in
+            if error == nil {
+                Log.msg("FacebookSignIn: Sucessfully refreshed current access token")
+                self.completeSignInProcess(autoSignIn: true)
+            }
+            else {
+                // I.e., I'm not going to force a sign-out because this seems like a generic error. E.g., could have been due to no network connection.
+                Log.error("FacebookSignIn: Error refreshing access token: \(error!)")
+            }
         }
     }
     
     public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         return SDKApplicationDelegate.shared.application(app, open: url, options: options)
     }
-    
+
     @discardableResult
     public func setupSignInButton(params:[String:Any]? = nil) -> TappableButton? {
         return signInOutButton
@@ -101,12 +112,12 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     }
     
     public var userIsSignedIn: Bool {
-        return AccessToken.current != nil
+        return stickySignIn
     }
 
-    // Non-nil if userIsSignedIn is true.
+    // Returns non-nil if the user is signed in, and credentials could be refreshed during this app launch.
     public var credentials:GenericCredentials? {
-        if userIsSignedIn {
+        if stickySignIn && AccessToken.current != nil {
             let creds = FacebookCredentials()
             creds.accessToken = AccessToken.current
             creds.userProfile = UserProfile.current
@@ -118,6 +129,8 @@ public class FacebookSyncServerSignIn : GenericSignIn {
     }
 
     public func signUserOut() {
+        stickySignIn = false
+        
         // Seem to have to do this before the `LoginManager().logOut()`, so we still have a valid token.
         reallySignUserOut()
         
@@ -140,13 +153,13 @@ public class FacebookSyncServerSignIn : GenericSignIn {
         }
     }
     
-    // Call this on a successful sign in to Facebook.
-    fileprivate func completeSignInProcess() {
-        managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+    fileprivate func completeSignInProcess(autoSignIn:Bool) {
+        stickySignIn = true
 
         guard let userAction = delegate?.shouldDoUserAction(signIn: self) else {
             // This occurs if we don't have a delegate (e.g., on a silent sign in). But, we need to set up creds-- because this is what gives us credentials for connecting to the SyncServer.
             SyncServerUser.session.creds = credentials
+            managerDelegate?.signInStateChanged(to: .signedIn, for: self)
             return
         }
         
@@ -159,31 +172,41 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     case .noUser:
                         self.delegate?.userActionOccurred(action:
                             .userNotFoundOnSignInAttempt, signIn: self)
+                        // 10/22/17; It seems legit to sign the user out. The server told us the user was not on the system.
                         self.signUserOut()
                         
                     case .owningUser:
                         // This should never happen!
+                        // 10/22/17; Also legit to sign the user out -- a really odd case!
                         self.signUserOut()
                         Log.error("Somehow a Facebook user signed in as an owning user!!")
                         
                     case .sharingUser(sharingPermission: let permission, accessToken: let accessToken):
                         Log.msg("Sharing user signed in: access token: \(String(describing: accessToken))")
                         self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                     }
                 }
                 else {
                     let message = "Error checking for existing user: \(error!)"
-                    if !self.duringLaunch {
+                    Log.error(message)
+                    
+                    // 10/22/17; It doesn't seem legit to sign user out if we're doing this during a launch sign-in. That is, the user was signed in last time the app launched. And this is a generic error (e.g., a network error). However, if we're not doing this during app launch, i.e., this is a sign-in request explicitly by the user, if that fails it means we're not already signed-in, so it's safe to force the sign out.
+                    
+                    if autoSignIn {
+                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+                    }
+                    else {
+                        self.signUserOut()
                         Alert.show(withTitle: "Alert!", message: message)
                     }
-                    Log.error(message)
-                    self.signUserOut()
                 }
             }
             
         case .createOwningUser:
             // Facebook users cannot be owning users! They don't have cloud storage.
             Alert.show(withTitle: "Alert!", message: "Somehow a Facebook user attempted to create an owning user!!")
+            // 10/22/17; Seems legit. Very odd error situation.
             signUserOut()
             
         case .createSharingUser(invitationCode: let invitationCode):
@@ -192,17 +215,19 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
                     Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
                     self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+                    self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                 }
                 else {
                     Log.error("Error: \(error!)")
                     Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
+                    // 10/22/17; The common situation here seems to be the user is signing up via a sharing invitation. They are not on the system yet in that case. Seems safe to sign them out.
                     self.signUserOut()
                 }
             }
             
-        case .none:
+        case .error:
+            // 10/22/17; Error situation.
             self.signUserOut()
-            break
         }
     }
 }
@@ -238,7 +263,7 @@ private class FacebookSignInButton : UIControl, Tappable {
         }
     }
     
-    public func tap() {
+    func tap() {
         if signIn.userIsSignedIn {
             signIn.signUserOut()
         }
@@ -250,10 +275,12 @@ private class FacebookSignInButton : UIControl, Tappable {
                 switch loginResult {
                 case .failed(let error):
                     print(error)
+                    // 10/22/17; This is an explicit sign-in request. User is not yet signed in. Seems legit to sign them out.
                     self.signIn.signUserOut()
                     
                 case .cancelled:
                     print("User cancelled login.")
+                    // 10/22/17; User cancelled sign-in flow. Seems fine to sign them out.
                     self.signIn.signUserOut()
                     
                 case .success(_, _, _):
@@ -263,14 +290,13 @@ private class FacebookSignInButton : UIControl, Tappable {
                     UserProfile.fetch(userId: AccessToken.current!.userId!) { fetchResult in
                         switch fetchResult {
                         case .success(_):
-                            self.signIn.completeSignInProcess()
+                            self.signIn.completeSignInProcess(autoSignIn: false)
                             
                         case .failed(let error):
                             let message = "Error fetching UserProfile: \(error)"
-                            if !self.signIn.duringLaunch {
-                                Alert.show(withTitle: "Alert!", message: message)
-                            }
+                            Alert.show(withTitle: "Alert!", message: message)
                             Log.error(message)
+                            // 10/22/17; As above-- this is coming from an explicit request to sign the user in. Seems fine to sign them out after an error.
                             self.signIn.signUserOut()
                         }
                     }

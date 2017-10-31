@@ -9,7 +9,7 @@
 
 import UIKit
 
-enum SignInAccountsTitle : String {
+public enum SignInAccount : String {
     case existingAccount = "Existing Account"
     case newAccount = "New Account"
     case sharingAccount = "New Sharing Account"
@@ -28,18 +28,20 @@ private class SignInButtonCell : UITableViewCell {
 
 class SignInAccounts : UIView {
     @IBOutlet weak var tableView: UITableView!
-    var signIns:[GenericSignIn]!
     let reuseIdentifier = "SignInAccountsCell"
-    @IBOutlet weak var backButton: UIButton!
+    @IBOutlet private weak var backButton: UIButton!
     @IBOutlet weak var title: UILabel!
+    var delegate:SignInSubviewDelegate?
+    var currentSignIns:[GenericSignIn]?
     
-    func changeTitle(_ title: SignInAccountsTitle) {
+    // Ignores requests to change title to other than .signedIn if user is signed in.
+    func changeTitle(_ title: SignInAccount) {
         self.title.text = title.rawValue
-        self.title.sizeToFit()
     }
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        
         tableView.register(SignInButtonCell.self, forCellReuseIdentifier: reuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
@@ -53,31 +55,31 @@ class SignInAccounts : UIView {
         SignInManager.session.signInStateChanged.removeTarget!(self, with: #selector(signInStateChanged))
     }
     
-    func setup() {
+    private func setup() {
         // Hiding the back button when a user is signed in because the only action we want to allow is signing out in this case. If no user is signed, then user should be able to go back, and create a new user (not sign-in) if they want.
-        backButton.isHidden = SignInManager.session.userIsSignIn
+        backButton.isHidden = SignInManager.session.userIsSignedIn
     }
     
-    func signInStateChanged() {
-        if SignInManager.session.userIsSignIn {
+    @objc private func signInStateChanged() {
+        if SignInManager.session.userIsSignedIn {
             changeTitle(.signedIn)
         }
         else {
-            signIns = SignInManager.session.getSignIns(for: .both)
             changeTitle(.existingAccount)
         }
         
+        currentSignIns = getCurrentSignIns()
         tableView.reloadData()
         setup()
     }
     
     @IBAction func backAction(_ sender: Any) {
-        superview!.addSubview(SignInStart.createFromXib()!)
-        removeFromSuperview()
+        delegate?.signInNavigateBack(self)
     }
     
-    func currentSignIns() -> [GenericSignIn] {
-        if SignInManager.session.userIsSignIn {
+    fileprivate func getCurrentSignIns() -> [GenericSignIn] {
+        let signIns = SignInManager.session.getSignIns(for: .both)
+        if SignInManager.session.userIsSignedIn {
             changeTitle(.signedIn)
 
             // If user is signed in, only want to present that sign-in button, to allow them to sign out.
@@ -92,12 +94,12 @@ class SignInAccounts : UIView {
 
 extension SignInAccounts : UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return currentSignIns().count
+        return currentSignIns?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! SignInButtonCell
-        let signInButton = currentSignIns()[indexPath.row].signInButton!
+        let signInButton = currentSignIns![indexPath.row].signInButton!
         
         // Get some oddness with origins being negative.
         signInButton.frameOrigin = CGPoint.zero
