@@ -113,7 +113,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
 
 extension ViewController : GenericSignInDelegate {
     func shouldDoUserAction(signIn: GenericSignIn) -> UserActionNeeded {
-        var result:UserActionNeeded = .none
+        var result:UserActionNeeded = .error
         
         // A bit of a hack to test sharing users with Facebook.
         if ViewController.sharingInvitationUUID.stringValue != "" && signIn.signInTypesAllowed.contains(.sharingUser) {

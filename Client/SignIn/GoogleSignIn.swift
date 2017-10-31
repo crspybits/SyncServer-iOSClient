@@ -92,7 +92,7 @@ public protocol GoogleSignInUIProtocol : GIDSignInUIDelegate {
 
 // See https://developers.google.com/identity/sign-in/ios/sign-in
 public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
-    private var stickySignIn = false
+    fileprivate var stickySignIn = false
 
     fileprivate let serverClientId:String!
     fileprivate let appClientId:String!
