@@ -67,12 +67,13 @@ public class SignIn : UIView {
             signInType = .owningUser
             
         case .sharingAccount:
-            // Allowing the user to sign in as an existing sharing user. This is used only through an invitation.
+            // Allowing the user to sign in as a new sharing user. This is used only through an invitation.
             SignIn.userInterfaceState = .createNewAccount
             signInType = .sharingUser
             
         case .signedIn:
             // The user is already signed-in
+            SignIn.userInterfaceState = .existingAccount
             signInType = .both // will filter this below.
         }
         

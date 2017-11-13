@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 5.0.1
+	* Fixed issue with sticky sign-in
+
 Version 5.0.0
 	* Enabled sticky sign-in's: So user's don't have to signed-in as much. This is a breaking change because it changed the signature of methods in sign-in protocols and added a method in a sign-in protocol. Sticky sign-in also changes the character or emphasis of sign-in's in the SyncServer client. This required changes to the Google and Facebook signin's. 
 
