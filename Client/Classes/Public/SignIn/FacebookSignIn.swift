@@ -174,11 +174,13 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                             .userNotFoundOnSignInAttempt, signIn: self)
                         // 10/22/17; It seems legit to sign the user out. The server told us the user was not on the system.
                         self.signUserOut()
+                        Log.msg("signUserOut: FacebookSignIn: noUser in checkForExistingUser")
                         
                     case .owningUser:
                         // This should never happen!
                         // 10/22/17; Also legit to sign the user out -- a really odd case!
                         self.signUserOut()
+                        Log.msg("signUserOut: FacebookSignIn: owningUser in checkForExistingUser")
                         Log.error("Somehow a Facebook user signed in as an owning user!!")
                         
                     case .sharingUser(sharingPermission: let permission, accessToken: let accessToken):
@@ -198,6 +200,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     }
                     else {
                         self.signUserOut()
+                        Log.msg("signUserOut: FacebookSignIn: error in checkForExistingUser and not autoSignIn")
                         Alert.show(withTitle: "Alert!", message: message)
                     }
                 }
@@ -208,6 +211,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
             Alert.show(withTitle: "Alert!", message: "Somehow a Facebook user attempted to create an owning user!!")
             // 10/22/17; Seems legit. Very odd error situation.
             signUserOut()
+            Log.msg("signUserOut: FacebookSignIn: tried to create an owning user!")
             
         case .createSharingUser(invitationCode: let invitationCode):
             SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) { longLivedAccessToken, error in
@@ -222,12 +226,14 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                     Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                     // 10/22/17; The common situation here seems to be the user is signing up via a sharing invitation. They are not on the system yet in that case. Seems safe to sign them out.
                     self.signUserOut()
+                    Log.msg("signUserOut: FacebookSignIn: error in redeemSharingInvitation in")
                 }
             }
             
         case .error:
             // 10/22/17; Error situation.
             self.signUserOut()
+            Log.msg("signUserOut: FacebookSignIn: generic error in completeSignInProcess in")
         }
     }
 }
@@ -266,6 +272,7 @@ private class FacebookSignInButton : UIControl, Tappable {
     func tap() {
         if signIn.userIsSignedIn {
             signIn.signUserOut()
+            Log.msg("signUserOut: FacebookSignIn: explicit request to signout")
         }
         else {
             signIn.managerDelegate?.signInStateChanged(to: .signInStarted, for: signIn)
@@ -277,12 +284,14 @@ private class FacebookSignInButton : UIControl, Tappable {
                     print(error)
                     // 10/22/17; This is an explicit sign-in request. User is not yet signed in. Seems legit to sign them out.
                     self.signIn.signUserOut()
-                    
+                    Log.msg("signUserOut: FacebookSignIn: error during explicit request to signin")
+
                 case .cancelled:
                     print("User cancelled login.")
                     // 10/22/17; User cancelled sign-in flow. Seems fine to sign them out.
                     self.signIn.signUserOut()
-                    
+                    Log.msg("signUserOut: FacebookSignIn: user cancelled sign-in during explicit request to signin")
+
                 case .success(_, _, _):
                     print("Logged in!")
                     
@@ -298,6 +307,7 @@ private class FacebookSignInButton : UIControl, Tappable {
                             Log.error(message)
                             // 10/22/17; As above-- this is coming from an explicit request to sign the user in. Seems fine to sign them out after an error.
                             self.signIn.signUserOut()
+                            Log.msg("signUserOut: FacebookSignIn: UserProfile.fetch failed during explicit request to signin")
                         }
                     }
                 }

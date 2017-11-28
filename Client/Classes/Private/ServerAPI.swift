@@ -124,6 +124,7 @@ class ServerAPI {
     }
     
     // Checks the creds of the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil). Because this method uses an unauthorized (401) http status code to indicate that the user doesn't exist, it will not do retries in the case of an error.
+    // One of checkCredsResult or error will be non-nil.
     public func checkCreds(completion:((_ checkCredsResult:CheckCredsResult?, Error?)->(Void))?) {
         let endpoint = ServerEndpoints.checkCreds
         let url = makeURL(forEndpoint: endpoint)
@@ -153,9 +154,10 @@ class ServerAPI {
             if result == nil {
                 if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
                     completion?(nil, errorResult)
-                    return
                 }
-                completion?(nil, ServerAPIError.unknownError)
+                else {
+                    completion?(nil, ServerAPIError.unknownError)
+                }
             }
             else {
                 completion?(result, nil)

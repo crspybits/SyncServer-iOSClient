@@ -111,11 +111,75 @@ class Performance: TestCase {
         doneUploads(masterVersion: masterVersion+1, expectedNumberDeletions: N)
     }
     
+    // Failed with `shouldSaveDownload` being nil, when run with others as a group.
     func test10Deletions() {
         deleteNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
     }
     
     func test50Deletions() {
         deleteNFiles(50, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
-    }    
+    }
+    
+    // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39
+    // This test case did *not* reproduce the issue.
+    func testFileIndexWhileDownloadingImages() {
+        // Goal-- to download 10 images using sync, and do FileIndex's (just using the ServerAPI) while those are going on.
+        
+        let N = 10
+        let fileName = "Cat"
+        let fileExtension = "jpg"
+        let mimeType = "image/jpeg"
+
+        // First upload N files.
+        let masterVersion = getMasterVersion()
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
+        
+        for _ in 1...N {
+            let fileUUID = UUID().uuidString
+
+            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+                return
+            }
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: Int64(N))
+        
+        let downloadExp = self.expectation(description: "download")
+        let fileIndexExp = self.expectation(description: "fileIndex")
+        
+        self.deviceUUID = Foundation.UUID()
+        
+        var downloadCount = 0
+        
+        func recursiveFileIndex() {
+            ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
+                XCTAssert(error == nil)
+                XCTAssert(masterVersion! >= 0)
+                
+                if downloadCount < Int(N) {
+                    DispatchQueue.global().async {
+                        recursiveFileIndex()
+                    }
+                }
+                else {
+                    fileIndexExp.fulfill()
+                }
+            }
+        }
+        
+        shouldSaveDownload = { url, attr in
+            downloadCount += 1
+            XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
+            if downloadCount >= N {
+                downloadExp.fulfill()
+            }
+        }
+        
+        // Next, initiate the download using .sync()
+        SyncServer.session.sync()
+        
+        recursiveFileIndex()
+        
+        waitForExpectations(timeout: Double(N) * 30.0, handler: nil)
+    }
 }

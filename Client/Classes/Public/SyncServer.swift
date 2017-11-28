@@ -155,7 +155,9 @@ public class SyncServer {
     }
         
     public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String) {
-    
+        Log.msg("cloudFolderName: \(cloudFolderName)")
+        Log.msg("serverURL: \(serverURL.absoluteString)")
+        
         Upload.session.cloudFolderName = cloudFolderName
         Network.session().appStartup()
         ServerAPI.session.baseURL = serverURL.absoluteString

@@ -269,6 +269,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                                 .userNotFoundOnSignInAttempt, signIn: self)
                             // 10/22/17; It seems legit to sign the user out. The server told us the user was not on the system.
                             self.signUserOut()
+                            Log.msg("signUserOut: GoogleSignIn: noUser")
                         case .owningUser:
                             self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
                             self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
@@ -287,6 +288,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         else {
                             // 10/22/17; See reasoning in FacebookSignIn at about this point in the code for signUserOut issue.
                             self.signUserOut()
+                            Log.msg("signUserOut: GoogleSignIn: error in checkForExistingUser but not autoSignIn")
                             SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
                         }
                     }
@@ -303,6 +305,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
                         // 10/22/17; User is signing up. I.e., they don't have an account. Seems OK to sign them out.
                         self.signUserOut()
+                        Log.msg("signUserOut: GoogleSignIn: createOwningUser error")
                     }
                 }
                 
@@ -317,12 +320,14 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")
                         // 10/22/17; User is signing up. I.e., they don't have an account. Seems OK to sign them out.
                         self.signUserOut()
+                        Log.msg("signUserOut: GoogleSignIn: redeemSharingInvitation error")
                     }
                 }
             
             case .error:
                 // 10/22/17; Error situation.
                 self.signUserOut()
+                Log.msg("signUserOut: GoogleSignIn: generic error")
             }
         }
         else {
@@ -338,6 +343,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             else {
                 // Must be an explicit request by user.
                 signUserOut()
+                Log.msg("signUserOut: GoogleSignIn: error in didSignInFor delegate and not autoSignIn")
                 
                 // This assumes there is a root view controller present-- don't do it during auto sign-in.
                 SMCoreLib.Alert.show(withTitle: "Alert!", message: message)

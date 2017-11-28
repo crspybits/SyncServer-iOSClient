@@ -23,6 +23,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
+        Log.minLevel = .verbose
+        
         let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
         let urlString = try! plist.getString(varName: "ServerURL")
         let serverURL = URL(string: urlString)!

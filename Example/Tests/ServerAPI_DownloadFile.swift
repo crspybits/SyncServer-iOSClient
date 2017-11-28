@@ -29,6 +29,7 @@ class ServerAPI_DownloadFile: TestCase {
         uploadAndDownloadTextFile(appMetaData: "foobar was here")
     }
     
+    // TODO: These downloads should really be with *different* files-- similar size would be good, but different files.
     func testThatParallelDownloadsWork() {
         let masterVersion = getMasterVersion()
 

@@ -113,7 +113,7 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(expectedFiles:[(fileUUID:String, fileSize:Int64?)], callback:((FileInfo)->())? = nil) -> [FileInfo] {
+    func getFileIndex(expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo] {
         let expectation1 = self.expectation(description: "fileIndex")
         
         var result: [FileInfo]?

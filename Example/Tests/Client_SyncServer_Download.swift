@@ -29,6 +29,7 @@ class Client_SyncServer_Download: TestCase {
          doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
     }
     
+    // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
     func testDownloadTwoFilesBackToBack() {
         Log.msg("Start of testDownloadTwoFilesBackToBack")
 

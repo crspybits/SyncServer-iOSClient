@@ -74,23 +74,17 @@ public class SyncServerUser {
             switch checkCredsResult {
             case .none:
                 self.creds = nil
-                Thread.runSync(onMainThread: {
-                    SignInManager.session.currentSignIn!.signUserOut()
-                })
-                if error == nil {
-                    Log.msg("Did not find user!")
-                    checkForUserResult = .noUser
-                }
-                else {
-                    Log.error("Had an error: \(String(describing: error))")
-                    errorResult = error
-                }
+                
+                // Don't sign the user out here. Callers of `checkForExistingUser` (e.g., GoogleSignIn or FacebookSignIn) can deal with this.
+                
+                Log.error("Had an error: \(String(describing: error))")
+                errorResult = error
             
             case .some(.noUser):
                 self.creds = nil
-                Thread.runSync(onMainThread: {
-                    SignInManager.session.currentSignIn!.signUserOut()
-                })
+                
+                // Definitive result from server-- there was no user. Still, I'm not going to sign the user out here. Callers can do that.
+                
                 checkForUserResult = .noUser
                 
             case .some(.owningUser):
