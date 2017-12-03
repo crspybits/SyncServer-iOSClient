@@ -12,7 +12,7 @@ import SMCoreLib
 // This information is for testing purposes and for UI (e.g., for displaying download progress).
 public enum SyncEvent {
     // This can repeat if there is a change to the files on the server (a master version update), and downloads restart.
-    case willStartDownloads(numberDownloads:UInt)
+    case willStartDownloads(numberFileDownloads:UInt, numberDownloadDeletions:UInt)
     
     case singleFileUploadComplete(attr:SyncAttributes)
     case singleUploadDeletionComplete(fileUUID:UUIDString)

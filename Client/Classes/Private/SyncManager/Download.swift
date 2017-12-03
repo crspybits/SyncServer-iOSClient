@@ -142,8 +142,9 @@ class Download {
         var nextResult:NextResult?
         var downloadFile:FilenamingObject!
         var nextToDownload:DownloadFileTracker!
-        var numberToDownload = 0
-        
+        var numberFileDownloads = 0
+        var numberDownloadDeletions = 0
+
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
             guard dfts.count != 0 else {
@@ -151,7 +152,8 @@ class Download {
                 return
             }
             
-            numberToDownload = dfts.count
+            numberDownloadDeletions = (dfts.filter {$0.deletedOnServer}).count
+            numberFileDownloads = dfts.count - numberDownloadDeletions
 
             let alreadyDownloading = dfts.filter {$0.status == .downloading}
             guard alreadyDownloading.count == 0 else {
@@ -187,7 +189,7 @@ class Download {
         }
         
         if first {
-            EventDesired.reportEvent( .willStartDownloads(numberDownloads: UInt(numberToDownload)), mask: desiredEvents, delegate: delegate)
+            EventDesired.reportEvent( .willStartDownloads(numberFileDownloads: UInt(numberFileDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
         ServerAPI.session.downloadFile(file: downloadFile, serverMasterVersion: masterVersion) { (result, error)  in

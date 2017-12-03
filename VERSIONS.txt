@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 6.0.0 (12/2/17)
+	* Changed parameters of enum case willStartDownloads-- to add deletions.
+	
 Version 5.0.1 (11/29/17)
 	* Attempted a fix to issue Dany was having with sticky sign-in. Added logging for this too, so if problem happens again, I should be able to debug it more easily.
 		https://github.com/crspybits/SharedImages/issues/51

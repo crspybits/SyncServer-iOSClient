@@ -204,10 +204,11 @@ class SyncManager {
             case .noDownloadsOrDeletionsAvailable:
                 self.checkForPendingUploads()
                 
-            case .downloadsAvailable(numberOfDownloadFiles: let numberFileDownloads, numberOfDownloadDeletions: _):
+            case .downloadsAvailable(numberOfDownloadFiles: let numberFileDownloads, numberOfDownloadDeletions: let numberDownloadDeletions):
             
+                // This is not redundant with the `willStartDownloads` reporting in `Download.session.next` because we're calling start with first=false (implicitly), so willStartDownloads will not get reported twice.
                 EventDesired.reportEvent(
-                    .willStartDownloads(numberDownloads: UInt(numberFileDownloads)),
+                    .willStartDownloads(numberFileDownloads: UInt(numberFileDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)),
                     mask: self.desiredEvents, delegate: self.delegate)
                 
                 // We've got DownloadFileTracker's queued up now. Go deal with them!
