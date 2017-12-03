@@ -74,7 +74,7 @@ class Client_SyncServer_Download: TestCase {
         
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartDownloads(numberDownloads: let numberDownloads):
+            case .willStartDownloads(numberFileDownloads: let numberDownloads, _):
                 XCTAssert(numberDownloads == 2)
                 willStartDownloadsExp.fulfill()
                 
