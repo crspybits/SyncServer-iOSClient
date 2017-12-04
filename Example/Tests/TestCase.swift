@@ -660,6 +660,10 @@ extension TestCase : ServerAPIDelegate {
     func deviceUUID(forServerAPI: ServerAPI) -> Foundation.UUID {
         return deviceUUID
     }
+    
+    func userWasUnauthorized(forServerAPI: ServerAPI) {
+        Log.error("User was unauthorized!")
+    }
 }
 
 extension TestCase : SyncServerDelegate {
