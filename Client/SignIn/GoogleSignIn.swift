@@ -333,20 +333,32 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
         else {
             let message = "Error signing into Google: \(error!)"
             Log.error(message)
-
+            
             // 10/22/17; Not always signing the user out here. It doesn't make sense if we get an error during launch. It doesn't make sense if we're attempting to do a creds refresh automatically when the app is running. It can make sense, however, if this is an explicit request by the user to sign-in.
             
-            if autoSignIn {
-                self.signInOutButton.buttonShowing = .signOut
-                self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+            // See https://github.com/crspybits/SharedImages/issues/64
+            /* From the delegate, error is actually an NSError:
+                        - (void)signIn:(GIDSignIn *)signIn
+                didSignInForUser:(GIDGoogleUser *)user
+                       withError:(NSError *)error;
+            */
+            var haveAuthToken = true
+            if let error = error as NSError?, error.code == -4  {
+                haveAuthToken = false
+                Log.msg("GIDSignIn: Got a -4 error code")
             }
-            else {
+            
+            if !haveAuthToken || !autoSignIn {
                 // Must be an explicit request by user.
                 signUserOut()
                 Log.msg("signUserOut: GoogleSignIn: error in didSignInFor delegate and not autoSignIn")
                 
                 // This assumes there is a root view controller present-- don't do it during auto sign-in.
                 SMCoreLib.Alert.show(withTitle: "Alert!", message: message)
+            }
+            else {
+                self.signInOutButton.buttonShowing = .signOut
+                self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
             }
         }
         

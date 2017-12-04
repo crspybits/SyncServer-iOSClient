@@ -103,6 +103,7 @@ public protocol SyncServerDelegate : class {
     func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
 
     // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SMSyncAttributes's (i.e., the UUID's).
+    // This may be called sometime after the deletions have been received from the server. E.g., on a recovery step after the app launches and not after recent server interaction.
     func shouldDoDeletions(downloadDeletions:[SyncAttributes])
     
     func syncServerErrorOccurred(error:Error)

@@ -1,5 +1,10 @@
 SyncServer-iOSClient
 
+Version 6.0.1 (12/3/17)
+	* Client not properly logged in, but no decent indication on UI
+		https://github.com/crspybits/SharedImages/issues/64
+	* Added a delegate method and alert to give feedback to user when we get a 401/unauthorized back from the user (and can't refresh their sign-in)
+	
 Version 6.0.0 (12/2/17)
 	* Changed parameters of enum case willStartDownloads-- to add deletions.
 	

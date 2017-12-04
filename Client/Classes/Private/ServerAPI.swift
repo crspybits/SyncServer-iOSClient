@@ -13,6 +13,9 @@ import SyncServer_Shared
 protocol ServerAPIDelegate : class {
     func deviceUUID(forServerAPI: ServerAPI) -> Foundation.UUID
     
+    // Got a 401 status code back from server for current signed-in user
+    func userWasUnauthorized(forServerAPI: ServerAPI)
+    
 #if DEBUG
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval?
     func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval?

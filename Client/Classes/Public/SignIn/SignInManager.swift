@@ -86,11 +86,17 @@ public class SignInManager : NSObject {
         
         alternativeSignIns.append(signIn)
         signIn.managerDelegate = self
-        let userSignedIn = SignInManager.currentSignInName.stringValue == name
-        signIn.appLaunchSetup(userSignedIn: userSignedIn, withLaunchOptions: options)
+        
+        func userSignedIn(withSignInName name: String) -> Bool {
+            return SignInManager.currentSignInName.stringValue == name
+        }
+        
+        signIn.appLaunchSetup(userSignedIn: userSignedIn(withSignInName: name), withLaunchOptions: options)
+        
+        // 12/3/17; It looks like in some cases, the `userSignedIn` state can change with the call `appLaunchSetup`-- so, recompute userSignedIn each time. This is related to the fix for https://github.com/crspybits/SharedImages/issues/64
         
         // To accomodate sticky sign-in's-- we might as well have a `currentSignIn` value immediately after addSignIn's are called.
-        if userSignedIn {
+        if userSignedIn(withSignInName: name) {
             currentSignIn = signIn
         }
     }

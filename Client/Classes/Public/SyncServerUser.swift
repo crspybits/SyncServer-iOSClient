@@ -47,7 +47,7 @@ public class SyncServerUser {
     case sharingUser(sharingPermission:SharingPermission, accessToken:String?)
     }
     
-    private func showAlert(with title:String, and message:String? = nil) {
+    fileprivate func showAlert(with title:String, and message:String? = nil) {
         let window = UIApplication.shared.keyWindow
         let rootViewController = window?.rootViewController
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -156,6 +156,13 @@ extension SyncServerUser : ServerAPIDelegate {
         return Foundation.UUID(uuidString: SyncServerUser.mobileDeviceUUID.stringValue)!
     }
     
+    func userWasUnauthorized(forServerAPI: ServerAPI) {
+        Thread.runSync(onMainThread: {
+            self.showAlert(with: "The server is having problems authenticating you. Please sign out and sign back in.")
+            // May want to explicitly force a user sign-out here. Shall see.
+        })
+    }
+
 #if DEBUG
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval? {
         return nil

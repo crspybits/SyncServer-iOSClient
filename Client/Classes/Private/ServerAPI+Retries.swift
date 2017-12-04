@@ -38,13 +38,17 @@ private class RequestWithRetries {
     var request:(()->())!
     var completionHandler:((_ error:Error?)->())!
     
-    init(retryIfError:Bool = true, creds:GenericCredentials?, desiredEvents:EventDesired, delegate:SyncServerDelegate!, updateCreds:@escaping (_ creds:GenericCredentials?)->(), checkForError:@escaping (_ statusCode:Int?, _ error:Error?) -> Error?) {
+    // When we get a 401 response from server.
+    var userUnauthorized:(()->())!
+    
+    init(retryIfError:Bool = true, creds:GenericCredentials?, desiredEvents:EventDesired, delegate:SyncServerDelegate, updateCreds:@escaping (_ creds:GenericCredentials?)->(), checkForError:@escaping (_ statusCode:Int?, _ error:Error?) -> Error?, userUnauthorized:@escaping ()->()) {
         self.creds = creds
         self.updateCreds = updateCreds
         self.checkForError = checkForError
         self.retryIfError = retryIfError
         self.desiredEvents = desiredEvents
         self.delegate = delegate
+        self.userUnauthorized = userUnauthorized
     }
     
     deinit {
@@ -101,6 +105,7 @@ private class RequestWithRetries {
             if triedToRefreshCreds || creds == nil {
                 // unauthorized, but we're not refreshing. Cowardly give up.
                 completion(error)
+                userUnauthorized()
             }
             else {
                 triedToRefreshCreds = true
@@ -114,6 +119,7 @@ private class RequestWithRetries {
                     else {
                         // Failed on refreshing creds-- not much point in going on.
                         self.completion(error)
+                        self.userUnauthorized()
                     }
                 }
             }
@@ -134,9 +140,15 @@ private class RequestWithRetries {
 
 // MARK: Wrapper over ServerNetworking calls to provide for error retries and credentials refresh.
 extension ServerAPI {
+    private func userUnauthorized() {
+        delegate?.userWasUnauthorized(forServerAPI: self)
+    }
+    
     func sendRequestUsing(method: ServerHTTPMethod, toURL serverURL: URL, timeoutIntervalForRequest:TimeInterval? = nil, retryIfError retry:Bool=true, completion:((_ serverResponse:[String:Any]?, _ statusCode:Int?, _ error:Error?)->())?) {
         
-        let rwr = RequestWithRetries(retryIfError: retry, creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError)
+        let rwr = RequestWithRetries(retryIfError: retry, creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError, userUnauthorized: userUnauthorized)
+        
+        // I get rid of the circular references in the completion handler. These references are being used to retain the rwr object.
         rwr.request = {
             ServerNetworking.session.sendRequestUsing(method: method, toURL: serverURL, timeoutIntervalForRequest:timeoutIntervalForRequest) { (serverResponse, statusCode, error) in
                 
@@ -158,7 +170,9 @@ extension ServerAPI {
     
     func postUploadDataTo(_ serverURL: URL, dataToUpload:Data, completion:((_ serverResponse:[String:Any]?, _ statusCode:Int?, _ error:Error?)->())?) {
         
-        let rwr = RequestWithRetries(creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError)
+        let rwr = RequestWithRetries(creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError, userUnauthorized: userUnauthorized)
+        
+        // I get rid of the circular references in the completion handler. These references are being used to retain the rwr object.
         rwr.request = {
             ServerNetworking.session.postUploadDataTo(serverURL, dataToUpload: dataToUpload) { (serverResponse, statusCode, error) in
                 
@@ -173,7 +187,9 @@ extension ServerAPI {
     
     func downloadFrom(_ serverURL: URL, method: ServerHTTPMethod, completion:((SMRelativeLocalURL?, _ urlResponse:HTTPURLResponse?, _ statusCode:Int?, _ error:Error?)->())?) {
         
-        let rwr = RequestWithRetries(creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError)
+        let rwr = RequestWithRetries(creds:creds, desiredEvents:desiredEvents, delegate:syncServerDelegate, updateCreds: updateCreds, checkForError:checkForError, userUnauthorized: userUnauthorized)
+        
+        // I get rid of the circular references in the completion handler. These references are being used to retain the rwr object.
         rwr.request = {
             ServerNetworking.session.downloadFrom(serverURL, method: method) { (localURL, urlResponse, statusCode, error) in
                 
