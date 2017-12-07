@@ -210,9 +210,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
 
     // The parameter must be given as "delegate" with a value of a `GoogleSignInUIProtocol` conforming object. Returns an object of type `GoogleSignInOutButton`.
     @discardableResult
-    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
-        _signInOutButton = signInOutButton
-        
+    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {        
         guard let delegate = params?["delegate"] as? GoogleSignInUIProtocol else {
             Log.error("You must give a GoogleSignInUIProtocol conforming object as a delegate parameter")
             return nil
@@ -224,8 +222,8 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         return signInOutButton
     }
     
-    public var signInButton: /* TappableButton */ UIView? {
-        return _signInOutButton as? UIView
+    public var signInButton: TappableButton? {
+        return _signInOutButton
     }
 }
 
@@ -447,7 +445,7 @@ private class GoogleSignInOutButton : UIView, Tappable {
         case signIn
         case signOut
     }
-    
+
     fileprivate var _state:State!
     var buttonShowing:State {
         get {

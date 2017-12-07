@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '6.0.1'
+  s.version          = '6.1.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
 
   s.preserve_paths = 'Client/Assets/**/*'
 
-  s.dependency 'SMCoreLib', '~> 1.0'
+  s.dependency 'SMCoreLib', '~> 1.1'
   
   s.dependency 'Gloss'
   
@@ -42,8 +42,13 @@ Pod::Spec.new do |s|
   s.subspec 'Facebook' do |facebook|
     facebook.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
+    facebook.dependency 'FacebookLogin', '~> 0.2'
+    facebook.dependency 'FacebookCore', '~> 0.2'
+  end
 
-    facebook.dependency 'FacebookLogin', '0.2.0'
-    facebook.dependency 'FacebookCore', '0.2.0'
+  s.subspec 'Dropbox' do |dropbox|
+    dropbox.xcconfig =   
+        { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_DROPBOX_SIGNIN' }
+    dropbox.dependency 'SwiftyDropbox', '~> 4.3'
   end
 end

@@ -13,29 +13,39 @@ import SyncServer
 class SetupSignIn {
     var googleSignIn:GoogleSyncServerSignIn!
     var facebookSignIn:FacebookSyncServerSignIn!
+    var dropboxSignIn:DropboxSyncServerSignIn!
+    
     static let session = SetupSignIn()
     
     private init() {
     }
     
     func appLaunch(options: [UIApplicationLaunchOptionsKey: Any]?) {
-        var serverClientId:String!
-        var appClientId:String!
+        var googleServerClientId:String!
+        var googleAppClientId:String!
+        var dropboxAppKey:String!
         
         let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
         
         if case .stringValue(let value) = try! plist.getRequired(varName: "GoogleClientId") {
-            appClientId = value
+            googleAppClientId = value
         }
         
         if case .stringValue(let value) = try! plist.getRequired(varName: "GoogleServerClientId") {
-            serverClientId = value
+            googleServerClientId = value
+        }
+        
+        if case .stringValue(let value) = try! plist.getRequired(varName: "DropboxAppKey") {
+            dropboxAppKey = value
         }
     
-        googleSignIn = GoogleSyncServerSignIn(serverClientId: serverClientId, appClientId: appClientId)
+        googleSignIn = GoogleSyncServerSignIn(serverClientId: googleServerClientId, appClientId: googleAppClientId)
         SignInManager.session.addSignIn(googleSignIn, launchOptions: options)
         
         facebookSignIn = FacebookSyncServerSignIn()
         SignInManager.session.addSignIn(facebookSignIn, launchOptions: options)
+        
+        dropboxSignIn = DropboxSyncServerSignIn(appKey: dropboxAppKey)
+        SignInManager.session.addSignIn(dropboxSignIn, launchOptions: options)
     }
 }

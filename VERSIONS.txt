@@ -1,5 +1,14 @@
 SyncServer-iOSClient
 
+Version 6.1.0 (TBD)
+	* Adding Dropbox support-- in client and example app.
+		- via a new subspec (Dropbox) in the Cocoapod.
+	* Fixed breaking change in Facebook SDK
+	* Changes for TappableButton-- bringing back to Swift 4
+	* Made the ServerAPI usage of delegate:SyncServerDelegate optional `?` because it was causing my tests to crash, and it's just used for reporting events.
+	* Cleaned up some code in the GoogleSignIn
+	* Cleaned up podspec
+	
 Version 6.0.1 (12/3/17)
 	* Client not properly logged in, but no decent indication on UI
 		https://github.com/crspybits/SharedImages/issues/64
