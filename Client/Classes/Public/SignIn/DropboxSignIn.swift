@@ -17,26 +17,37 @@ import SyncServer_Shared
 // Purely for saving creds into NSUserDefaults
 // NSObject subclass needed for NSCoding to work.
 class DropboxSavedCreds : NSObject, NSCoding {
+    // From the Dropbox docs: `The associated user`
+    /* And at: https://www.dropbox.com/developers/documentation/http/documentation#users-get_account
+     `uid String Deprecated. The API v1 user/team identifier. Please use account_id instead, or if using the Dropbox Business API, team_id.`
+    */
     var uid: String!
+    
     var displayName:String!
     var email:String!
     
+    // This is what we're sending up the server. From the code docs from Dropbox: `The user's unique Dropbox ID.`
+    var accountId: String!
+    
     static private var data = SMPersistItemData(name: "DropboxSavedCreds.data", initialDataValue: Data(), persistType: .userDefaults)
 
-    init(uid:String, displayName:String, email:String) {
+    init(uid:String, accountId:String, displayName:String, email:String) {
         self.uid = uid
+        self.accountId = accountId
         self.displayName = displayName
         self.email = email
     }
     
     func encode(with aCoder: NSCoder) {
         aCoder.encode(uid, forKey: "uid")
+        aCoder.encode(accountId, forKey: "accountId")
         aCoder.encode(displayName, forKey: "displayName")
         aCoder.encode(email, forKey: "email")
     }
     
     required init?(coder aDecoder: NSCoder) {
         uid = aDecoder.decodeObject(forKey: "uid") as! String
+        accountId = aDecoder.decodeObject(forKey: "accountId") as! String
         displayName = aDecoder.decodeObject(forKey: "displayName") as! String
         email = aDecoder.decodeObject(forKey: "email") as! String
     }
@@ -84,6 +95,7 @@ public class DropboxCredentials : GenericCredentials {
         var result = [String:String]()
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.DropboxToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = accessToken
+        result[ServerConstants.HTTPAccountIdKey] = savedCreds.accountId
         return result
     }
     
@@ -166,8 +178,10 @@ public class DropboxSyncServerSignIn : GenericSignIn {
         if let authResult = DropboxClientsManager.handleRedirectURL(url) {
             switch authResult {
             case .success(let dropboxAccessToken):
-                Log.msg("Success! User is logged into Dropbox.")
-                
+                Log.msg("Success! User is logged into Dropbox!")
+                Log.msg("Dropbox: access token: \(dropboxAccessToken.accessToken)")
+                Log.msg("Dropbox: uid: \(dropboxAccessToken.uid)")
+
                 self.dropboxAccessToken = dropboxAccessToken
                 
                 // It seems we have to save the access token in the keychain, redundantly with Dropbox. I can't see a way to access it.
@@ -194,8 +208,13 @@ public class DropboxSyncServerSignIn : GenericSignIn {
         if let client = DropboxClientsManager.authorizedClient {
             client.users.getCurrentAccount().response {[unowned self] (response: Users.FullAccount?, error) in
                 
+                Log.msg("Dropbox: getCurrentAccountInfo: response?.accountId: \(String(describing: response?.accountId))")
+                
+                // NOTE: This ^^^^ is *not* the same as the uid obtained when first signed in.
+                
                 if let usersFullAccount = response, error == nil {
-                    let savedCreds = DropboxSavedCreds(uid: self.dropboxAccessToken!.uid, displayName: usersFullAccount.name.displayName, email: usersFullAccount.email)
+                    let savedCreds = DropboxSavedCreds(uid: self.dropboxAccessToken!.uid,
+                        accountId: usersFullAccount.accountId, displayName: usersFullAccount.name.displayName, email: usersFullAccount.email)
                     savedCreds.save()
                     self.completeSignInProcess(autoSignIn: false)
                 } else {
