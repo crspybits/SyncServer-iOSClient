@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 7.0.0 (TBD)
+Version 7.0.0 (12/25/17)
 	* Adding Dropbox support-- in client and example app.
 		- via a new subspec (Dropbox) in the Cocoapod.
 	* Fixed breaking change in Facebook SDK
