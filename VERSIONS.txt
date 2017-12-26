@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 6.1.0 (TBD)
+Version 7.0.0 (TBD)
 	* Adding Dropbox support-- in client and example app.
 		- via a new subspec (Dropbox) in the Cocoapod.
 	* Fixed breaking change in Facebook SDK
@@ -8,6 +8,9 @@ Version 6.1.0 (TBD)
 	* Made the ServerAPI usage of delegate:SyncServerDelegate optional `?` because it was causing my tests to crash, and it's just used for reporting events.
 	* Cleaned up some code in the GoogleSignIn
 	* Cleaned up podspec
+	* Using different header key for Google authentication authorization code-- breaking change.
+	* Fixed on ~> 1.2 for Gloss dependency-- due to breaking change I'm not ready for in Gloss 2.0
+	* Added Dropbox into test cases; fixed issues with two test cases.
 	
 Version 6.0.1 (12/3/17)
 	* Client not properly logged in, but no decent indication on UI

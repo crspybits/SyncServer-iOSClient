@@ -22,6 +22,8 @@ class ServerAPI_CreateSharingInvitation: TestCase {
     
     // TODO: *0*
     // How do we run a test where we don't sign in first?
+    /*
     func testSharingInvitationCreationFailsWithNoPermissionsGiven() {
     }
+    */
 }

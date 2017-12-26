@@ -46,7 +46,6 @@ class ServerAPI_Authentication: TestCase {
     }
     
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
     
@@ -191,7 +190,10 @@ class ServerAPI_Authentication: TestCase {
         let testCreds = TestCreds()
         testCreds.uiDisplayName = "chris@cprince.com"
         testCreds.username = "Chris"
+        
         ServerAPI.session.creds = testCreds
+        let previousAuthTokens = authTokens
+        authTokens = [:]
         
         // Just do a (random) server call on the API to make use of the creds, and ensure the ServerAPI attempts a credentials refresh.
         
@@ -202,6 +204,20 @@ class ServerAPI_Authentication: TestCase {
             XCTAssert(testCreds.called == true)
             expectation1.fulfill()
         }
+        
         waitForExpectations(timeout: 60.0, handler: nil)
+        
+        if !currTestAccountIsSharing() {
+            authTokens = previousAuthTokens
+            
+            let addUserExpectation = self.expectation(description: "addUser")
+            
+            ServerAPI.session.addUser { error in
+                XCTAssert(error == nil)
+                addUserExpectation.fulfill()
+            }
+            
+            waitForExpectations(timeout: 10.0, handler: nil)
+        }
     }
 }

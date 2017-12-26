@@ -110,7 +110,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
                 
                 ViewController.sharingInvitationUUID.stringValue = invitationUUID!
                 Thread.runSync(onMainThread: {
-                    Alert.show(message: "You can now sign out, and sign in as a Facebook user.")
+                    Alert.show(message: "You can now sign out, and sign in as a Sharing (e.g., Facebook) user.")
                 })
             }
         }

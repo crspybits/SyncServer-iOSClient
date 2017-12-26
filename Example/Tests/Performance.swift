@@ -116,8 +116,9 @@ class Performance: TestCase {
         deleteNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
     }
     
-    func test50Deletions() {
-        deleteNFiles(50, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+    func test25Deletions() {
+        // 12/25/17; Previously I had this set to 50 deletions, but I run into a 504 HTTP response from the server, and I think it's from NGINX. See https://github.com/crspybits/SyncServerII/issues/48
+        deleteNFiles(25, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
     }
     
     // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39

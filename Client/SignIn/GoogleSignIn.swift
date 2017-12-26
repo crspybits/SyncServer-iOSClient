@@ -31,13 +31,11 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     // Used on the server to obtain a refresh code and an access token. The refresh token obtained on signin in the app can't be transferred to the server and used there.
     var serverAuthCode: String?
     
-    //weak var delegate:GoogleSignInDelegate?
-    
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.GoogleToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = self.accessToken
-        result[ServerConstants.GoogleHTTPServerAuthCodeKey] = self.serverAuthCode
+        result[ServerConstants.HTTPOAuth2AuthorizationCodeKey] = self.serverAuthCode
         return result
     }
     
