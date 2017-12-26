@@ -38,7 +38,7 @@ class SetupSignIn {
         if case .stringValue(let value) = try! plist.getRequired(varName: "DropboxAppKey") {
             dropboxAppKey = value
         }
-    
+
         googleSignIn = GoogleSyncServerSignIn(serverClientId: googleServerClientId, appClientId: googleAppClientId)
         SignInManager.session.addSignIn(googleSignIn, launchOptions: options)
         
