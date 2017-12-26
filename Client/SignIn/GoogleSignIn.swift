@@ -31,13 +31,11 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     // Used on the server to obtain a refresh code and an access token. The refresh token obtained on signin in the app can't be transferred to the server and used there.
     var serverAuthCode: String?
     
-    //weak var delegate:GoogleSignInDelegate?
-    
     public var httpRequestHeaders:[String:String] {
         var result = [String:String]()
         result[ServerConstants.XTokenTypeKey] = ServerConstants.AuthTokenType.GoogleToken.rawValue
         result[ServerConstants.HTTPOAuth2AccessTokenKey] = self.accessToken
-        result[ServerConstants.GoogleHTTPServerAuthCodeKey] = self.serverAuthCode
+        result[ServerConstants.HTTPOAuth2AuthorizationCodeKey] = self.serverAuthCode
         return result
     }
     
@@ -210,9 +208,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
 
     // The parameter must be given as "delegate" with a value of a `GoogleSignInUIProtocol` conforming object. Returns an object of type `GoogleSignInOutButton`.
     @discardableResult
-    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {
-        _signInOutButton = signInOutButton
-        
+    public func setupSignInButton(params:[String:Any]?) -> TappableButton? {        
         guard let delegate = params?["delegate"] as? GoogleSignInUIProtocol else {
             Log.error("You must give a GoogleSignInUIProtocol conforming object as a delegate parameter")
             return nil
@@ -224,8 +220,8 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         return signInOutButton
     }
     
-    public var signInButton: /* TappableButton */ UIView? {
-        return _signInOutButton as? UIView
+    public var signInButton: TappableButton? {
+        return _signInOutButton
     }
 }
 
@@ -447,7 +443,7 @@ private class GoogleSignInOutButton : UIView, Tappable {
         case signIn
         case signOut
     }
-    
+
     fileprivate var _state:State!
     var buttonShowing:State {
         get {

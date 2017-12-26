@@ -13,8 +13,9 @@ import SyncServer_Shared
 
 class ViewController: UIViewController, GoogleSignInUIProtocol {
     @IBOutlet weak var signInContainer: UIView!
-    var googleSignInButton: /* TappableButton */ UIView!
-    var facebookSignInButton:/* TappableButton */ UIView!
+    var googleSignInButton: TappableButton!
+    var facebookSignInButton: TappableButton!
+    var dropboxSignInButton:TappableButton!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
     var syncServerSingleFileUploadCompleted: (()->())?
     @IBOutlet weak var testingOutcome: UILabel!
@@ -24,12 +25,17 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self]) as! UIView
+        googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
         SetupSignIn.session.googleSignIn.delegate = self
         
-        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil) as! UIView
+        facebookSignInButton = SetupSignIn.session.facebookSignIn.setupSignInButton(params:nil)
         facebookSignInButton.frameWidth = googleSignInButton.frameWidth
         SetupSignIn.session.facebookSignIn.delegate = self
+        
+        dropboxSignInButton = SetupSignIn.session.dropboxSignIn.setupSignInButton(params: ["viewController": self])
+        dropboxSignInButton.frameSize = CGSize(width: googleSignInButton.frameWidth, height: googleSignInButton.frameHeight * 0.75)
+        
+        SetupSignIn.session.dropboxSignIn.delegate = self
 
         let signIn:SignIn = SignIn.createFromXib()!
         signInContainer.addSubview(signIn)
@@ -104,7 +110,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
                 
                 ViewController.sharingInvitationUUID.stringValue = invitationUUID!
                 Thread.runSync(onMainThread: {
-                    Alert.show(message: "You can now sign out, and sign in as a Facebook user.")
+                    Alert.show(message: "You can now sign out, and sign in as a Sharing (e.g., Facebook) user.")
                 })
             }
         }

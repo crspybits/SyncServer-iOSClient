@@ -16,7 +16,8 @@ class TestCase: XCTestCase {
     // Before you run any tests, change this to the account type that you want to test.
     // For Google, before running each complete set of tests, you must copy the access token from a recent sign-in (i.e., immediately before the tests) in to the .plist file.
     // For Facebook, before running each complete set of tests, you must have a long-lived access token in the .plist that is current (i.e., within the last 60 days).
-    static let currTestAccount:TestAccount = .google
+    // For Dropbox, just use an access token-- they live until revoked.
+    static let currTestAccount:TestAccount = .dropbox
     
     func currTestAccountIsSharing() -> Bool {
         return TestCase.currTestAccount.accountType == ServerConstants.AuthTokenType.FacebookToken
@@ -25,17 +26,34 @@ class TestCase: XCTestCase {
     struct TestAccount {
         let tokenKey:String // key into the Consts.serverPlistFile
         let accountType:ServerConstants.AuthTokenType
-            
+        
+        // Only used by Dropbox
+        let accountIdKey:String?
+        
         // Must reference an owning account or a sharing account with admin sharing permission (the latter hasn't yet been tested).
-        static let google = TestAccount(tokenKey: "GoogleAccessToken", accountType: .GoogleToken)
+        static let google = TestAccount(tokenKey: "GoogleAccessToken", accountType: .GoogleToken, accountIdKey:nil)
             
         // The tokenKey references a long-lived access token. It must reference a Facebook account that has admin sharing permission
-        static let facebook = TestAccount(tokenKey: "FacebookAccessToken", accountType: .FacebookToken)
+        static let facebook = TestAccount(tokenKey: "FacebookAccessToken", accountType: .FacebookToken, accountIdKey:nil)
+        
+        static let dropbox = TestAccount(tokenKey: "DropboxAccessToken", accountType: .DropboxToken, accountIdKey: "DropboxAccountId")
             
         func token() -> String {
             let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
             
             if case .stringValue(let value) = try! plist.getRequired(varName: tokenKey) {
+                return value
+            }
+            
+            XCTFail()
+            return ""
+        }
+        
+        // Only used by Dropbox
+        func accountId() -> String {
+            let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
+            
+            if case .stringValue(let value) = try! plist.getRequired(varName: accountIdKey!) {
                 return value
             }
             
@@ -73,6 +91,10 @@ class TestCase: XCTestCase {
             ServerConstants.XTokenTypeKey: TestCase.currTestAccount.accountType.rawValue,
             ServerConstants.HTTPOAuth2AccessTokenKey: TestCase.currTestAccount.token()
         ]
+        
+        if TestCase.currTestAccount.accountType == ServerConstants.AuthTokenType.DropboxToken {
+            self.authTokens[ServerConstants.HTTPAccountIdKey] = TestCase.currTestAccount.accountId()
+        }
         
         SyncManager.session.delegate = self
         fileIndexServerSleep = nil
