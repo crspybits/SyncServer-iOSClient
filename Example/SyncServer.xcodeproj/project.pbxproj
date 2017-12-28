@@ -20,6 +20,7 @@
 		8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */; };
 		833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
+		833B17931FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */; };
 		8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */; };
 		8344CC2B1E5FDD1800BEB263 /* Client_Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */; };
 		83544F7F1EF4E0E5007E0887 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833729841E0F6BAE002CA164 /* Authentication.swift */; };
@@ -98,6 +99,7 @@
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_Failure.swift; sourceTree = "<group>"; };
+		833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_WIllStartUploads.swift; sourceTree = "<group>"; };
 		8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_UploadDeletion.swift; sourceTree = "<group>"; };
 		8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_Downloads.swift; sourceTree = "<group>"; };
 		83544F841EF58B32007E0887 /* SyncServer_ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncServer_ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -233,6 +235,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */,
 				83D829D41F70C8460030E9F7 /* Client_SyncServer_StopSync.swift */,
 				8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */,
 				838ED40B1ED2B46200078E9F /* Performance.swift */,
@@ -622,6 +625,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				833B17931FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift in Sources */,
 				83F37A181E4445E500479175 /* Consts.swift in Sources */,
 				836D4BD61E10728D005209F2 /* HealthCheck.swift in Sources */,
 				835C61121E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift in Sources */,

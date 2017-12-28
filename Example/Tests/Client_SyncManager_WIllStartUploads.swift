@@ -1,0 +1,129 @@
+//
+//  Client_SyncManager_WIllStartUploads.swift
+//  SyncServer_Tests
+//
+//  Created by Christopher G Prince on 12/26/17.
+//  Copyright © 2017 CocoaPods. All rights reserved.
+//
+
+import XCTest
+@testable import SyncServer
+import SMCoreLib
+import Foundation
+import SyncServer_Shared
+
+class Client_SyncManager_WIllStartUploads: TestCase {
+    
+    override func setUp() {
+        super.setUp()
+        resetFileMetaData()
+    }
+    
+    override func tearDown() {
+        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        super.tearDown()
+    }
+    
+    func testThatWillUploadEventIsNotTriggeredForNoUploads() {
+        SyncServer.session.eventsDesired = [.syncDone, .willStartUploads]
+        let expectation1 = self.expectation(description: "test1")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            case .willStartUploads:
+                XCTFail()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+    }
+    
+    func testThatWillUploadEventIsTriggeredForOneFileUpload() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID = UUID().uuidString
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        
+        SyncServer.session.eventsDesired = [.fileUploadsCompleted]
+        let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberFileUploads == 1)
+                XCTAssert(numberUploadDeletions == 0)
+                willStartUploadsExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
+        let (_, attr) = uploadSingleFileUsingSync()
+        
+        SyncServer.session.eventsDesired = [.willStartUploads]
+        
+        let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberFileUploads == 0)
+                XCTAssert(numberUploadDeletions == 1)
+                willStartUploadsExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testThatWillUploadEventIsTriggeredForFileUploadAndUploadDeletion() {
+        let (_, deletionAttr) = uploadSingleFileUsingSync()
+        
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID = UUID().uuidString
+        let uploadAttr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        
+        SyncServer.session.eventsDesired = [.willStartUploads]
+        
+        let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberFileUploads == 1)
+                XCTAssert(numberUploadDeletions == 1)
+                willStartUploadsExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.delete(fileWithUUID: deletionAttr.fileUUID)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: uploadAttr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+}

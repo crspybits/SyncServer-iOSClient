@@ -1,5 +1,22 @@
 SyncServer-iOSClient
 
+Version 8.0.0
+	* Changed names and types of error returns-- breaking change.
+		This was to support https://github.com/crspybits/SharedImages/issues/53 and https://github.com/crspybits/SyncServerII/issues/39
+		TESTING: Need to run full set of client tests, at least for one account type-- using the testing server.
+	* Added new SyncEvent: willStartUploads-- breaking change.
+		TESTING: Run tests with testing server.
+	* Fixed some Dropbox issues--
+		1) Layout not adjusting to frame sizes.
+		2) Signout not displaying when account first created.
+	* Factored out some sign in code and put in an extension of GenericSignIn
+		This was to deal with issue in SharedImages where, after first creating
+		an account, the transition to the images tab would occur too quickly and
+		would not allow the prompt to ask the user if they want notifications.
+		
+Version 7.0.3 (12/25/17)
+	* Small bug fixes
+	
 Version 7.0.0 (12/25/17)
 	* Adding Dropbox support-- in client and example app.
 		- via a new subspec (Dropbox) in the Cocoapod.

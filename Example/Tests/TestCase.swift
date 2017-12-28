@@ -75,7 +75,7 @@ class TestCase: XCTestCase {
     var shouldSaveDownload: ((_ downloadedFile: NSURL, _ downloadedFileAttributes: SyncAttributes) -> ())!
     var syncServerEventOccurred: (SyncEvent) -> () = {event in }
     var shouldDoDeletions: (_ downloadDeletions: [SyncAttributes]) -> () = { downloadDeletions in }
-    var syncServerErrorOccurred: (Error) -> () = { error in
+    var syncServerErrorOccurred: (SyncServerError) -> () = { error in
         Log.error("syncServerErrorOccurred: \(error)")
     }
     
@@ -701,7 +701,7 @@ extension TestCase : SyncServerDelegate {
         shouldDoDeletions(downloadDeletions)
     }
     
-    func syncServerErrorOccurred(error:Error) {
+    func syncServerErrorOccurred(error:SyncServerError) {
         syncServerErrorOccurred(error)
     }
 }

@@ -174,7 +174,7 @@ extension ViewController : SyncServerDelegate {
         assert(false)
     }
     
-    func syncServerErrorOccurred(error:Error) {
+    func syncServerErrorOccurred(error:SyncServerError) {
         assert(false)
     }
 }

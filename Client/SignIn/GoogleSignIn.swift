@@ -47,12 +47,12 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
     case noGoogleUser
     }
     
-    open func refreshCredentials(completion: @escaping (Error?) ->()) {
+    open func refreshCredentials(completion: @escaping (SyncServerError?) ->()) {
         // See also this on refreshing of idTokens: http://stackoverflow.com/questions/33279485/how-to-refresh-authentication-idtoken-with-gidsignin-or-gidauthentication
         
         guard self.googleUser != nil
         else {
-            completion(RefreshCredentialsResult.noGoogleUser)
+            completion(.generic("No Google User"))
             return
         }
         
@@ -72,13 +72,13 @@ public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertibl
             if error == nil {
                 Log.special("refreshCredentials: Success")
                 self.accessToken = auth!.accessToken
+                completion(nil)
             }
             else {
                 Log.error("Error refreshing tokens: \(error!)")
                 // 10/22/17; It doesn't seem reasonable to sign the user out at this point, after a single attempt at refreshing credentials. If we have no network connection-- Why sign the user out then?
+                completion(.credentialsRefreshError)
             }
-            
-            completion(error)
         }
     }
 }
@@ -293,9 +293,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             case .createOwningUser:
                 SyncServerUser.session.addUser(creds: creds) {[unowned self] error in
                     if error == nil {
-                        SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new owning user! You are now signed in too!")
-                        self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
-                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+                        self.successCreatingOwningUser()
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
@@ -308,9 +306,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
             case .createSharingUser(invitationCode: let invitationCode):
                 SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) {[unowned self] accessToken, error in
                     if error == nil {
-                        SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!")
-                        self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
-                        self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
+                        self.successCreatingSharingUser()
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")

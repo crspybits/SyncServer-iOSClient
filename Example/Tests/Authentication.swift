@@ -6,10 +6,6 @@ import SyncServer_Shared
 // After creating this project afresh, I was getting errors like: "...couldn’t be loaded because it is damaged or missing necessary resources. Try reinstalling the bundle."
 // The solution for me was to manually set the host applicaton. See https://github.com/CocoaPods/CocoaPods/issues/5022
 
-enum TestCredsError : Error {
-    case TheError
-}
-
 class TestCreds : GenericCredentials {
     var userId = ""
     var username = ""
@@ -19,9 +15,9 @@ class TestCreds : GenericCredentials {
     }
     
     var called = false
-    func refreshCredentials(completion: @escaping (Error?) ->()) {
+    func refreshCredentials(completion: @escaping (SyncServerError?) ->()) {
         called = true
-        completion(TestCredsError.TheError)
+        completion(.credentialsRefreshError)
     }
 }
 
