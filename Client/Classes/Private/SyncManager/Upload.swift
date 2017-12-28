@@ -224,7 +224,7 @@ class Upload {
             }
  
             switch uploadResult! {
-            case .success(sizeInBytes: _):
+            case .success(sizeInBytes: _, creationDate: let creationDate, updateDate: let updateDate):
                 var completionResult:NextCompletion?
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     nextToUpload.status = .uploaded
@@ -236,7 +236,7 @@ class Upload {
                         return
                     }
 
-                    let attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, mimeType:nextToUpload.mimeType!)
+                    let attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, mimeType:nextToUpload.mimeType!, creationDate: creationDate, updateDate: updateDate)
                     completionResult = .fileUploaded(attr)
                 }
                 

@@ -9,14 +9,16 @@
 import Foundation
 import SMCoreLib
 
-// This information is for testing purposes and for UI (e.g., for displaying download progress).
+// Most of this information is for testing purposes and for UI (e.g., for displaying download progress). Some of it, however, can be necessary for app operations.
 public enum SyncEvent {
     // This can repeat if there is a change to the files on the server (a master version update), and downloads restart.
     case willStartDownloads(numberFileDownloads:UInt, numberDownloadDeletions:UInt)
     
     case willStartUploads(numberFileUploads:UInt, numberUploadDeletions:UInt)
     
+    // The attributes report the actual creation and update dates of the file-- as established by the server.
     case singleFileUploadComplete(attr:SyncAttributes)
+    
     case singleUploadDeletionComplete(fileUUID:UUIDString)
     case fileUploadsCompleted(numberOfFiles:Int)
     case uploadDeletionsCompleted(numberOfFiles:Int)

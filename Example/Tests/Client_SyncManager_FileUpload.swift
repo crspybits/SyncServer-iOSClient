@@ -326,6 +326,11 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion)
     }
     
+    // 12/28/17; The creation date/time of a file is established by the server. In theory the creation date/time of a file is *after* the date/time of the initiation of the file upload api request. How do we make assertions about this, though? These tests currently make use of the testing server on AWS. AWS server clocks may be skewed from our local lock. It seems like what we need is a means to grab the current server date/time clock. We can use that as a starting comparison time instead of the time before the file upload api request. One natural place to provide this server time information is in the ping api request.
+    func testThatCreationDateOfFileIsCorrect() {
+    
+    }
+    
     // TODO: *3* Test of upload file1, sync, upload file1, sync-- uploads both files.
     //      Needs to wait until we have version support.
 }

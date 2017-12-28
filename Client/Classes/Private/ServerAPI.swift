@@ -220,7 +220,7 @@ class ServerAPI {
     }
     
     enum UploadFileResult {
-    case success(sizeInBytes:Int64)
+    case success(sizeInBytes:Int64, creationDate: Date, updateDate: Date)
     case serverMasterVersionUpdate(Int64)
     }
     
@@ -254,33 +254,35 @@ class ServerAPI {
         let parameters = uploadRequest.urlParameters()!
         let url = makeURL(forEndpoint: endpoint, parameters: parameters)
         
-        postUploadDataTo(url, dataToUpload: fileData) { (resultDict, httpStatus, error) in
-        
+        postUploadDataTo(url, dataToUpload: fileData) { (response, httpStatus, error) in
             let resultError = self.checkForError(statusCode: httpStatus, error: error)
 
             if resultError == nil {
-                if let size = resultDict?[UploadFileResponse.sizeKey] as? Int64 {
-                    completion?(UploadFileResult.success(sizeInBytes:size), nil)
+                guard let response = response,
+                    let uploadFileResponse = UploadFileResponse(json: response) else {
+                    completion?(nil, .couldNotCreateResponse)
+                    return
                 }
-                else if let versionUpdate = resultDict?[UploadFileResponse.masterVersionUpdateKey] as? Int64 {
+                
+                if let versionUpdate = uploadFileResponse.masterVersionUpdate {
                     let message = UploadFileResult.serverMasterVersionUpdate(versionUpdate)
                     Log.msg("\(message)")
                     completion?(message, nil)
+                    return
                 }
-                else {
+                
+                guard let size = uploadFileResponse.size, let creationDate = uploadFileResponse.creationDate, let updateDate = uploadFileResponse.updateDate else {
                     completion?(nil, .noExpectedResultKey)
+                    return
                 }
+                
+                completion?(UploadFileResult.success(sizeInBytes:size, creationDate: creationDate, updateDate: updateDate), nil)
             }
             else {
                 Log.error("\(resultError!)")
                 completion?(nil, resultError)
             }
         }
-    }
-    
-    enum DoneUploadsError : Error {
-    case noExpectedResultKey
-    case couldNotCreateDoneUploadsRequest
     }
     
     enum DoneUploadsResult {
