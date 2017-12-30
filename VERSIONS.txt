@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 9.0.0 (12/30/17)
+	* Changed sharing invitation iterface to deal with:
+		https://github.com/crspybits/SharedImages/issues/42
+		
 Version 8.0.0 (12/29/17)
 	* Changed names and types of error returns-- breaking change.
 		This was to support https://github.com/crspybits/SharedImages/issues/53 and https://github.com/crspybits/SyncServerII/issues/39
