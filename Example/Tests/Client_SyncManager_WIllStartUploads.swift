@@ -51,8 +51,10 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
-        SyncServer.session.eventsDesired = [.fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
+        SyncServer.session.delegate = self
         let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+        let done = self.expectation(description: "done")
         
         syncServerEventOccurred = {event in
             switch event {
@@ -60,6 +62,9 @@ class Client_SyncManager_WIllStartUploads: TestCase {
                 XCTAssert(numberFileUploads == 1)
                 XCTAssert(numberUploadDeletions == 0)
                 willStartUploadsExp.fulfill()
+            
+            case .syncDone:
+                done.fulfill()
                 
             default:
                 XCTFail()
@@ -75,16 +80,21 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
         let (_, attr) = uploadSingleFileUsingSync()
         
-        SyncServer.session.eventsDesired = [.willStartUploads]
-        
-        let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+        SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
+        SyncServer.session.delegate = self
 
+        let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+        let done = self.expectation(description: "done")
+        
         syncServerEventOccurred = {event in
             switch event {
             case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
                 XCTAssert(numberFileUploads == 0)
                 XCTAssert(numberUploadDeletions == 1)
                 willStartUploadsExp.fulfill()
+            
+            case .syncDone:
+                done.fulfill()
                 
             default:
                 XCTFail()
@@ -104,9 +114,11 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         let fileUUID = UUID().uuidString
         let uploadAttr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
-        SyncServer.session.eventsDesired = [.willStartUploads]
+        SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
+        SyncServer.session.delegate = self
         
         let willStartUploadsExp = self.expectation(description: "willStartUploadsExp")
+        let done = self.expectation(description: "done")
 
         syncServerEventOccurred = {event in
             switch event {
@@ -114,6 +126,9 @@ class Client_SyncManager_WIllStartUploads: TestCase {
                 XCTAssert(numberFileUploads == 1)
                 XCTAssert(numberUploadDeletions == 1)
                 willStartUploadsExp.fulfill()
+            
+            case .syncDone:
+                done.fulfill()
                 
             default:
                 XCTFail()

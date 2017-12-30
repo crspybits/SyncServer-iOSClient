@@ -41,35 +41,35 @@ PODS:
     - GTMSessionFetcher/Core (= 1.1.12)
   - HPTextViewTapGestureRecognizer (0.1)
   - Reachability (3.2)
-  - SMCoreLib (1.1.0):
+  - SMCoreLib (1.2.0):
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
   - SwiftyBeaver (1.5.0)
   - SwiftyDropbox (4.3.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (6.1.0):
+  - SyncServer (7.0.3):
     - Gloss (~> 1.2)
-    - SMCoreLib (~> 1.1)
-    - SyncServer-Shared (~> 3.0)
-    - SyncServer/Lite (= 6.1.0)
-  - SyncServer-Shared (3.0.1):
+    - SMCoreLib (~> 1.2)
+    - SyncServer-Shared (~> 3.3)
+    - SyncServer/Lite (= 7.0.3)
+  - SyncServer-Shared (3.3.1):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (6.1.0):
+  - SyncServer/Dropbox (7.0.3):
     - Gloss (~> 1.2)
-    - SMCoreLib (~> 1.1)
+    - SMCoreLib (~> 1.2)
     - SwiftyDropbox (~> 4.3)
-    - SyncServer-Shared (~> 3.0)
-  - SyncServer/Facebook (6.1.0):
+    - SyncServer-Shared (~> 3.3)
+  - SyncServer/Facebook (7.0.3):
     - FacebookCore (~> 0.2)
     - FacebookLogin (~> 0.2)
     - Gloss (~> 1.2)
-    - SMCoreLib (~> 1.1)
-    - SyncServer-Shared (~> 3.0)
-  - SyncServer/Lite (6.1.0):
+    - SMCoreLib (~> 1.2)
+    - SyncServer-Shared (~> 3.3)
+  - SyncServer/Lite (7.0.3):
     - Gloss (~> 1.2)
-    - SMCoreLib (~> 1.1)
-    - SyncServer-Shared (~> 3.0)
+    - SMCoreLib (~> 1.2)
+    - SyncServer-Shared (~> 3.3)
 
 DEPENDENCIES:
   - GoogleSignIn (~> 4.1)
@@ -101,11 +101,11 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: ebaa1f79a5366922c1735f1566901f50beba23b7
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  SMCoreLib: 94c8b846c9ab6ad550cc263e704b00a2de646727
+  SMCoreLib: a16afaa117d59dc0d9eb349ef2162bbdfb1b0b9e
   SwiftyBeaver: 384235c59d9c67b4a5e1810cffa713babba34efd
   SwiftyDropbox: f70ff647c8ef4195e1314c8a894652f3ba3da526
-  SyncServer: 33dae4268ee434bf75565829791c6eaa6855a795
-  SyncServer-Shared: 53363584dc5a172c419125e32c76cdd314802d62
+  SyncServer: a2804ca8d2c77fd591e3c1f300a5e494466fcdcb
+  SyncServer-Shared: c9c068ecda14639b8402ab07d5547c62ae4c0f13
 
 PODFILE CHECKSUM: eb9e47dce35d9296c62639e03c4930ff9036f9f7
 

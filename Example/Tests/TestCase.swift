@@ -17,7 +17,7 @@ class TestCase: XCTestCase {
     // For Google, before running each complete set of tests, you must copy the access token from a recent sign-in (i.e., immediately before the tests) in to the .plist file.
     // For Facebook, before running each complete set of tests, you must have a long-lived access token in the .plist that is current (i.e., within the last 60 days).
     // For Dropbox, just use an access token-- they live until revoked.
-    static let currTestAccount:TestAccount = .dropbox
+    static let currTestAccount:TestAccount = .google
     
     func currTestAccountIsSharing() -> Bool {
         return TestCase.currTestAccount.accountType == ServerConstants.AuthTokenType.FacebookToken
@@ -103,6 +103,21 @@ class TestCase: XCTestCase {
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
+    }
+    
+    func assertThereIsNoMetaData() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
+            XCTAssert(UploadQueue.fetchAll().count == 0)
+            XCTAssert(UploadQueues.fetchAll().count == 0)
+            XCTAssert(Singleton.fetchAll().count == 0)
+            
+            XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
+            XCTAssert(Upload.getHeadSyncQueue() == nil)
+            XCTAssert(DownloadFileTracker.fetchAll().count == 0)
+            XCTAssert(UploadFileTracker.fetchAll().count == 0)
+            XCTAssert(DirectoryEntry.fetchAll().count == 0)
+        }
     }
     
     typealias FileUUIDURL = (uuid: String, url: URL)
@@ -234,7 +249,7 @@ class TestCase: XCTestCase {
             }
             else {
                 XCTAssert(error == nil)
-                if case .success(let size) = uploadFileResult! {
+                if case .success(let size, _, _) = uploadFileResult! {
                     XCTAssert(Int64(fileData.count) == size)
                     fileSize = size
                 }
@@ -281,7 +296,7 @@ class TestCase: XCTestCase {
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion) { uploadFileResult, error in
         
             XCTAssert(error == nil)
-            if case .success(let size) = uploadFileResult! {
+            if case .success(let size, _, _) = uploadFileResult! {
                 XCTAssert(Int64(fileData.count) == size)
             }
             else {
@@ -572,19 +587,10 @@ class TestCase: XCTestCase {
     }
     
     func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
-            DownloadFileTracker.removeAll()
-            DirectoryEntry.removeAll()
-            UploadFileTracker.removeAll()
-            UploadQueue.removeAll()
-            UploadQueues.removeAll()
-            Singleton.removeAll()
-            
-            do {
-                try CoreData.sessionNamed(Constants.coreDataName).context.save()
-            } catch {
-                XCTFail()
-            }
+        do {
+            try SyncServer.resetMetaData()
+        } catch {
+            XCTFail()
         }
 
         if removeServerFiles {
@@ -600,7 +606,7 @@ class TestCase: XCTestCase {
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
-        
+//        
         guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
             return
         }
@@ -617,6 +623,20 @@ class TestCase: XCTestCase {
             XCTAssert(downloadCount == 1)
             XCTAssert(attr.appMetaData == appMetaData)
             expectation.fulfill()
+        }
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
         }
         
         // Next, initiate the download using .sync()
@@ -646,6 +666,22 @@ class TestCase: XCTestCase {
         }
         
         waitForExpectations(timeout: 10.0, handler: nil)
+    }
+    
+    func healthCheck() -> HealthCheckResponse? {
+        var result:HealthCheckResponse?
+        
+        let exp = self.expectation(description: "exp")
+
+        ServerAPI.session.healthCheck { response, error in
+            XCTAssert(error == nil)
+            result = response
+            exp.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        
+        return result
     }
 }
 

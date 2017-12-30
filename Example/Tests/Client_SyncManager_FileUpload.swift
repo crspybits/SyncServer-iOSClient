@@ -326,9 +326,57 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion)
     }
     
-    // 12/28/17; The creation date/time of a file is established by the server. In theory the creation date/time of a file is *after* the date/time of the initiation of the file upload api request. How do we make assertions about this, though? These tests currently make use of the testing server on AWS. AWS server clocks may be skewed from our local lock. It seems like what we need is a means to grab the current server date/time clock. We can use that as a starting comparison time instead of the time before the file upload api request. One natural place to provide this server time information is in the ping api request.
+    // The purpose of this test is to make sure that, despite the fact that we queue the file for upload, that the file creation date/time occurs *after* we start the sync operation.
     func testThatCreationDateOfFileIsCorrect() {
-    
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID = UUID().uuidString
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        
+        // Queue's the file for upload.
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        
+        // Get the server date/time *after* the queuing.
+        guard let health1 = healthCheck(), let serverDateTimeBefore = health1.currentServerDateTime else {
+            XCTFail()
+            return
+        }
+        
+        let expectation1 = self.expectation(description: "test1")
+        let expectation2 = self.expectation(description: "test2")
+        var syncAttr:SyncAttributes?
+        
+        SyncServer.session.eventsDesired = [.syncDone, .singleFileUploadComplete]
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+            
+            case .singleFileUploadComplete(attr: let attr):
+                syncAttr = attr
+                expectation2.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        guard let health2 = healthCheck(), let serverDateTimeAfter = health2.currentServerDateTime else {
+            XCTFail()
+            return
+        }
+        
+        if let creationDate = syncAttr?.creationDate, let updateDate = syncAttr?.updateDate, syncAttr != nil {
+            XCTAssert(serverDateTimeBefore <= creationDate && creationDate <= serverDateTimeAfter)
+            XCTAssert(serverDateTimeBefore <= updateDate && creationDate <= serverDateTimeAfter)
+        }
+        else {
+            XCTFail()
+        }
     }
     
     // TODO: *3* Test of upload file1, sync, upload file1, sync-- uploads both files.

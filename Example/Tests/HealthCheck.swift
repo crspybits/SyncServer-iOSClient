@@ -24,8 +24,21 @@ class ServerAPI_HealthCheck: XCTestCase {
     func testHealthCheckSucceeds() {
         let expectation = self.expectation(description: "health check")
         
-        ServerAPI.session.healthCheck { error in
-            XCTAssert(error == nil)
+        ServerAPI.session.healthCheck { healthCheckResponse, error in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let healthCheckResponse = healthCheckResponse else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(healthCheckResponse.currentServerDateTime != nil)
+            XCTAssert(healthCheckResponse.deployedGitTag.count > 1)
+            XCTAssert(healthCheckResponse.serverUptime > 0)
+            
             expectation.fulfill()
         }
         

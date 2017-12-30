@@ -36,7 +36,7 @@ class ServerAPI_SingleError: TestCase {
 
     func testHealthCheckSingleError() {
         apiCallSingleError() { exp in
-            ServerAPI.session.healthCheck { error in
+            ServerAPI.session.healthCheck { healthCheckResponse, error in
                 XCTAssert(error == nil)
                 exp.fulfill()
             }

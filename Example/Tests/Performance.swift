@@ -49,6 +49,20 @@ class Performance: TestCase {
             }
         }
         
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
         // Next, initiate the download using .sync()
         SyncServer.session.sync()
         

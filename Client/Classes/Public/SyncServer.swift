@@ -106,6 +106,7 @@ public enum SyncServerError: Error {
     // The network connection was lost.
     case noNetworkError
     
+    case syncIsOperating
     case alreadyDownloadingAFile
     case alreadyUploadingAFile
     case couldNotFindFileUUID(String)
@@ -481,13 +482,60 @@ public class SyncServer {
         }
     }
     
+     // This is powerful method. It permanently removes all local/cached metadata known by the client interface. E.g., metadata about files that you have previously uploaded. It makes no server calls. This is similar to deleting and re-installing the app-- except that it does not delete the files referenced by the meta data. You must keep track of files and, if desired, delete them. It also doesn't sign out the user or require that the user is signed in.
+     // This method may only be called when the client is not doing any sync operations.
+    public func reset() throws {
+        var result:SyncServerError?
+        
+        Synchronized.block(self) {
+            if syncOperating {
+                result = .syncIsOperating
+            }
+            else {
+                do {
+                    try SyncServer.resetMetaData()
+                } catch (let error) {
+                    result = (error as! SyncServerError)
+                }
+            }
+        }
+        
+        if let result = result {
+            throw result
+        }
+    }
+    
+    // Separated out of the `reset` method above to use this one for testing.
+    internal static func resetMetaData() throws /* SyncServerError */ {
+        var result:SyncServerError?
+
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            DownloadFileTracker.removeAll()
+            DirectoryEntry.removeAll()
+            UploadFileTracker.removeAll()
+            UploadQueue.removeAll()
+            UploadQueues.removeAll()
+            Singleton.removeAll()
+
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let error) {
+                result = .coreDataError(error)
+            }
+        }
+        
+        if let result = result {
+            throw result
+        }
+    }
+    
     public struct LocalConsistencyResults {
         public let clientMissingAndDeleted:Set<UUIDString>!
         public let clientMissingNotDeleted:Set<UUIDString>!
         public let directoryMissing:Set<UUIDString>!
     }
     
-    // Only operates if not currently synchronizing.
+    // Performs a similar operation to a file system consistency or integrity check. Only operates if not currently synchronizing. Suitable for running at app startup.
     public func localConsistencyCheck(clientFiles:[UUIDString]) throws -> LocalConsistencyResults? {
         var error: Error?
         var results:LocalConsistencyResults!
@@ -581,7 +629,7 @@ public class SyncServer {
 
             var doStart = false
             
-            Synchronized.block(self) {
+            Synchronized.block(self) { [unowned self] in
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     if !self.stoppingSync && (Upload.haveSyncQueue()  || self.delayedSync) {
                         self.delayedSync = false

@@ -14,7 +14,9 @@ Version 8.0.0
 	* Fixed-- New Image: Date doesn't get replaced with actual server date
 		https://github.com/crspybits/SharedImages/issues/44
 		The event `singleFileUploadComplete` now reports actual creation and update dates on the server.
-		
+	* Extended healthcheck API server endpoint.
+	* Added client method to reset local meta data. E.g., this could be useful as part of a process to remove all user data from an app. (Note that this method was present in testing already, this just exposes it to client callers).
+	
 Version 7.0.3 (12/25/17)
 	* Small bug fixes
 	

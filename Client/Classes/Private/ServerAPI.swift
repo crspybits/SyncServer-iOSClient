@@ -91,12 +91,24 @@ class ServerAPI {
         return URL(string: baseURL + path)!
     }
     
-    func healthCheck(completion:((SyncServerError?)->(Void))?) {
+    func healthCheck(completion:((HealthCheckResponse?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.healthCheck
         let url = makeURL(forEndpoint: endpoint)
         
         sendRequestUsing(method: endpoint.method, toURL: url) { (response,  httpStatus, error) in
-            completion?(self.checkForError(statusCode: httpStatus, error: error))
+            let resultError = self.checkForError(statusCode: httpStatus, error: error)
+            
+            if resultError == nil {
+                if let response = response, let healthCheckResponse = HealthCheckResponse(json: response) {
+                    completion?(healthCheckResponse, nil)
+                }
+                else {
+                    completion?(nil, .couldNotCreateResponse)
+                }
+            }
+            else {
+                completion?(nil, resultError)
+            }
         }
     }
 

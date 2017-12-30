@@ -59,10 +59,58 @@ class ServerAPI_UploadFile: TestCase {
         let fileUUID2 = UUID().uuidString
         Log.special("fileUUID1= \(fileUUID1); fileUUID2= \(fileUUID2)")
         
-        _ = uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID1, serverMasterVersion: masterVersion, withExpectation:expectation1)
+        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID1, serverMasterVersion: masterVersion, withExpectation:expectation1)
         
-        _ = uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID2, serverMasterVersion: masterVersion, withExpectation:expectation2)
+        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID2, serverMasterVersion: masterVersion, withExpectation:expectation2)
 
         waitForExpectations(timeout: 30.0, handler: nil)
+    }
+    
+    // The creation date of the file is established by the server, and should fall between the server date/time before the upload and the server date/time after the upload.
+    func testThatCreationDateOfFileIsReasonable() {
+        let masterVersion = getMasterVersion()
+        
+        guard let health1 = healthCheck(), let serverDateTimeBefore = health1.currentServerDateTime else {
+            XCTFail()
+            return
+        }
+        
+        let uploadFileUUID = UUID().uuidString
+        
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: "text/plain", cloudFolderName: cloudFolderName, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        
+        var uploadResult:ServerAPI.UploadFileResult?
+        
+        let exp = self.expectation(description: "exp")
+        
+        ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion) { uploadFileResult, error in
+        
+            XCTAssert(error == nil)
+            uploadResult = uploadFileResult
+            
+            exp.fulfill()
+        }
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
+
+        guard let health2 = healthCheck(), let serverDateTimeAfter = health2.currentServerDateTime else {
+            XCTFail()
+            return
+        }
+        
+        if uploadResult != nil {
+            switch uploadResult! {
+            case .success(sizeInBytes: _, creationDate: let creationDate, updateDate: let updateDate):
+                XCTAssert(serverDateTimeBefore <= creationDate && creationDate <= serverDateTimeAfter)
+                XCTAssert(serverDateTimeBefore <= updateDate && updateDate <= serverDateTimeAfter)
+            default:
+                XCTFail()
+            }
+        }
+        else {
+            XCTFail()
+        }
     }
 }

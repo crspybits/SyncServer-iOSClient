@@ -6,6 +6,8 @@
 //  Copyright © 2017 Spastic Muffin, LLC. All rights reserved.
 //
 
+// These tests operate locally, with no server access.
+
 import XCTest
 @testable import SyncServer
 import SMCoreLib
@@ -14,7 +16,7 @@ class CoreDataTests: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        resetFileMetaData(removeServerFiles: false, actualDeletion: false)
     }
     
     override func tearDown() {
@@ -112,5 +114,36 @@ class CoreDataTests: TestCase {
             }
             XCTAssert(Upload.synced().queues!.count == 0)
         }
+    }
+    
+    func testThatPlainResetWorks() {
+        do {
+            try SyncServer.session.reset()
+        } catch (let error) {
+            XCTFail("\(error)")
+        }
+        
+        assertThereIsNoMetaData()
+    }
+    
+    func testThatResetWorksWithObjectsInMetaData() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            self.addObjectToPendingSync()
+            try! Upload.movePendingSyncToSynced()
+            
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch {
+                XCTFail()
+            }
+        }
+        
+        do {
+            try SyncServer.session.reset()
+        } catch (let error) {
+            XCTFail("\(error)")
+        }
+        
+        assertThereIsNoMetaData()
     }
 }

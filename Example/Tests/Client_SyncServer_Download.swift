@@ -55,7 +55,7 @@ class Client_SyncServer_Download: TestCase {
         
         let expectation = self.expectation(description: "test1")
         let willStartDownloadsExp = self.expectation(description: "willStartDownloads")
-        
+
         self.deviceUUID = Foundation.UUID()
         
         var downloadCount = 0
@@ -70,13 +70,18 @@ class Client_SyncServer_Download: TestCase {
             }
         }
         
-        SyncServer.session.eventsDesired = [.willStartDownloads]
-        
+        SyncServer.session.eventsDesired = [.willStartDownloads, .syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
         syncServerEventOccurred = {event in
             switch event {
             case .willStartDownloads(numberFileDownloads: let numberDownloads, _):
                 XCTAssert(numberDownloads == 2)
                 willStartDownloadsExp.fulfill()
+            
+            case .syncDone:
+                done.fulfill()
                 
             default:
                 XCTFail()
@@ -95,6 +100,18 @@ class Client_SyncServer_Download: TestCase {
     
     func testDownloadWithMetaData() {
          doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain", appMetaData: "Some app meta data")
+    }
+    
+    func testThatResetWorksAfterDownload() {
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain", appMetaData: "Some app meta data")
+        
+        do {
+            try SyncServer.session.reset()
+        } catch (let error) {
+            XCTFail("\(error)")
+        }
+        
+        assertThereIsNoMetaData()
     }
     
     // TODO: *2* This test typically fails when run as a group with other tests. Why?
