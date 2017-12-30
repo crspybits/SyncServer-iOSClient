@@ -1,10 +1,10 @@
 SyncServer-iOSClient
 
-Version 8.0.0
+Version 8.0.0 (12/29/17)
 	* Changed names and types of error returns-- breaking change.
 		This was to support https://github.com/crspybits/SharedImages/issues/53 and https://github.com/crspybits/SyncServerII/issues/39
 	* Added new SyncEvent: willStartUploads-- breaking change.
-	* Fixed some Dropbox issues--
+	* Fixed some Dropbox signin UI/button issues--
 		1) Layout not adjusting to frame sizes.
 		2) Signout not displaying when account first created.
 	* Factored out some sign in code and put in an extension of GenericSignIn
