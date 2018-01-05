@@ -202,14 +202,6 @@ public class SyncServer {
         ServerNetworkingLoading.session.application(application, handleEventsForBackgroundURLSession: identifier, completionHandler: completionHandler)
     }
     
-    // TODO: Move these to SyncServerError
-    public enum SyncClientAPIError: Error {
-    case mimeTypeOfFileChanged
-    case fileAlreadyDeleted
-    case fileQueuedForDeletion
-    case deletingUnknownFile
-    }
-    
     // Enqueue a local immutable file for subsequent upload. Immutable files are assumed to not change (at least until after the upload has completed). This immutable characteristic is not enforced by this class but needs to be enforced by the caller of this class.
     // This operation survives app launches, as long as the the call itself completes. 
     // If there is a file with the same uuid, which has been enqueued for upload but not yet `sync`'ed, it will be replaced by the given file. 
@@ -236,12 +228,12 @@ public class SyncServer {
                 }
                 
                 if attr.mimeType != entry!.mimeType {
-                    errorToThrow = SyncClientAPIError.mimeTypeOfFileChanged
+                    errorToThrow = SyncServerError.mimeTypeOfFileChanged
                     return
                 }
                 
                 if entry!.deletedOnServer {
-                    errorToThrow = SyncClientAPIError.fileAlreadyDeleted
+                    errorToThrow = SyncServerError.fileAlreadyDeleted
                     return
                 }
             }
@@ -331,17 +323,17 @@ public class SyncServer {
     private func delete(uuid:UUIDString) throws {
         // We must already know about this file in our local Directory.
         guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: uuid) else {
-            throw SyncClientAPIError.deletingUnknownFile
+            throw SyncServerError.deletingUnknownFile
         }
 
         guard !entry.deletedOnServer else {
-            throw SyncClientAPIError.fileAlreadyDeleted
+            throw SyncServerError.fileAlreadyDeleted
         }
 
         // Check to see if there is a pending upload deletion with this UUID.
         let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.deleteOnServer }
         if pendingUploadDeletions.count > 0 {
-            throw SyncClientAPIError.fileQueuedForDeletion
+            throw SyncServerError.fileQueuedForDeletion
         }
         
         var errorToThrow:Error?

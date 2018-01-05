@@ -12,6 +12,10 @@ public enum SyncServerError: Error {
     // The network connection was lost.
     case noNetworkError
     
+    case mimeTypeOfFileChanged
+    case fileAlreadyDeleted
+    case fileQueuedForDeletion
+    case deletingUnknownFile
     case syncIsOperating
     case alreadyDownloadingAFile
     case alreadyUploadingAFile
