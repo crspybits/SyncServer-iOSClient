@@ -33,10 +33,6 @@ class ServerNetworking : NSObject {
     func appLaunchSetup() {
         // TODO: *3* How can I have a networking spinner in the status bar? See https://github.com/crspybits/SyncServer-iOSClient/issues/7
     }
-
-    enum ServerNetworkingError : Error {
-    case noNetworkError
-    }
     
     func sendRequestUsing(method: ServerHTTPMethod, toURL serverURL: URL, timeoutIntervalForRequest:TimeInterval? = nil,
         completion:((_ serverResponse:[String:Any]?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {
@@ -46,42 +42,15 @@ class ServerNetworking : NSObject {
         }
     }
 
-#if false
-    // Data is sent in the body via a POST request (not multipart).
-    func postUploadDataTo(_ serverURL: URL, dataToUpload:Data, completion:((_ serverResponse:[String:Any]?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {
-
+    func upload(file:ServerNetworkingLoadingFile, fromLocalURL localURL: URL, toServerURL serverURL: URL, method: ServerHTTPMethod, completion: ((HTTPURLResponse?, _ statusCode:Int?, SyncServerError?)->())?) {
+    
         guard Network.session().connected() else {
             completion?(nil, nil, .noNetworkError)
             return
         }
         
-        let sessionConfiguration = URLSessionConfiguration.default
-        sessionConfiguration.httpAdditionalHeaders = self.authenticationDelegate?.headerAuthentication(forServerNetworking: self)
-        
-        // COULD DO: Use a delegate here to track upload progress.
-        let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
-        
-        // COULD DO: Data uploading task. We could use NSURLSessionUploadTask instead of NSURLSessionDataTask if we needed to support uploads in the background
-        
-        var request = URLRequest(url: serverURL)
-        request.httpMethod = "POST"
-        request.httpBody = dataToUpload
-        
-        Log.msg("postUploadDataTo: serverURL: \(serverURL)")
-        
-        let uploadTask:URLSessionUploadTask = session.uploadTask(with: request, from: dataToUpload) { (data, urlResponse, error) in            
-            self.processResponse(data: data, urlResponse: urlResponse, error: error, completion: completion)
-        }
-        
-        uploadTask.resume()
-    }
-#endif
-
-    func upload(file:ServerNetworkingLoadingFile, fromLocalURL localURL: URL, toServerURL serverURL: URL, method: ServerHTTPMethod, completion:@escaping ((HTTPURLResponse?, _ statusCode:Int?, SyncServerError?)->()?)) {
-    
-        guard Network.session().connected() else {
-            completion(nil, nil, .noNetworkError)
-            return
+        ServerNetworkingLoading.session.upload(file: file, fromLocalURL: localURL, toServerURL: serverURL, method: method) { (serverResponse, statusCode, error) in
+            completion?(serverResponse, statusCode, error)
         }
     }
     

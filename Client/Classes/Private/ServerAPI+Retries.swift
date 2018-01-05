@@ -168,7 +168,7 @@ extension ServerAPI {
         
         // I get rid of the circular references in the completion handler. These references are being used to retain the rwr object.
         rwr.request = {
-            ServerNetworkingLoading.session.upload(file: file, fromLocalURL: localURL, toServerURL: serverURL, method: method) { (serverResponse, statusCode, error) in
+            ServerNetworking.session.upload(file: file, fromLocalURL: localURL, toServerURL: serverURL, method: method) { (serverResponse, statusCode, error) in
                 
                 rwr.completionHandler = { error in
                     completion?(serverResponse, statusCode, error)
