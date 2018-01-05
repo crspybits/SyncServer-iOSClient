@@ -101,45 +101,6 @@ public struct EventDesired: OptionSet {
     }
 }
 
-// Many of these only have internal meaning to the client. Some are documented because they can be useful to the code using the client.
-public enum SyncServerError: Error {
-    // The network connection was lost.
-    case noNetworkError
-    
-    case syncIsOperating
-    case alreadyDownloadingAFile
-    case alreadyUploadingAFile
-    case couldNotFindFileUUID(String)
-    case versionForFileWasNil(fileUUUID: String)
-    case noRefreshAvailable
-    case couldNotCreateResponse
-    case couldNotCreateRequest
-    case didNotGetDownloadURL
-    case couldNotMoveDownloadFile
-    case couldNotReadUploadFile
-    case couldNotCreateNewFileForDownload
-    case obtainedAppMetaDataButWasNotString
-    case noExpectedResultKey
-    case nilResponse
-    case couldNotObtainHeaderParameters
-    case resultURLObtainedWasNil
-    case errorConvertingServerResponse
-    case jsonSerializationError(Error)
-    case urlSessionError(Error)
-    case couldNotGetHTTPURLResponse
-    case non200StatusCode(Int)
-    case badCheckCreds
-    case unknownServerError
-    case coreDataError(Error)
-    case generic(String)
-    
-#if TEST_REFRESH_FAILURE
-    case testRefreshFailure
-#endif
-
-    case credentialsRefreshError
-}
-
 // These delegate methods are called on the main thread.
 
 public protocol SyncServerDelegate : class {
@@ -207,10 +168,6 @@ public class SyncServer {
     public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String) {
         Log.msg("cloudFolderName: \(cloudFolderName)")
         Log.msg("serverURL: \(serverURL.absoluteString)")
-        
-        Upload.session.cloudFolderName = cloudFolderName
-        Network.session().appStartup()
-        ServerAPI.session.baseURL = serverURL.absoluteString
 
         // This seems a little hacky, but can't find a better way to get the bundle of the framework containing our model. I.e., "this" framework. Just using a Core Data object contained in this framework to track it down.
         // Without providing this bundle reference, I wasn't able to dynamically locate the model contained in the framework.
@@ -227,10 +184,25 @@ public class SyncServer {
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
         
+        Upload.session.cloudFolderName = cloudFolderName
+        Network.session().appStartup()
+        ServerAPI.session.baseURL = serverURL.absoluteString
+        
+        // 12/31/17; I put this in as part of: https://github.com/crspybits/SharedImages/issues/36
+        resetFileTrackers()
+        
+        // Remember: `ServerNetworkingLoading` relies on Core Data, so this setup call must be after the CoreData setup.
+        ServerNetworkingLoading.session.appLaunchSetup()
+        
         // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
         SyncServerUser.session.appLaunchSetup()
     }
     
+    public func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
+        ServerNetworkingLoading.session.application(application, handleEventsForBackgroundURLSession: identifier, completionHandler: completionHandler)
+    }
+    
+    // TODO: Move these to SyncServerError
     public enum SyncClientAPIError: Error {
     case mimeTypeOfFileChanged
     case fileAlreadyDeleted
@@ -516,6 +488,7 @@ public class SyncServer {
             UploadQueue.removeAll()
             UploadQueues.removeAll()
             Singleton.removeAll()
+            NetworkCached.removeAll()
 
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()

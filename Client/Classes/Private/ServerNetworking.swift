@@ -25,7 +25,7 @@ class ServerNetworking : NSObject {
             return _authenticationDelegate
         }
         set {
-            ServerNetworkingDownload.session.authenticationDelegate = newValue
+            ServerNetworkingLoading.session.authenticationDelegate = newValue
             _authenticationDelegate = newValue
         }
     }
@@ -45,7 +45,8 @@ class ServerNetworking : NSObject {
             completion?(serverResponse, statusCode, error)
         }
     }
-    
+
+#if false
     // Data is sent in the body via a POST request (not multipart).
     func postUploadDataTo(_ serverURL: URL, dataToUpload:Data, completion:((_ serverResponse:[String:Any]?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {
 
@@ -74,15 +75,24 @@ class ServerNetworking : NSObject {
         
         uploadTask.resume()
     }
+#endif
+
+    func upload(file:ServerNetworkingLoadingFile, fromLocalURL localURL: URL, toServerURL serverURL: URL, method: ServerHTTPMethod, completion:@escaping ((HTTPURLResponse?, _ statusCode:Int?, SyncServerError?)->()?)) {
     
-    public func downloadFrom(_ serverURL: URL, method: ServerHTTPMethod, completion:((SMRelativeLocalURL?, _ serverResponse:HTTPURLResponse?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {
+        guard Network.session().connected() else {
+            completion(nil, nil, .noNetworkError)
+            return
+        }
+    }
+    
+    public func download(file: ServerNetworkingLoadingFile, fromServerURL serverURL: URL, method: ServerHTTPMethod, completion:((SMRelativeLocalURL?, _ serverResponse:HTTPURLResponse?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {
 
         guard Network.session().connected() else {
             completion?(nil, nil, nil, .noNetworkError)
             return
         }
         
-        ServerNetworkingDownload.session.downloadFrom(serverURL, method: method) { (url, urlResponse, status, error) in
+        ServerNetworkingLoading.session.download(file: file, fromServerURL: serverURL, method: method) { (url, urlResponse, status, error) in
         
             if error == nil {
                 guard url != nil else {
@@ -179,3 +189,11 @@ extension ServerNetworking : URLSessionDelegate {
     }
 #endif
 }
+
+/*
+extension ServerNetworking: ServerNetworkingLoadingDelegate {
+    func serverNetworkingDownloadCompleted(_ snl: ServerNetworkingLoading, url: SMRelativeLocalURL?, response: HTTPURLResponse?, statusCode:Int?, error: SyncServerError?) {
+
+    }
+}*/
+
