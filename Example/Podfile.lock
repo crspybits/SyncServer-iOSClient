@@ -1,11 +1,11 @@
 PODS:
   - Alamofire (4.5.1)
-  - Bolts (1.8.4):
-    - Bolts/AppLinks (= 1.8.4)
-    - Bolts/Tasks (= 1.8.4)
-  - Bolts/AppLinks (1.8.4):
+  - Bolts (1.9.0):
+    - Bolts/AppLinks (= 1.9.0)
+    - Bolts/Tasks (= 1.9.0)
+  - Bolts/AppLinks (1.9.0):
     - Bolts/Tasks
-  - Bolts/Tasks (1.8.4)
+  - Bolts/Tasks (1.9.0)
   - FacebookCore (0.3.0):
     - Bolts (~> 1.8)
     - FBSDKCoreKit (~> 4.27)
@@ -45,31 +45,31 @@ PODS:
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
-  - SwiftyBeaver (1.5.0)
+  - SwiftyBeaver (1.5.1)
   - SwiftyDropbox (4.3.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (7.0.3):
+  - SyncServer (9.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 3.3)
-    - SyncServer/Lite (= 7.0.3)
-  - SyncServer-Shared (3.3.1):
+    - SyncServer-Shared (~> 4.0)
+    - SyncServer/Lite (= 9.0.0)
+  - SyncServer-Shared (4.0.0):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (7.0.3):
+  - SyncServer/Dropbox (9.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SwiftyDropbox (~> 4.3)
-    - SyncServer-Shared (~> 3.3)
-  - SyncServer/Facebook (7.0.3):
+    - SyncServer-Shared (~> 4.0)
+  - SyncServer/Facebook (9.0.0):
     - FacebookCore (~> 0.2)
     - FacebookLogin (~> 0.2)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 3.3)
-  - SyncServer/Lite (7.0.3):
+    - SyncServer-Shared (~> 4.0)
+  - SyncServer/Lite (9.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 3.3)
+    - SyncServer-Shared (~> 4.0)
 
 DEPENDENCIES:
   - GoogleSignIn (~> 4.1)
@@ -89,7 +89,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
-  Bolts: 8a7995239dbe724f9cba2248b766d48b7ebdd322
+  Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
   FacebookCore: 3ffa190a3f1f96cec0e44d3fc221bc322c595ffa
   FacebookLogin: 0af839ea858faef99550d16596b87b4a8e8906e6
   FBSDKCoreKit: 6f139173dc63a1deaff4430a55f2fe5bb222d2af
@@ -102,11 +102,11 @@ SPEC CHECKSUMS:
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SMCoreLib: a16afaa117d59dc0d9eb349ef2162bbdfb1b0b9e
-  SwiftyBeaver: 384235c59d9c67b4a5e1810cffa713babba34efd
+  SwiftyBeaver: 4f74563624b2c1e821c522c54142b5dd5ebb0f30
   SwiftyDropbox: f70ff647c8ef4195e1314c8a894652f3ba3da526
-  SyncServer: a2804ca8d2c77fd591e3c1f300a5e494466fcdcb
-  SyncServer-Shared: c9c068ecda14639b8402ab07d5547c62ae4c0f13
+  SyncServer: 2c2b6f2f1fc8a21718a1b84fb0ffb167cae8620f
+  SyncServer-Shared: edac7bd755348137d15378d188c1abd4bf5c420a
 
-PODFILE CHECKSUM: eb9e47dce35d9296c62639e03c4930ff9036f9f7
+PODFILE CHECKSUM: c886b3293059866634da3a3b41f8293946d165d8
 
 COCOAPODS: 1.3.1
