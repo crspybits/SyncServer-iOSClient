@@ -30,7 +30,7 @@ struct ServerNetworkingLoadingFile {
 }
 
 class ServerNetworkingLoading : NSObject {
-    static let session = ServerNetworkingLoading()
+    static private(set) var session = ServerNetworkingLoading()
     
     weak var authenticationDelegate:ServerNetworkingAuthentication?
     
@@ -41,16 +41,28 @@ class ServerNetworkingLoading : NSObject {
     private override init() {
         super.init()
         
+        createURLSession()
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            NetworkCached.deleteOldCacheEntries()
+        }
+    }
+    
+    private func createURLSession() {
         let appBundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as! String
         
         // https://developer.apple.com/reference/foundation/urlsessionconfiguration/1407496-background
         let sessionConfiguration = URLSessionConfiguration.background(withIdentifier: "biz.SpasticMuffin.SyncServer." + appBundleName)
         
         session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: OperationQueue.main)
+    }
+    
+    // When I use this in testing, I get a crash. "*** Terminating app due to uncaught exception 'NSGenericException', reason: 'Task created in a session that has been invalidated'" See also https://stackoverflow.com/questions/20019692/nsurlsession-invalidateandcancel-bad-access
+    func invalidateURLSession() {
+        session.invalidateAndCancel()
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
-            NetworkCached.deleteOldCacheEntries()
-        }
+        // That session is invalid now. Create another.
+        createURLSession()
     }
     
     func appLaunchSetup() {
@@ -69,7 +81,7 @@ class ServerNetworkingLoading : NSObject {
         
         request.allHTTPHeaderFields = authenticationDelegate?.headerAuthentication(forServerNetworking: self)
         
-        print("downloadFrom: serverURL: \(serverURL)")
+        Log.msg("downloadFrom: serverURL: \(serverURL)")
         
         let downloadTask = session.downloadTask(with: request)
         
@@ -82,14 +94,18 @@ class ServerNetworkingLoading : NSObject {
     
     private func uploadTo(_ serverURL: URL, file localURL: URL, method: ServerHTTPMethod, andStart start:Bool=true) -> URLSessionUploadTask {
     
+        // It appears that `session.uploadTask` has a problem with relative URL's. I get "NSURLErrorDomain Code=-1 "unknown error" if I pass one of these. Make sure the URL is not relative.
+        let uploadFilePath = localURL.path
+        let nonRelativeUploadURL = URL(fileURLWithPath: uploadFilePath)
+        
         var request = URLRequest(url: serverURL)
         request.httpMethod = method.rawValue.uppercased()
         
         request.allHTTPHeaderFields = authenticationDelegate?.headerAuthentication(forServerNetworking: self)
         
-        print("uploadTo: serverURL: \(serverURL)")
+        Log.msg("uploadTo: serverURL: \(serverURL); localURL: \(nonRelativeUploadURL)")
         
-        let uploadTask = session.uploadTask(with: request, fromFile: localURL)
+        let uploadTask = session.uploadTask(with: request, fromFile: nonRelativeUploadURL)
         
         if start {
             uploadTask.resume()
@@ -135,7 +151,7 @@ class ServerNetworkingLoading : NSObject {
         var result:(HTTPURLResponse, SMRelativeLocalURL?)?
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
-            guard let fetchedCache = NetworkCached.fetchObjectWithUUID(file.fileUUID, andVersion: file.fileVersion) else {
+            guard let fetchedCache = NetworkCached.fetchObjectWithUUID(file.fileUUID, andVersion: file.fileVersion, download: download) else {
                 return
             }
             
@@ -158,6 +174,18 @@ class ServerNetworkingLoading : NSObject {
         }
         
         return result
+    }
+    
+    private func removeCache(serverURLKey: URL) {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            guard let cache = NetworkCached.fetchObjectWithServerURLKey(serverURLKey.absoluteString) else {
+                Log.error("Could not find NetworkCached object for serverURLKey: \(serverURLKey)")
+                return
+            }
+            
+            CoreData.sessionNamed(Constants.coreDataName).remove(cache)
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+        }
     }
     
     // In both of the following methods, the `ServerNetworkingLoadingFile` is redundant with the info in the serverURL, but is needed for caching purposes.
@@ -246,14 +274,17 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
             handler = completionHandlers[downloadTask]
         }
         
+        let originalRequestURL = downloadTask.originalRequest!.url!
+        
         if case .download(let completion)? = handler {
+            removeCache(serverURLKey: originalRequestURL)
             completion(newFileURL, response, response?.statusCode, returnError)
         }
         else {
             // Must be running in the background-- since we don't have a handler.
             // We are not caching error results. Why bother? If we don't cache a result, the download will just need to be done again. And since there is an error, the download *will* need to be done again.
             if returnError == nil {
-                cacheResult(serverURLKey: downloadTask.originalRequest!.url!, response: response!, localURL: newFileURL!)
+                cacheResult(serverURLKey:originalRequestURL, response: response!, localURL: newFileURL!)
                 DebugWriter.session.log("Caching download result")
             }
         }
@@ -265,7 +296,7 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
     // For uploads: This gets called to indicate successful completion or an error.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         let response = task.response as? HTTPURLResponse
-        Log.error("didCompleteWithError: \(String(describing: error)); status: \(String(describing: response?.statusCode))")
+        Log.msg("didCompleteWithError: \(String(describing: error)); status: \(String(describing: response?.statusCode))")
         
         var handler:CompletionHandler?
         Synchronized.block(self) {
@@ -279,14 +310,16 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
             Log.msg("didCompleteWithError: \(String(describing: error)); status: \(String(describing: response?.statusCode))")
         }
         
+        let originalRequestURL = task.originalRequest!.url!
+
         switch handler {
         case .none:
             // No handler. We must be running in the background. Ignore errors.
             if error == nil {
                 switch task {
                 case is URLSessionUploadTask:
-                    cacheResult(serverURLKey: task.originalRequest!.url!, response: response!)
-                     DebugWriter.session.log("Caching upload result")
+                    cacheResult(serverURLKey: originalRequestURL, response: response!)
+                    DebugWriter.session.log("Caching upload result")
                 case is URLSessionDownloadTask:
                     // We will have already cached this.
                     break
@@ -298,9 +331,12 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
         case .some(.download(let completion)):
             // Only need to call completion handler for a download if we have an error. In the normal case, we've already called it.
             if error != nil {
+                removeCache(serverURLKey: originalRequestURL)
                 completion(nil, response, response?.statusCode, .urlSessionError(error!))
             }
         case .some(.upload(let completion)):
+            removeCache(serverURLKey: originalRequestURL)
+
             // For uploads, since this is called if we get an error or not, we always have to call the completion handler.
             let errorResult = error == nil ? nil : SyncServerError.urlSessionError(error!)
             completion(response, response?.statusCode, errorResult)
@@ -323,5 +359,9 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
             self.backgroundCompletionHandler?()
             self.backgroundCompletionHandler = nil
         })
+    }
+    
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        Log.error("urlSession didBecomeInvalidWithError: \(String(describing: error))")
     }
 }

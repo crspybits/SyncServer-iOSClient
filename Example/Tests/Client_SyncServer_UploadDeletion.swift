@@ -24,7 +24,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     @discardableResult
-    func uploadDeletionWorksWhenWaitUntilAfterUpload() -> String {
+    func uploadDeletionWorksWhenWaitUntilAfterUpload() -> String? {
         let (_, attr) = uploadSingleFileUsingSync()
         
         SyncServer.session.eventsDesired = [.syncDone, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
@@ -58,12 +58,17 @@ class Client_SyncServer_UploadDeletion: TestCase {
 
         // Need to make sure the file is marked as deleted on the server.
         let fileIndex = getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
-        XCTAssert(fileIndex[0].deleted)
         
+        guard fileIndex.count > 0, fileIndex[0].deleted else {
+            XCTFail()
+            return nil
+        }
+
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
             XCTAssert(result!.deletedOnServer)
         }
+        
         return attr.fileUUID
     }
     
@@ -188,7 +193,10 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
-        let uuid = uploadDeletionWorksWhenWaitUntilAfterUpload()
+        guard let uuid = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
+            XCTFail()
+            return
+        }
         
         do {
             try SyncServer.session.delete(fileWithUUID: uuid)

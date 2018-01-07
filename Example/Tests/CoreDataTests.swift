@@ -149,9 +149,9 @@ class CoreDataTests: TestCase {
     
     // NetworkCached tests
     
-    func createNetworkCached(withVersion version: Int32) {
-        let fileUUID = UUID().uuidString
+    func createNetworkCached(withVersion version: Int32 = 0, fileUUID:String, download: Bool) {
         let url = URL(string: "https://www.SpasticMuffin.biz")!
+        let downloadURL = SMRelativeLocalURL(withRelativePath: "Download.txt", toBaseURLType: .documentsDirectory)!
         let httpVersion = "1.0"
         let headers = ["some": "header", "fields": "here"]
         let statusCode = 200
@@ -162,11 +162,18 @@ class CoreDataTests: TestCase {
             obj.fileUUID = fileUUID
             obj.fileVersion = version
             obj.httpResponse = origResponse
+            if download {
+                obj.downloadURL = downloadURL
+            }
             obj.save()
             
-            guard let fetchedObject = NetworkCached.fetchObjectWithUUID(fileUUID, andVersion: version) else {
+            guard let fetchedObject = NetworkCached.fetchObjectWithUUID(fileUUID, andVersion: version, download: download) else {
                 XCTFail()
                 return
+            }
+            
+            if download {
+                XCTAssert(fetchedObject.downloadURL == downloadURL)
             }
             
             XCTAssert(fetchedObject.fileUUID == fileUUID)
@@ -185,34 +192,40 @@ class CoreDataTests: TestCase {
         }
     }
     
-    func testCreateNetworkCachedWithVersionOf0() {
-        createNetworkCached(withVersion: 0)
+    func testCreateNetworkCachedUploadWithVersionOf0() {
+        let fileUUID = UUID().uuidString
+        createNetworkCached(withVersion: 0, fileUUID:fileUUID, download: false)
     }
     
-    func testCreateNetworkCachedWithVersionOf43() {
-        createNetworkCached(withVersion: 43)
+    func testCreateNetworkCachedUploadWithVersionOf43() {
+        let fileUUID = UUID().uuidString
+        createNetworkCached(withVersion: 43, fileUUID:fileUUID, download: false)
     }
     
     func testCreateNetworkCachedDownload() {
         let fileUUID = UUID().uuidString
+        createNetworkCached(withVersion: 0, fileUUID:fileUUID, download: true)
+    }
+    
+    func testCreateBothUploadAndDownload() {
         let version:Int32 = 0
-        let localURL = SMRelativeLocalURL(withRelativePath: "foobar", toBaseURLType: .documentsDirectory)
+        
+        let fileUUIDDownload = UUID().uuidString
+        createNetworkCached(withVersion: version, fileUUID:fileUUIDDownload, download: true)
+        
+        let fileUUIDUpload = UUID().uuidString
+        createNetworkCached(withVersion: version, fileUUID:fileUUIDUpload, download: false)
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
-            let obj = NetworkCached.newObject() as! NetworkCached
-            obj.fileUUID = fileUUID
-            obj.fileVersion = version
-            obj.downloadURL = localURL
-            obj.save()
-            
-            guard let fetchedObject = NetworkCached.fetchObjectWithUUID(fileUUID, andVersion: version) else {
+            guard let _ = NetworkCached.fetchObjectWithUUID(fileUUIDDownload, andVersion: version, download: true) else {
                 XCTFail()
                 return
             }
             
-            XCTAssert(fetchedObject.fileUUID == fileUUID)
-            XCTAssert(fetchedObject.fileVersion == version)
-            XCTAssert(fetchedObject.downloadURL == localURL)
+            guard let _ = NetworkCached.fetchObjectWithUUID(fileUUIDUpload, andVersion: version, download: false) else {
+                XCTFail()
+                return
+            }
         }
     }
     

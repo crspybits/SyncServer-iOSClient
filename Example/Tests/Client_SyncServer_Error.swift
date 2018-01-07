@@ -67,9 +67,9 @@ class Client_SyncServer_Error: TestCase {
         if retry {
             ServerAPI.session.failEndpoints = false
             
-            let syncDoneExp = self.expectation(description: "syncDoneExp")
             let shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
-
+            
+            let syncDoneExp = self.expectation(description: "syncDoneExp")
             SyncServer.session.eventsDesired = [.syncDone]
         
             syncServerEventOccurred = { event in

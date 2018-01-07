@@ -295,9 +295,13 @@ class TestCase: XCTestCase {
         
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion) { uploadFileResult, error in
         
-            XCTAssert(error == nil)
-            if case .success(let size, _, _) = uploadFileResult! {
-                XCTAssert(Int64(fileData.count) == size)
+            if error == nil {
+                if case .success(let size, _, _) = uploadFileResult! {
+                    XCTAssert(Int64(fileData.count) == size)
+                }
+                else {
+                    XCTFail()
+                }
             }
             else {
                 XCTFail()
@@ -586,7 +590,7 @@ class TestCase: XCTestCase {
         return (url as URL, attr)
     }
     
-    func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
+    func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {        
         do {
             try SyncServer.resetMetaData()
         } catch {

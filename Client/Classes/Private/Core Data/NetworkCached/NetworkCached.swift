@@ -15,8 +15,12 @@ import SyncServer_Shared
 public class NetworkCached: NSManagedObject, CoreDataModel, AllOperations, LocalURLData {
     typealias COREDATAOBJECT = NetworkCached
     
+    // The full "key" of a NetworkCached object is: a) version, b) uuid, and c) the presence or absence of the downloadURL.
+    // I.e., we can have two NetworkCached objects with the same version and uuid-- one can have a downloadURL and the other must have that property set to nil.
+    
     static let versionKey = "fileVersion"
     static let uuidKey = "fileUUID"
+    
     static let serverURLKeyKey = "serverURLKey"
     static let dateTimeCachedKey = "dateTimeCached"
     
@@ -84,7 +88,7 @@ public class NetworkCached: NSManagedObject, CoreDataModel, AllOperations, Local
         
         if nil != objs && onlyOneObjectExpected {
             if objs!.count > 1 {
-                Log.error("There is more than one object with t");
+                Log.error("fetchObjects: There is more than one object matching the predicate, but only one was expected: \(predicate); objs!.count = \(objs!.count)")
                 objs = nil
             }
         }
@@ -103,13 +107,28 @@ public class NetworkCached: NSManagedObject, CoreDataModel, AllOperations, Local
         }
     }
     
-    public class func fetchObjectWithUUID(_ uuid:String, andVersion version:FileVersionInt) -> NetworkCached? {
+    public class func fetchObjectWithUUID(_ uuid:String, andVersion version:FileVersionInt, download:Bool) -> NetworkCached? {
         
         // Note the use of %i for the Int32 version.
         let predicate = NSPredicate(format: "(%K == %@) AND (%K == %i)", uuidKey, uuid, versionKey, version)
         
-        if let objs = fetchObjects(usingPredicate: predicate), objs.count == 1 {
+        guard var objs = fetchObjects(usingPredicate: predicate, onlyOneObjectExpected: false) else {
+            return nil
+        }
+        
+        if download {
+            objs = objs.filter({$0.downloadURL != nil})
+        }
+        else {
+            objs = objs.filter({$0.downloadURL == nil})
+        }
+        
+        if objs.count == 1 {
             return objs[0]
+        }
+        else if objs.count > 1 {
+            Log.error("fetchObjectWithUUID: There is more than one object matching the predicate, but only one was expected: \(predicate); objs.count = \(objs.count)")
+            return nil
         }
         else {
             return nil

@@ -206,6 +206,7 @@ public class SyncServer {
     // This operation survives app launches, as long as the the call itself completes. 
     // If there is a file with the same uuid, which has been enqueued for upload but not yet `sync`'ed, it will be replaced by the given file. 
     // This operation does not access the server, and thus runs quickly and synchronously.
+    // Warning: If you indicate that the mime type is "text/plain", and you are using Google Drive and the text contains unusual characters, you may run into problems-- e.g., downloading the files may fail.
     public func uploadImmutable(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
         try upload(fileURL: localFile, withAttributes: attr)
     }

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SMCoreLib
 
 class DebugWriter {
     private var file: FileHandle!
@@ -24,7 +25,7 @@ class DebugWriter {
     }
     
     func log(_ s:String) {
-        print(s)
+        Log.msg(s)
         guard let file = file, let data = (s + "\n").data(using: String.Encoding.utf8) else {
             return
         }
