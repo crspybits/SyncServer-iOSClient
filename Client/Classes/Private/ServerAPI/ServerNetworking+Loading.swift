@@ -115,7 +115,7 @@ class ServerNetworkingLoading : NSObject {
     }
     
     // Start off by assuming we're going to lose the handler because the app moves into the background -- cache the upload or download.
-    private func makeCache(file:ServerNetworkingLoadingFile, serverURL: URL) {
+    fileprivate func makeCache(file:ServerNetworkingLoadingFile, serverURL: URL) {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             let cachedResults = NetworkCached.newObject() as! NetworkCached
             
@@ -130,7 +130,7 @@ class ServerNetworkingLoading : NSObject {
         }
     }
     
-    func cacheResult(serverURLKey: URL, response:HTTPURLResponse, localURL: SMRelativeLocalURL? = nil) {
+    fileprivate func cacheResult(serverURLKey: URL, response:HTTPURLResponse, localURL: SMRelativeLocalURL? = nil) {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             guard let cache = NetworkCached.fetchObjectWithServerURLKey(serverURLKey.absoluteString) else {
                 return
@@ -146,7 +146,7 @@ class ServerNetworkingLoading : NSObject {
         }
     }
     
-    private func lookupAndRemoveCache(file:ServerNetworkingLoadingFile, download: Bool) -> (HTTPURLResponse, SMRelativeLocalURL?)? {
+    fileprivate func lookupAndRemoveCache(file:ServerNetworkingLoadingFile, download: Bool) -> (HTTPURLResponse, SMRelativeLocalURL?)? {
         
         var result:(HTTPURLResponse, SMRelativeLocalURL?)?
         
@@ -176,7 +176,7 @@ class ServerNetworkingLoading : NSObject {
         return result
     }
     
-    private func removeCache(serverURLKey: URL) {
+    fileprivate func removeCache(serverURLKey: URL) {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             guard let cache = NetworkCached.fetchObjectWithServerURLKey(serverURLKey.absoluteString) else {
                 Log.error("Could not find NetworkCached object for serverURLKey: \(serverURLKey)")
