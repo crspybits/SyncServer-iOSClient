@@ -8,6 +8,7 @@ Version 10.0.0
 	* Removed couldNotReadUploadFile from SyncServerError-- not used any more (breaking change).
 	* Upload ServerAPI now getting response back in header key (breaking change)
 		This is because of the way background uploads work in iOS-- they split the body contents of an HTTP request and the header contents across two different delegate calls, which makes it difficult to coordinate.
+	* Fixed an issue with resuming an upload after a crash or other app termination.
 	
 Version 9.0.0 (12/30/17)
 	* Changed sharing invitation iterface to deal with:

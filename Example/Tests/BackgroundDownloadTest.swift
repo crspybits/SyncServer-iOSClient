@@ -10,10 +10,11 @@ import XCTest
 @testable import SyncServer
 import SMCoreLib
 
-// This test runs in two parts, and has to be run manually. Or at least the second part has to be started up manually after the first part crashes.
+// Each of these tests run in two parts, and have to be run manually. Or at least the second part has to be started up manually after the first part crashes.
+// These tests must have the flag BACKGROUND_TASKS_TESTS set.
 
 /*
-It strongly appears that these tests *cannot* be run on the simulator. When I run the second test, I get a path that looks like this for the running app:
+I added code that runs when `BACKGROUND_TASKS_TESTS` is set for the simulator to work around the followin gissue. When I run the second test, I get a path that looks like this for the running app:
 
 /Users/chris/Library/Developer/CoreSimulator/Devices/F1714332-2FED-4F13-B6BD-B1209F6FA457/data/Containers/Data/Application/767A45D9-4B23-4058-A185-B58283E43909/Documents/
 
@@ -24,8 +25,6 @@ Notice that the path/UUID after `Application` differs!
 
 I'm not sure if I'm going to run into this if I run on an actual device.
 */
-
-// These tests must have the flag BACKGROUND_TASKS_TESTS set.
 
 class BackgroundDownloadTest: TestCase {
     
@@ -97,7 +96,7 @@ class BackgroundDownloadTest: TestCase {
     }
     
     // After the first test, wait a minute or two for the download to finish in the background. Then, the defining expectation with this test is that the NetworkCached object will be used.
-    func testRestart() {
+    func testRestartDownload() {
         SyncServer.session.eventsDesired = [.syncDone]
         SyncServer.session.delegate = self
         
@@ -126,5 +125,73 @@ class BackgroundDownloadTest: TestCase {
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 10.0, handler: nil)
+    }
+    
+    func testCrashDuringUpload() {
+        let url = SMRelativeLocalURL(withRelativePath: "Cat.jpg", toBaseURLType: .mainBundle)!
+        
+        let uploadFileUUID = UUID().uuidString
+        let attr = SyncAttributes(fileUUID: uploadFileUUID, mimeType: "image/jpeg")
+        
+        SyncServer.session.eventsDesired = [.syncDone, .willStartUploads]
+        SyncServer.session.delegate = self
+
+        let expectation1 = self.expectation(description: "test1")
+        
+        syncServerErrorOccurred = {error in
+            XCTFail()
+        }
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                XCTFail()
+                expectation1.fulfill()
+                
+            case .willStartUploads:
+                // We need to give the upload a moment to actually start. At this exact point in the code, it hasn't actually yet started.
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+                    let x:Int! = nil
+                    print("\(x!)")
+                }
+            
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testRestartUpload() {
+        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.delegate = self
+
+        let done = self.expectation(description: "done")
+        let uploaded = self.expectation(description: "uploaded")
+        
+        syncServerErrorOccurred = {error in
+            XCTFail()
+        }
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            case .fileUploadsCompleted:
+                uploaded.fulfill()
+            
+            default:
+                XCTFail()
+            }
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
     }
 }

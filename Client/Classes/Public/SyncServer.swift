@@ -618,14 +618,15 @@ public class SyncServer {
     private func resetFileTrackers() {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
-            _ = dfts.map { dft in
+            dfts.forEach { dft in
                 if dft.status == .downloading {
                     dft.status = .notStarted
                 }
             }
             
             // Not sure how to report an error here...
-            _ = try? Upload.pendingSync().uploadFileTrackers.map { uft in
+            let ufts = UploadFileTracker.fetchAll()
+            ufts.forEach(){ uft in
                 if uft.status == .uploading {
                     uft.status = .notStarted
                 }
