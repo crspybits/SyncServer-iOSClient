@@ -22,7 +22,7 @@ class Client_SyncServer_DownloadDeletion: TestCase {
     
     // TODO: *1*
     /*
-    func testExample() {
+    func xxxtestExample() {
     }
     */
 }
