@@ -241,21 +241,41 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
     }
 #endif
 
+#if BACKGROUND_TASKS_TESTS
+    // 1/7/18; Yes, this is a hack. If `pathFromCaches` path changes, this will break. However, I'm only using this in testing. I'm doing this in no small part because right now I'm not able to get the XCTests to work on an actual device. Argh.
+    func convertToCurrentCachesDirectory(originalURL: URL) -> URL {
+        let fileName = originalURL.lastPathComponent
+    
+        let pathFromCaches = "/com.apple.nsurlsessiond/Downloads/biz.SpasticMuffin.SyncServer/"
+        let cachesDirs: [String] = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .allDomainsMask, true)
+        let filePath = cachesDirs[0] + pathFromCaches + fileName
+        return URL(fileURLWithPath: filePath)
+    }
+#endif
+
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
     
-        Log.msg("download completed: location: \(location);  status: \(String(describing: (downloadTask.response as? HTTPURLResponse)?.statusCode))")
+        var originalDownloadLocation:URL!
+        originalDownloadLocation = location
         
-        var newFileURL:SMRelativeLocalURL?
-        newFileURL = FilesMisc.createTemporaryRelativeFile()
+#if BACKGROUND_TASKS_TESTS
+       originalDownloadLocation = convertToCurrentCachesDirectory(originalURL: location)
+#endif
+
+        Log.msg("download completed: location: \(originalDownloadLocation);  status: \(String(describing: (downloadTask.response as? HTTPURLResponse)?.statusCode))")
+
+        let originalRequestURL = downloadTask.originalRequest!.url!
         var returnError:SyncServerError?
-        
+
+        let movedDownloadedFile = FilesMisc.createTemporaryRelativeFile()
+
         // Transfer the temporary file to a more permanent location. Have to do it right now. https://developer.apple.com/reference/foundation/urlsessiondownloaddelegate/1411575-urlsession
-        if newFileURL == nil {
+        if movedDownloadedFile == nil {
             returnError = .couldNotCreateNewFileForDownload
         }
         else {
             do {
-                _ = try FileManager.default.replaceItemAt(newFileURL! as URL, withItemAt: location)
+                _ = try FileManager.default.replaceItemAt(movedDownloadedFile! as URL, withItemAt: originalDownloadLocation)
             }
             catch (let error) {
                 Log.error("Could not move file: \(error)")
@@ -274,17 +294,15 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
             handler = completionHandlers[downloadTask]
         }
         
-        let originalRequestURL = downloadTask.originalRequest!.url!
-        
         if case .download(let completion)? = handler {
             removeCache(serverURLKey: originalRequestURL)
-            completion(newFileURL, response, response?.statusCode, returnError)
+            completion(movedDownloadedFile, response, response?.statusCode, returnError)
         }
         else {
             // Must be running in the background-- since we don't have a handler.
             // We are not caching error results. Why bother? If we don't cache a result, the download will just need to be done again. And since there is an error, the download *will* need to be done again.
             if returnError == nil {
-                cacheResult(serverURLKey:originalRequestURL, response: response!, localURL: newFileURL!)
+                cacheResult(serverURLKey:originalRequestURL, response: response!, localURL: movedDownloadedFile!)
                 DebugWriter.session.log("Caching download result")
             }
         }

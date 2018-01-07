@@ -29,6 +29,7 @@
 		835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */; };
 		835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */; };
 		835C61121E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */; };
+		8363160C2001D2C200F8E55B /* BackgroundDownloadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8363160B2001D2C200F8E55B /* BackgroundDownloadTest.swift */; };
 		836D4BD61E10728D005209F2 /* HealthCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BD51E10728D005209F2 /* HealthCheck.swift */; };
 		836D4BE21E11AF8C005209F2 /* SetupSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */; };
 		836D4BF01E1205CF005209F2 /* Consts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BEF1E1205CF005209F2 /* Consts.swift */; };
@@ -110,6 +111,7 @@
 		835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager.swift; sourceTree = "<group>"; };
 		835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_NetworkLoss.swift; sourceTree = "<group>"; };
 		835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_DownloadDeletion.swift; sourceTree = "<group>"; };
+		8363160B2001D2C200F8E55B /* BackgroundDownloadTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadTest.swift; sourceTree = "<group>"; };
 		836D4BD51E10728D005209F2 /* HealthCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HealthCheck.swift; sourceTree = "<group>"; };
 		836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetupSignIn.swift; sourceTree = "<group>"; };
 		836D4BEF1E1205CF005209F2 /* Consts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Consts.swift; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				8363160B2001D2C200F8E55B /* BackgroundDownloadTest.swift */,
 				83E2BE721FFCA57700E4EF5B /* HTTPURLResponseTests.swift */,
 				833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */,
 				83D829D41F70C8460030E9F7 /* Client_SyncServer_StopSync.swift */,
@@ -405,6 +408,7 @@
 						CreatedOnToolsVersion = 6.3.1;
 						DevelopmentTeam = BH68R29JBE;
 						LastSwiftMigration = 0820;
+						ProvisioningStyle = Automatic;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
 					83544F831EF58B32007E0887 = {
@@ -648,6 +652,7 @@
 				837244541E419E7B00155E89 /* DoneUploads.swift in Sources */,
 				83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */,
 				8378D9BE1E91B8F000470D49 /* Client_SyncServer_Error.swift in Sources */,
+				8363160C2001D2C200F8E55B /* BackgroundDownloadTest.swift in Sources */,
 				83544F7F1EF4E0E5007E0887 /* Authentication.swift in Sources */,
 				8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */,
 				835C60AC1E62ABF3003E9AF8 /* CoreDataTests.swift in Sources */,
@@ -830,6 +835,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 758A92084EE224EB7F786904 /* Pods-SyncServer_Tests.debug.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = BH68R29JBE;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -842,6 +851,8 @@
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SyncServer_Example.app/SyncServer_Example";
 			};
@@ -851,6 +862,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C340DE9EA52CE3202439372A /* Pods-SyncServer_Tests.release.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = BH68R29JBE;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Tests/Info.plist;
@@ -858,6 +873,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SyncServer_Example.app/SyncServer_Example";
 			};
