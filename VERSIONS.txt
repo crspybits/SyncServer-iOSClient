@@ -9,6 +9,7 @@ Version 10.0.0
 	* Upload ServerAPI now getting response back in header key (breaking change)
 		This is because of the way background uploads work in iOS-- they split the body contents of an HTTP request and the header contents across two different delegate calls, which makes it difficult to coordinate.
 	* Fixed an issue with resuming an upload after a crash or other app termination.
+	* I tried to update to Swift 4.0 but this seems difficult because not all component Cocoapods are at 4.0. So, I reverted back to 3.2.
 	
 Version 9.0.0 (12/30/17)
 	* Changed sharing invitation iterface to deal with:

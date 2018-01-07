@@ -36,7 +36,7 @@ class ServerNetworkingLoading : NSObject {
     
     private var session:URLSession!
     fileprivate var completionHandlers = [URLSessionTask:CompletionHandler]()
-    private var backgroundCompletionHandler:(()->())?
+    fileprivate var backgroundCompletionHandler:(()->())?
 
     private override init() {
         super.init()
