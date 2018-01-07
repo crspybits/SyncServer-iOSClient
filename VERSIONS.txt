@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 10.0.0
+Version 10.0.0 (1/7/18)
 	* Continue operation in the background-- at least for the current upload or download.
 		https://github.com/crspybits/SharedImages/issues/36
 	* When the app launches, the state of FileTrackers are now reset-- in case there was a download or upload occurring when the app stopped. Previously, an error would first be be reported and then downloads/uploads could be resumed.
@@ -12,7 +12,7 @@ Version 10.0.0
 	* I tried to update to Swift 4.0 but this seems difficult because not all component Cocoapods are at 4.0. So, I reverted back to 3.2.
 	
 Version 9.0.0 (12/30/17)
-	* Changed sharing invitation iterface to deal with:
+	* Changed sharing invitation interface to deal with:
 		https://github.com/crspybits/SharedImages/issues/42
 		
 Version 8.0.0 (12/29/17)
