@@ -1,7 +1,7 @@
 SyncServer-iOSClient
 
 Version 10.0.0
-	* Continue operation in the background
+	* Continue operation in the background-- at least for the current upload or download.
 		https://github.com/crspybits/SharedImages/issues/36
 	* When the app launches, the state of FileTrackers are now reset-- in case there was a download or upload occurring when the app stopped. Previously, an error would first be be reported and then downloads/uploads could be resumed.
 	* Added network-level caching of the results of file uploading and downloading-- in the case where we no longer have callback methods for the upload or download. We're now going to be doing URLSession uploads and downloads, so this can happen when the app is relaunched to deal with an upload or download.

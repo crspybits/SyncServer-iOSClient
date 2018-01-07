@@ -14,7 +14,7 @@ import SMCoreLib
 import SyncServer_Shared
 
 // The reason for this class is given here: https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
-// 12/31/17; Plus, I want downloading and uploading to work in the background-- see https://github.com/crspybits/SharedImages/issues/36
+// 12/31/17; Plus, I want downloading and uploading to work in the background-- see https://github.com/crspybits/SharedImages/issues/36 (See that link for ideas about how to extend current background task operation).
 
 typealias DownloadCompletion = (SMRelativeLocalURL?, HTTPURLResponse?, _ statusCode:Int?, SyncServerError?)->()
 typealias UploadCompletion = (HTTPURLResponse?, _ statusCode:Int?, SyncServerError?)->()

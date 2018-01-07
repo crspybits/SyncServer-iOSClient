@@ -10,6 +10,8 @@ import XCTest
 @testable import SyncServer
 import SMCoreLib
 
+// For ideas about how to extend the current background task operation, see https://github.com/crspybits/SharedImages/issues/36
+
 // Each of these tests run in two parts, and have to be run manually. Or at least the second part has to be started up manually after the first part crashes.
 // These tests must have the flag BACKGROUND_TASKS_TESTS set.
 
@@ -26,7 +28,7 @@ Notice that the path/UUID after `Application` differs!
 I'm not sure if I'm going to run into this if I run on an actual device.
 */
 
-class BackgroundDownloadTest: TestCase {
+class BackgroundTaskTest: TestCase {
     
     override func setUp() {
         super.setUp()
