@@ -215,7 +215,8 @@ class TestCase: XCTestCase {
     }
     
     // Returns the file size uploaded
-    func uploadFile(fileURL:URL, mimeType:String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:String? = nil, theDeviceUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
+    @discardableResult
+    func uploadFile(fileURL:URL, mimeType:String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:String? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -232,7 +233,7 @@ class TestCase: XCTestCase {
             finalDeviceUUID = theDeviceUUID!
         }
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: mimeType, cloudFolderName: cloudFolderName, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: 0)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: mimeType, cloudFolderName: cloudFolderName, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -243,7 +244,7 @@ class TestCase: XCTestCase {
         let expectation = self.expectation(description: "upload")
         var fileSize:Int64?
         
-        ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion) { uploadFileResult, error in
+        ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion, undelete: undelete) { uploadFileResult, error in
             if expectError {
                 XCTAssert(error != nil)
             }
@@ -729,16 +730,22 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
-    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
+    func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         shouldSaveDownload(url, attr)
+    }
+    
+    func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {
+        shouldDoDeletions(downloadDeletions)
+    }
+    
+    func syncServerShouldResolveDownloadConflicts(conflicts: [(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    }
+    
+    func syncServerShouldResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
     }
     
     func syncServerEventOccurred(event: SyncEvent) {
         syncServerEventOccurred(event)
-    }
-    
-    func shouldDoDeletions(downloadDeletions: [SyncAttributes]) {
-        shouldDoDeletions(downloadDeletions)
     }
     
     func syncServerErrorOccurred(error:SyncServerError) {

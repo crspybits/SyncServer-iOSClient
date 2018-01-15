@@ -162,16 +162,22 @@ extension ViewController : GenericSignInDelegate {
 }
 
 extension ViewController : SyncServerDelegate {
-    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
+    func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         assert(false)
+    }
+    
+    func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {
+        assert(false)
+    }
+    
+    func syncServerShouldResolveDownloadConflicts(conflicts: [(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    }
+    
+    func syncServerShouldResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
     }
     
     func syncServerEventOccurred(event: SyncEvent) {
         syncServerEventOccurred?(event)
-    }
-    
-    func shouldDoDeletions(downloadDeletions: [SyncAttributes]) {
-        assert(false)
     }
     
     func syncServerErrorOccurred(error:SyncServerError) {

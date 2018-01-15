@@ -196,10 +196,39 @@ class Upload {
     }
     
     private func uploadFile(nextToUpload:UploadFileTracker, uploadQueue:UploadQueue,masterVersion:MasterVersionInt) -> NextResult {
-    
+        
         var file:ServerAPI.File!
+        var nextResult:NextResult?
+        var directoryEntry:DirectoryEntry?
+        
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            // 1/11/18; Determing the version to upload immediately before the upload. See https://github.com/crspybits/SyncServerII/issues/12
+            
+            directoryEntry = DirectoryEntry.fetchObjectWithUUID(uuid: nextToUpload.fileUUID)
+            guard directoryEntry != nil else {
+                nextResult = .error(.couldNotFindFileUUID(nextToUpload.fileUUID))
+                return
+            }
+            
+            if directoryEntry!.fileVersion == nil {
+                nextToUpload.fileVersion = 0
+            }
+            else {
+                nextToUpload.fileVersion = directoryEntry!.fileVersion! + 1
+            }
+            
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let error) {
+                nextResult = .error(.coreDataError(error))
+                return
+            }
+            
             file = ServerAPI.File(localURL: nextToUpload.localURL! as URL!, fileUUID: nextToUpload.fileUUID, mimeType: nextToUpload.mimeType, cloudFolderName: self.cloudFolderName, deviceUUID:self.deviceUUID, appMetaData: nextToUpload.appMetaData, fileVersion: nextToUpload.fileVersion)
+        }
+        
+        guard nextResult == nil else {
+            return nextResult!
         }
         
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion) { (uploadResult, error) in
@@ -228,6 +257,7 @@ class Upload {
                 var completionResult:NextCompletion?
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     nextToUpload.status = .uploaded
+                    directoryEntry!.fileVersion = nextToUpload.fileVersion
                     
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()

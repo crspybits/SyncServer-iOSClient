@@ -90,7 +90,7 @@ class SyncManager {
 
                 func normalDelegateAndAfterCalls() {
                     Thread.runSync(onMainThread: {
-                        self.delegate!.singleFileDownloadComplete(url: url, attr: attr)
+                        self.delegate!.syncServerSingleFileDownloadComplete(url: url, attr: attr)
                         after()
                     })
                 }
@@ -159,7 +159,7 @@ class SyncManager {
             // This is broken out of the above `performAndWait` to not get a deadlock when I do the `Thread.runSync(onMainThread:`.
             if deletions.count > 0 {
                 Thread.runSync(onMainThread: {
-                    self.delegate?.shouldDoDeletions(downloadDeletions: deletions)
+                    self.delegate?.syncServerShouldDoDeletions(downloadDeletions: deletions)
                 })
                 
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {

@@ -19,6 +19,8 @@
 		831EEC4920021D82001821B9 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831EEC4820021D81001821B9 /* Cat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
 		8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */; };
+		832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */; };
+		832F2009200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */; };
 		833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
 		833B17931FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */; };
@@ -100,6 +102,8 @@
 		831EEC4820021D81001821B9 /* Cat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = Cat.jpg; path = Tests/Cat.jpg; sourceTree = SOURCE_ROOT; };
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
 		8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_DownloadDeletion.swift; sourceTree = "<group>"; };
+		832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_MultiVersionFiles.swift; sourceTree = "<group>"; };
+		832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_MultiVersionFiles.swift; sourceTree = "<group>"; };
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GoogleSignIn.swift; path = ../../Client/SignIn/GoogleSignIn.swift; sourceTree = "<group>"; };
 		8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_Failure.swift; sourceTree = "<group>"; };
@@ -242,6 +246,8 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */,
+				832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */,
 				8363160B2001D2C200F8E55B /* BackgroundTaskTest.swift */,
 				83E2BE721FFCA57700E4EF5B /* HTTPURLResponseTests.swift */,
 				833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */,
@@ -650,8 +656,10 @@
 				837244561E419EE600155E89 /* TestCase.swift in Sources */,
 				8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */,
 				83F37A201E46D40500479175 /* UploadFile.swift in Sources */,
+				832F2009200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift in Sources */,
 				8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */,
 				83D829D61F70C8EC0030E9F7 /* Client_SyncServer_StopSync.swift in Sources */,
+				832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */,
 				83F882151E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift in Sources */,
 				837244541E419E7B00155E89 /* DoneUploads.swift in Sources */,
 				83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */,
