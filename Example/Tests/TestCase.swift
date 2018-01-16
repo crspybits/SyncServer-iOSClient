@@ -554,9 +554,16 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
-    func uploadSingleFileUsingSync() -> (URL, SyncAttributes) {
-        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
-        let fileUUID = UUID().uuidString
+    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil) -> (URL, SyncAttributes) {
+        
+        var url:SMRelativeLocalURL
+        if fileURL == nil {
+            url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        }
+        else {
+            url = fileURL!
+        }
+
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]

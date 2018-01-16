@@ -29,7 +29,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:String) {
-       var masterVersion = getMasterVersion()
+        var masterVersion = getMasterVersion()
         var fileVersion:FileVersionInt = 0
         let fileUUID = UUID().uuidString
     
@@ -178,14 +178,49 @@ class ServerAPI_MultiVersionFiles: TestCase {
         onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
     }
     
+    // Upload to file version N, but don't do the last DoneUploads
+    func uploadToFileVersion(_ version: FileVersionInt, masterVersion: MasterVersionInt) -> (Int64, ServerAPI.File, masterVersion: MasterVersionInt)? {
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        var fileVersion:FileVersionInt = 0
+        let mimeType = "text/plain"
+        var masterVersion = masterVersion
+        
+        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+            XCTFail()
+            return nil
+        }
+    
+        var resultFileSize:Int64 = fileSize
+        var resultFile:ServerAPI.File = file
+        
+        while fileVersion < version {
+            doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+            
+            masterVersion += 1
+            fileVersion += 1
+            
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+                XCTFail()
+                return nil
+            }
+            
+            resultFileSize = fileSize
+            resultFile = file
+        }
+        
+        return (resultFileSize, resultFile, masterVersion)
+    }
+    
     /* We now have several different types of items that can be pending for DoneUploads--
-        a) file upload
+        a) file upload (version 0)
         b) upload deletion
         c) upload undeletion
+        d) file upload (version > 0)
      
         Let's try having one of each of these and then do a DoneUploads.
     */
-    func testUploadUndeletionDeletionUploadAtSameTime() {
+    func testDifferentTypesOfUploadAtSameTime() {
         guard let file1:ServerAPI.File = uploadDeleteFileVersion1() else {
             XCTFail()
             return
@@ -221,8 +256,16 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: file3.fileUUID, fileVersion: 0)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
 
+        // 4) The upload of file version N
+        guard let (fileSize4, file4, updatedMasterVersion) = uploadToFileVersion(4, masterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        masterVersion = updatedMasterVersion
+        
         // Finally, do the DoneUploads
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 3)
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 4)
         
         // Test to make sure we got what we wanted.
         // 1) Download the undeleted file.
@@ -238,5 +281,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
             XCTFail()
             return
         }
+
+        // 4) Download the uploaded file
+        onlyDownloadFile(comparisonFileURL: file4.localURL, file: file4, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize4)
     }
 }
