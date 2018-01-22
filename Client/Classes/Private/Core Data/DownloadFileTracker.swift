@@ -30,27 +30,6 @@ class DownloadFileTracker: FileTracker, AllOperations {
         }
     }
     
-    enum ConflictType : String {
-        case uploadDeletion
-        case fileUpload
-        case none
-    }
-    
-    // The setter doesn't save context.
-    var conflictType: ConflictType {
-        get {
-            if conflictTypeInternal == nil {
-                return .none
-            }
-            else {
-                return ConflictType(rawValue: conflictTypeInternal!)!
-            }
-        }
-        set {
-            conflictTypeInternal = conflictType.rawValue
-        }
-    }
-    
     class func entityName() -> String {
         return "DownloadFileTracker"
     }
@@ -58,6 +37,7 @@ class DownloadFileTracker: FileTracker, AllOperations {
     class func newObject() -> NSManagedObject {
         let dft = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! DownloadFileTracker
         dft.status = .notStarted
+        dft.addAge()
         return dft
     }
 }

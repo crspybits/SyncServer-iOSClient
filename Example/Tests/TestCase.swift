@@ -82,6 +82,8 @@ class TestCase: XCTestCase {
     var syncServerSingleFileUploadCompleted:((_ next: @escaping ()->())->())?
     var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
+    var syncServerMustResolveDeletionConflicts:((_ conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)])->())?
+    
     override func setUp() {
         super.setUp()
         ServerAPI.session.delegate = self
@@ -745,10 +747,11 @@ extension TestCase : SyncServerDelegate {
         shouldDoDeletions(downloadDeletions)
     }
     
-    func syncServerShouldResolveDownloadConflicts(conflicts: [(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    func syncServerMustResolveDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict) {
     }
     
-    func syncServerShouldResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    func syncServerMustResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+        syncServerMustResolveDeletionConflicts?(conflicts)
     }
     
     func syncServerEventOccurred(event: SyncEvent) {

@@ -22,8 +22,9 @@ public class SyncServerConflict {
     // Because downloads are higher-priority (than uploads) with the SyncServer, all conflicts effectively originate from a server download operation: A download-deletion or a file-download. The type of server operation will be apparent from the context.
     // And the conflict is between the server operation and a local, client operation:
     public enum ClientOperation : String {
-        case UploadDeletion
-        case FileUpload
+        case uploadDeletion
+        case fileUpload
+        case bothFileUploadAndDeletion
     }
     
     public private(set) var conflictType:ClientOperation!
@@ -33,7 +34,10 @@ public class SyncServerConflict {
         // Example continued: The client chooses to delete its conflicting file-upload and accept the download-deletion by using this resolution.
         case deleteConflictingClientOperations
         
-        // Example continued: The client chooses to keep the conflicting file-upload, and override the download-deletion, by using this resolution.
+        // In this example: The client chooses to make a new upload, for example, based on its own data and the download-- but use neither its prior upload or the download.
+        case useNeitherClientNorDownload
+        
+        // Example continued: The client chooses to keep its conflicting file-upload, and override the download-deletion, by using this resolution.
         case keepConflictingClientOperations
     }
     

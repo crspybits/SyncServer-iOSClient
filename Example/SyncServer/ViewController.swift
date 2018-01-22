@@ -170,10 +170,10 @@ extension ViewController : SyncServerDelegate {
         assert(false)
     }
     
-    func syncServerShouldResolveDownloadConflicts(conflicts: [(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    func syncServerMustResolveDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict) {
     }
     
-    func syncServerShouldResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
+    func syncServerMustResolveDeletionConflicts(conflicts:[(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]) {
     }
     
     func syncServerEventOccurred(event: SyncEvent) {

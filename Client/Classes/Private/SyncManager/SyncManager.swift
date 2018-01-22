@@ -90,8 +90,19 @@ class SyncManager {
 
                 func normalDelegateAndAfterCalls() {
                     Thread.runSync(onMainThread: {
-                        self.delegate!.syncServerSingleFileDownloadComplete(url: url, attr: attr)
-                        after()
+                        ConflictManager.handleAnyFileDownloadConflict(attr: attr, url: url, delegate: self.delegate!) { ignoreDownload in
+                        
+                            if ignoreDownload == nil {
+                                // Not 100% sure we're running on main thread-- its possible that the didn't call the completion on the main thread.
+                                Thread.runSync(onMainThread: {
+                                    self.delegate!.syncServerSingleFileDownloadComplete(url: url, attr: attr)
+                                })
+                            }
+                            
+                            DispatchQueue.global(qos: .default).sync {
+                                after()
+                            }
+                        }
                     })
                 }
                 
@@ -137,44 +148,40 @@ class SyncManager {
             return
             
         case .allDownloadsCompleted:
-            // Inform client via delegate of any download deletions.
-
-            var deletions = [SyncAttributes]()
-            var downloadDeletionDfts:[DownloadFileTracker]!
+            allDownloadsCompleted()
+        }
+    }
     
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                let dfts = DownloadFileTracker.fetchAll()
-                downloadDeletionDfts = dfts.filter {$0.deletedOnServer == true}
+    private func allDownloadsCompleted() {
+        // Inform client via delegate of any download deletions.
 
-                if downloadDeletionDfts.count > 0 {
-                    _ = downloadDeletionDfts.map { dft in
-                        let attr = SyncAttributes(fileUUID: dft.fileUUID, mimeType: dft.mimeType!, creationDate: dft.creationDate! as Date, updateDate: dft.updateDate! as Date)
-                        deletions += [attr]
-                    }
-                    
-                    Log.msg("Deletions: count: \(deletions.count)")
+        var deletions = [SyncAttributes]()
+        var downloadDeletionDfts:[DownloadFileTracker]!
+
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let dfts = DownloadFileTracker.fetchAll()
+            downloadDeletionDfts = dfts.filter {$0.deletedOnServer == true}
+
+            if downloadDeletionDfts.count > 0 {
+                _ = downloadDeletionDfts.map { dft in
+                    let attr = SyncAttributes(fileUUID: dft.fileUUID, mimeType: dft.mimeType!, creationDate: dft.creationDate! as Date, updateDate: dft.updateDate! as Date)
+                    deletions += [attr]
                 }
+                
+                Log.msg("Deletions: count: \(deletions.count)")
             }
+        }
+        
+        func wrapup(deletions: [SyncAttributes]) {
+            var errorResult:Error?
             
             // This is broken out of the above `performAndWait` to not get a deadlock when I do the `Thread.runSync(onMainThread:`.
             if deletions.count > 0 {
-                Thread.runSync(onMainThread: {
-                    self.delegate?.syncServerShouldDoDeletions(downloadDeletions: deletions)
-                })
-                
-                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    Directory.session.updateAfterDownloadDeletingFiles(deletions: downloadDeletionDfts)
-                }
-                
-                // TODO: *0* Next, if we have any pending deletions in upload queue for any of these just obtained download deletions, we should remove those pending deletions.
-            }
-            
-            var errorResult:Error?
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                if downloadDeletionDfts.count > 0 {
+                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {                    
+                    Directory.session.updateAfterDownloadDeletingFiles(deletions: deletions)
+                    
                     // This will be removing DownloadFileTracker's for download deletions only. The DownloadFileTrackers for file downloads will have been removed already.
                     DownloadFileTracker.removeAll()
-                    
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
                     } catch (let error) {
@@ -183,13 +190,40 @@ class SyncManager {
                     }
                 }
             }
-            
+        
             guard errorResult == nil else {
                 callback?(.coreDataError(errorResult!))
                 return
             }
-            
+        
             self.checkForPendingUploads(first: true)
+        }
+    
+        if deletions.count > 0 {
+            if let delegate = self.delegate {
+                ConflictManager.handleAnyDownloadDeletionConflicts(
+                    downloadDeletionAttrs: deletions, delegate: delegate) { ignoreDownloadDeletions in
+                    
+                    let doTheseDeletions = deletions.filter({ deletion in
+                        let ignore = ignoreDownloadDeletions.filter({$0.fileUUID == deletion.fileUUID})
+                        return ignore.count == 0
+                    })
+                    
+                    if doTheseDeletions.count > 0 {
+                        Thread.runSync(onMainThread: {
+                            delegate.syncServerShouldDoDeletions(downloadDeletions: doTheseDeletions)
+                        })
+                    }
+                    
+                    // I'd like to wrap up by switching to the original thread we were on prior to switching to the main thread. Not quite sure how to do that. Do this instead.
+                    DispatchQueue.global(qos: .default).sync {
+                        wrapup(deletions: doTheseDeletions)
+                    }
+                }
+            }
+        }
+        else {
+            wrapup(deletions: [])
         }
     }
 
