@@ -171,41 +171,14 @@ class SyncManager {
                 Log.msg("Deletions: count: \(deletions.count)")
             }
         }
-        
-        func wrapup(deletions: [SyncAttributes]) {
-            var errorResult:Error?
-            
-            // This is broken out of the above `performAndWait` to not get a deadlock when I do the `Thread.runSync(onMainThread:`.
-            if deletions.count > 0 {
-                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {                    
-                    Directory.session.updateAfterDownloadDeletingFiles(deletions: deletions)
-                    
-                    // This will be removing DownloadFileTracker's for download deletions only. The DownloadFileTrackers for file downloads will have been removed already.
-                    DownloadFileTracker.removeAll()
-                    do {
-                        try CoreData.sessionNamed(Constants.coreDataName).context.save()
-                    } catch (let error) {
-                        errorResult = error
-                        return
-                    }
-                }
-            }
-        
-            guard errorResult == nil else {
-                callback?(.coreDataError(errorResult!))
-                return
-            }
-        
-            self.checkForPendingUploads(first: true)
-        }
     
         if deletions.count > 0 {
             if let delegate = self.delegate {
                 ConflictManager.handleAnyDownloadDeletionConflicts(
-                    downloadDeletionAttrs: deletions, delegate: delegate) { ignoreDownloadDeletions in
+                    downloadDeletionAttrs: deletions, delegate: delegate) { ignoreDownloadDeletions, noDeletionDelegateCallbacks in
                     
                     let doTheseDeletions = deletions.filter({ deletion in
-                        let ignore = ignoreDownloadDeletions.filter({$0.fileUUID == deletion.fileUUID})
+                        let ignore = (noDeletionDelegateCallbacks + ignoreDownloadDeletions).filter({$0.fileUUID == deletion.fileUUID})
                         return ignore.count == 0
                     })
                     
@@ -216,8 +189,8 @@ class SyncManager {
                     }
                     
                     // I'd like to wrap up by switching to the original thread we were on prior to switching to the main thread. Not quite sure how to do that. Do this instead.
-                    DispatchQueue.global(qos: .default).sync {
-                        wrapup(deletions: doTheseDeletions)
+                    DispatchQueue.global(qos: .default).sync {[unowned self] in
+                        self.wrapup(deletions: noDeletionDelegateCallbacks + ignoreDownloadDeletions)
                     }
                 }
             }
@@ -225,6 +198,33 @@ class SyncManager {
         else {
             wrapup(deletions: [])
         }
+    }
+    
+    private func wrapup(deletions: [SyncAttributes]) {
+        var errorResult:Error?
+    
+        // This is broken out of the above `performAndWait` to not get a deadlock when I do the `Thread.runSync(onMainThread:`.
+        if deletions.count > 0 {
+            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                Directory.session.updateAfterDownloadDeletingFiles(deletions: deletions)
+                
+                // This will be removing DownloadFileTracker's for download deletions only. The DownloadFileTrackers for file downloads will have been removed already.
+                DownloadFileTracker.removeAll()
+                do {
+                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                } catch (let error) {
+                    errorResult = error
+                    return
+                }
+            }
+        }
+    
+        guard errorResult == nil else {
+            callback?(.coreDataError(errorResult!))
+            return
+        }
+    
+        self.checkForPendingUploads(first: true)
     }
 
     // No DownloadFileTracker's queued up. Check the FileIndex to see if there are pending downloads on the server.
@@ -343,13 +343,14 @@ class SyncManager {
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     if fileUploads.count > 0 {
                         // Each of the DirectoryEntry's for the uploads needs to now be given its version, as uploaded.
-                        _ = fileUploads.map {uft in
+                        fileUploads.forEach { uft in
                             guard let uploadedEntry = DirectoryEntry.fetchObjectWithUUID(uuid: uft.fileUUID) else {
                                 assert(false)
                                 return
                             }
 
                             uploadedEntry.fileVersion = uft.fileVersion
+                            CoreData.sessionNamed(Constants.coreDataName).remove(uft)
                         }
                     }
                     
@@ -364,13 +365,14 @@ class SyncManager {
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     if uploadDeletions.count > 0 {
                         // Each of the DirectoryEntry's for the uploads needs to now be marked as deleted.
-                        _ = uploadDeletions.map { uft in
+                        uploadDeletions.forEach { uft in
                             guard let uploadedEntry = DirectoryEntry.fetchObjectWithUUID(uuid: uft.fileUUID) else {
                                 assert(false)
                                 return
                             }
 
                             uploadedEntry.deletedOnServer = true
+                            CoreData.sessionNamed(Constants.coreDataName).remove(uft)
                         }
                     }
                     

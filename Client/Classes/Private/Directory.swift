@@ -101,7 +101,7 @@ class Directory {
     
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
     func updateAfterDownloadDeletingFiles(deletions:[SyncAttributes]) {
-        _ = deletions.map { attr in
+        deletions.forEach { attr in
             // Have already dealt with case where we didn't know about this file locally and were download deleting it.
             guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 assert(false)

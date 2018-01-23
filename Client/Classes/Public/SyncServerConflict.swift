@@ -7,12 +7,54 @@
 
 import Foundation
 
+public enum DownloadDeletionResolution {
+    // Download deletions can only conflict with file uploads. A server download deletion and a client file upload deletion don't conflict (it's just two people trying to delete at about the same time, which is fine).
+    
+    public enum FileUploadResolution {
+        case keepFileUpload
+        case removeFileUpload
+    }
+    
+    // Deletes the existing file upload.
+    case acceptDownloadDeletion
+    
+    case rejectDownloadDeletion(FileUploadResolution)
+}
+
+public enum FileDownloadResolution {
+    // File downloads can conflict with file upload(s) and/or an upload deletion. See the conflictType of the specific `SyncServerConflict`.
+    
+    public struct UploadResolution : OptionSet {
+        public let rawValue: Int
+        public init(rawValue:Int){ self.rawValue = rawValue}
+        
+        // Not having this option means to remove your conflicting file uploads
+        public static let keepFileUploads = UploadResolution(rawValue: 1 << 0)
+        
+        public var removeFileUploads:Bool {
+            return !self.contains(UploadResolution.keepFileUploads)
+        }
+        
+        // Not having this option means to remove your conflicting upload deletions.
+        public static let keepUploadDeletions = UploadResolution(rawValue: 1 << 1)
+        
+        public var removeUploadDeletions:Bool {
+            return !self.contains(UploadResolution.keepUploadDeletions)
+        }
+    }
+    
+    // Deletes any conflicting file upload and/or upload deletion.
+    case acceptFileDownload
+    
+    case rejectFileDownload(UploadResolution)
+}
+
 // When you receive a conflict in a callback method, you must resolve the conflict by calling resolveConflict.
-public class SyncServerConflict {
-    typealias callbackType = ((ResolutionType)->())!
+public class SyncServerConflict<R> {
+    typealias callbackType = ((R)->())!
     
     var conflictResolved:Bool = false
-    var resolutionCallback:((ResolutionType)->())!
+    var resolutionCallback:((R)->())!
     
     init(conflictType: ClientOperation, resolutionCallback:callbackType) {
         self.conflictType = conflictType
@@ -29,21 +71,10 @@ public class SyncServerConflict {
     
     public private(set) var conflictType:ClientOperation!
     
-    public enum ResolutionType {
-        // E.g., suppose a download-deletion and a file-upload (ClientOperation.FileUpload) are conflicting.
-        // Example continued: The client chooses to delete its conflicting file-upload and accept the download-deletion by using this resolution.
-        case deleteConflictingClientOperations
-        
-        // In this example: The client chooses to make a new upload, for example, based on its own data and the download-- but use neither its prior upload or the download.
-        case useNeitherClientNorDownload
-        
-        // Example continued: The client chooses to keep its conflicting file-upload, and override the download-deletion, by using this resolution.
-        case keepConflictingClientOperations
-    }
-    
-    public func resolveConflict(resolution:ResolutionType) {
+    public func resolveConflict(resolution:R) {
         assert(!conflictResolved, "Already resolved!")
         conflictResolved = true
         resolutionCallback(resolution)
     }
 }
+

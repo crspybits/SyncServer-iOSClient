@@ -200,6 +200,7 @@ class Upload {
         var file:ServerAPI.File!
         var nextResult:NextResult?
         var directoryEntry:DirectoryEntry?
+        var undelete = false
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             // 1/11/18; Determing the version to upload immediately before the upload. See https://github.com/crspybits/SyncServerII/issues/12
@@ -225,13 +226,15 @@ class Upload {
             }
             
             file = ServerAPI.File(localURL: nextToUpload.localURL! as URL!, fileUUID: nextToUpload.fileUUID, mimeType: nextToUpload.mimeType, cloudFolderName: self.cloudFolderName, deviceUUID:self.deviceUUID, appMetaData: nextToUpload.appMetaData, fileVersion: nextToUpload.fileVersion)
+            
+            undelete = nextToUpload.uploadUndeletion
         }
         
         guard nextResult == nil else {
             return nextResult!
         }
-        
-        ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion) { (uploadResult, error) in
+
+        ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion, undelete: undelete) { (uploadResult, error) in
         
             guard error == nil else {
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {

@@ -47,6 +47,7 @@ public class UploadFileTracker: FileTracker, AllOperations, LocalURLData {
         let uft = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! UploadFileTracker
         uft.status = .notStarted
         uft.addAge()
+        uft.uploadUndeletion = false
         return uft
     }
 }

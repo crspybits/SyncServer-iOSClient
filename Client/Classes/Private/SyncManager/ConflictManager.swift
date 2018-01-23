@@ -12,9 +12,9 @@ import SMCoreLib
 class ConflictManager {
     // completion's are called when the client has resolved all conflicts if there are any. If there are no conflicts, the call to the completion is synchronous.
     
-    static func handleAnyFileDownloadConflict(attr:SyncAttributes, url: SMRelativeLocalURL, delegate: SyncServerDelegate, completion:@escaping (SyncAttributes?)->()) {
+    static func handleAnyFileDownloadConflict(attr:SyncAttributes, url: SMRelativeLocalURL, delegate: SyncServerDelegate, completion:@escaping (_ keepThisOne: SyncAttributes?)->()) {
     
-        var resolver: SyncServerConflict?
+        var resolver: SyncServerConflict<FileDownloadResolution>?
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let pendingUploads = UploadFileTracker.fetchAll()
@@ -29,66 +29,38 @@ class ConflictManager {
             let conflictingFileUploads = pendingUploads.filter(
                 {!$0.deleteOnServer && $0.fileUUID == attr.fileUUID})
             
+            var conflictType:SyncServerConflict<FileDownloadResolution>.ClientOperation?
+            
             if conflictingUploadDeletions.count > 0 && conflictingFileUploads.count > 0 {
-                // This arises when a file was queued for upload, synced, and then queued for deletion and synced.
-                resolver = SyncServerConflict(conflictType: .bothFileUploadAndDeletion, resolutionCallback: { resolution in
-                
-                    switch resolution {
-                    case .deleteConflictingClientOperations, .useNeitherClientNorDownload:
-                        // Should really just be one of these.
-                        removeManagedObjects(conflictingUploadDeletions)
-                        
-                        removeManagedObjects(conflictingFileUploads)
-                        
-                        if resolution == .deleteConflictingClientOperations {
-                            completion(nil)
-                        }
-                        else {
-                            fallthrough
-                        }
-                        
-                    case .keepConflictingClientOperations:
-                        // We're going to disregard the file download.
-                        completion(attr)
-                    }
-                })
+                // This can arise when a file was queued for upload, synced, and then queued for deletion and synced
+                conflictType = .bothFileUploadAndDeletion
             }
             else if conflictingFileUploads.count > 0 {
-                resolver = SyncServerConflict(conflictType: .fileUpload, resolutionCallback: { resolution in
-                
-                    switch resolution {
-                    case .deleteConflictingClientOperations, .useNeitherClientNorDownload:
-                        removeManagedObjects(conflictingFileUploads)
-                        
-                        if resolution == .deleteConflictingClientOperations {
-                            completion(nil)
-                        }
-                        else {
-                            fallthrough
-                        }
-                        
-                    case .keepConflictingClientOperations:
-                        // We're going to disregard the file download.
-                        completion(attr)
-                    }
-                })
+                conflictType = .fileUpload
             }
             else if conflictingUploadDeletions.count > 0 {
-                resolver = SyncServerConflict(conflictType: .uploadDeletion, resolutionCallback: { resolution in
+                conflictType = .uploadDeletion
+            }
+            
+            if let conflictType = conflictType {
+                resolver = SyncServerConflict<FileDownloadResolution>(
+                    conflictType: conflictType, resolutionCallback: { resolution in
                 
                     switch resolution {
-                    case .deleteConflictingClientOperations, .useNeitherClientNorDownload:
+                    case .acceptFileDownload:
+                        removeManagedObjects(conflictingFileUploads)
                         removeManagedObjects(conflictingUploadDeletions)
+                        completion(nil)
                         
-                        if resolution == .deleteConflictingClientOperations {
-                            completion(nil)
-                        }
-                        else {
-                            fallthrough
+                    case .rejectFileDownload(let uploadResolution):
+                        if uploadResolution.removeFileUploads {
+                            removeManagedObjects(conflictingFileUploads)
                         }
                         
-                    case .keepConflictingClientOperations:
-                        // We're going to disregard the file download.
+                        if uploadResolution.removeUploadDeletions {
+                            removeManagedObjects(conflictingUploadDeletions)
+                        }
+                        
                         completion(attr)
                     }
                 })
@@ -97,7 +69,7 @@ class ConflictManager {
         
         if let resolver = resolver {
             // See note [1] below re: why I'm not calling this on the main thread.
-            delegate.syncServerMustResolveDownloadConflict(downloadedFile: url, downloadedFileAttributes: attr, uploadConflict: resolver)
+            delegate.syncServerMustResolveFileDownloadConflict(downloadedFile: url, downloadedFileAttributes: attr, uploadConflict: resolver)
         }
         else {
             completion(nil)
@@ -105,14 +77,18 @@ class ConflictManager {
     }
     
     // In the completion, gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
-    static func handleAnyDownloadDeletionConflicts(downloadDeletionAttrs:[SyncAttributes], delegate: SyncServerDelegate, completion:@escaping (_ keepTheseOnes: [SyncAttributes])->()) {
+    static func handleAnyDownloadDeletionConflicts(downloadDeletionAttrs:[SyncAttributes], delegate: SyncServerDelegate,
+        completion:@escaping (_ keepTheseOnes: [SyncAttributes], _ noDeletionDelegateCallback: [SyncAttributes])->()) {
     
         var remainingDownloadDeletionAttrs = downloadDeletionAttrs
         
         // If we have a pending upload deletion, no worries. Then we have a "conflict" between a download deletion, and an upload deletion. Someone just beat us to it. No need to keep on with our upload deletion.
         // Let's go ahead and remove the pending deletions, if any.
         
-        var conflicts = [(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict)]()
+        var conflicts = [(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict<DownloadDeletionResolution>)]()
+        
+        // We'll want no deletion delegate callback for these.
+        var downloadDeletionsWithUploadDeletions = [SyncAttributes]()
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let pendingUploadDeletions = UploadFileTracker.fetchAll().filter({$0.deleteOnServer})
@@ -123,6 +99,7 @@ class ConflictManager {
                 CoreData.sessionNamed(Constants.coreDataName).remove(uft)
                 let index = remainingDownloadDeletionAttrs.index(where: {$0.fileUUID == fileUUID})!
                 remainingDownloadDeletionAttrs.remove(at: index)
+                downloadDeletionsWithUploadDeletions += [attr]
             }
             
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
@@ -134,29 +111,35 @@ class ConflictManager {
             
             if conflictingFileUploads.count > 0 {
                 var numberConflicts = conflictingFileUploads.count
+                
                 var deletionsToIgnore = [SyncAttributes]()
                 
                 conflictingFileUploads.forEach { (conflictUft, attr) in
-                    let resolver = SyncServerConflict(conflictType: .fileUpload, resolutionCallback: { resolution in
+                    let resolver = SyncServerConflict<DownloadDeletionResolution>(
+                        conflictType: .fileUpload, resolutionCallback: { resolution in
+                    
                         switch resolution {
-                        case .deleteConflictingClientOperations, .useNeitherClientNorDownload:
+                        case .acceptDownloadDeletion:
                             removeConflictingUpload(pendingFileUploads: pendingFileUploads, fileUUID: attr.fileUUID)
-                            if resolution == .useNeitherClientNorDownload {
-                                fallthrough
-                            }
                             
-                        case .keepConflictingClientOperations:
+                        case .rejectDownloadDeletion(let uploadResolution):
                             // We're going to disregard the download deletion.
                             deletionsToIgnore += [attr]
-
-                            // But, we need to mark the uft as an upload undeletion.
-                            markUftAsUploadUndeletion(pendingFileUploads: pendingFileUploads, fileUUID: attr.fileUUID)
+                            
+                            switch uploadResolution {
+                            case .keepFileUpload:
+                                // Need to mark the uft as an upload undeletion.
+                                markUftAsUploadUndeletion(pendingFileUploads: pendingFileUploads, fileUUID: attr.fileUUID)
+                                
+                            case .removeFileUpload:
+                                removeConflictingUpload(pendingFileUploads: pendingFileUploads, fileUUID: attr.fileUUID)
+                            }
                         }
                         
                         numberConflicts -= 1
                         
                         if numberConflicts == 0 {
-                            completion(deletionsToIgnore)
+                            completion(deletionsToIgnore, downloadDeletionsWithUploadDeletions)
                         }
                     })
                     
@@ -167,10 +150,10 @@ class ConflictManager {
         
         if conflicts.count > 0 {
             // See note [1] below re: why I'm not calling this on the main thread.
-            delegate.syncServerMustResolveDeletionConflicts(conflicts: conflicts)
+            delegate.syncServerMustResolveDownloadDeletionConflicts(conflicts: conflicts)
         }
         else {
-            completion([])
+            completion([], downloadDeletionsWithUploadDeletions)
         }
     }
     
