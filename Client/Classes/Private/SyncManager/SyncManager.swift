@@ -93,10 +93,13 @@ class SyncManager {
                         ConflictManager.handleAnyFileDownloadConflict(attr: attr, url: url, delegate: self.delegate!) { ignoreDownload in
                         
                             if ignoreDownload == nil {
-                                // Not 100% sure we're running on main thread-- its possible that the didn't call the completion on the main thread.
+                                // Not 100% sure we're running on main thread-- its possible that the client didn't call the completion on the main thread.
                                 Thread.runSync(onMainThread: {
                                     self.delegate!.syncServerSingleFileDownloadComplete(url: url, attr: attr)
                                 })
+                            }
+                            else {
+                                Log.msg("ignoreDownload not nil")
                             }
                             
                             DispatchQueue.global(qos: .default).sync {

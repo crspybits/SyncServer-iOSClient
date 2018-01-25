@@ -83,6 +83,7 @@ class TestCase: XCTestCase {
     var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?
+    var syncServerMustResolveFileDownloadConflict:((_ downloadedFile: SMRelativeLocalURL, _ downloadedFileAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<FileDownloadResolution>)->())?
     
     override func setUp() {
         super.setUp()
@@ -748,6 +749,7 @@ extension TestCase : SyncServerDelegate {
     }
     
     func syncServerMustResolveFileDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) {
+        syncServerMustResolveFileDownloadConflict?(downloadedFile, downloadedFileAttributes, uploadConflict)
     }
     
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict]) {

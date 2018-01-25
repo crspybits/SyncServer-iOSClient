@@ -14,6 +14,7 @@
 		607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607FACD91AFB9204008FA782 /* Main.storyboard */; };
 		607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDC1AFB9204008FA782 /* Images.xcassets */; };
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
+		8301895320196F21004951D4 /* UploadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8301895220196F21004951D4 /* UploadMe.txt */; };
 		8310F81A200DAC5D00EB38E8 /* UploadMe4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8310F819200DAC5C00EB38E8 /* UploadMe4.txt */; };
 		831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CB1EDA850F0084070F /* LargerCat.jpg */; };
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
@@ -98,6 +99,7 @@
 		607FACE51AFB9204008FA782 /* SyncServer_Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncServer_Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACEA1AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		758A92084EE224EB7F786904 /* Pods-SyncServer_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SyncServer_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SyncServer_Tests/Pods-SyncServer_Tests.debug.xcconfig"; sourceTree = "<group>"; };
+		8301895220196F21004951D4 /* UploadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = UploadMe.txt; path = Tests/UploadMe.txt; sourceTree = SOURCE_ROOT; };
 		8310F819200DAC5C00EB38E8 /* UploadMe4.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe4.txt; sourceTree = "<group>"; };
 		831DE3CB1EDA850F0084070F /* LargerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = LargerCat.jpg; sourceTree = "<group>"; };
 		831DE3CC1EDA850F0084070F /* SmallerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SmallerCat.jpg; sourceTree = "<group>"; };
@@ -236,6 +238,7 @@
 			isa = PBXGroup;
 			children = (
 				831EEC4820021D81001821B9 /* Cat.jpg */,
+				8301895220196F21004951D4 /* UploadMe.txt */,
 				83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */,
 				83D95CA51E6C8EBC00DF3BF3 /* UploadMe3.txt */,
 				8310F819200DAC5C00EB38E8 /* UploadMe4.txt */,
@@ -459,6 +462,7 @@
 				83D95CA61E6C8EBC00DF3BF3 /* UploadMe3.txt in Resources */,
 				83D95CA41E6B546500DF3BF3 /* UploadMe2.txt in Resources */,
 				607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */,
+				8301895320196F21004951D4 /* UploadMe.txt in Resources */,
 				83CD30841E15880000A0C7AD /* Server.plist in Resources */,
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
 				607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */,

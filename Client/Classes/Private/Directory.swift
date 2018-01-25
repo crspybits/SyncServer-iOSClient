@@ -88,7 +88,10 @@ class Directory {
     func updateAfterDownloadingFiles(downloads:[DownloadFileTracker]) {
         _ = downloads.map { dft in
             if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: dft.fileUUID) {
+                // This will really only ever happen in testing: A situation where the DirectoryEntry has been created for the file uuid, but we don't have a fileVersion assigned. e.g., The file gets uploaded (not using the sync system), then uploaded by the sync system, and then we get the download that was created not using the sync system.
+#if !DEBUG
                 assert(entry.fileVersion! < dft.fileVersion)
+#endif
                 entry.fileVersion = dft.fileVersion
             }
             else {

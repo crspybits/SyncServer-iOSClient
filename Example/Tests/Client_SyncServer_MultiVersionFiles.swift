@@ -564,13 +564,205 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
     }
     
-    // 7a) A file is being downloaded, and there is a file upload for the same file. Choose to accept the download.
+    /* Cases for file-download conflict:
+        acceptFileDownload
+        rejectFileDownload
+            file uploads    upload deletion
+            keep            keep
+            keep            reject
+            reject          keep
+            reject          reject
+     
+        Test name coding:
+     
+        testFileDownloadConflict_[Accept|Reject]_[FU<N>_[Keep|Remove]_][UD<N>_[Keep|Remove]]
+     
+        FU= File Upload
+        UD= Upload Deletion
+        The <N> refers to the number of these pending.
+    */
+    func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:FileDownloadResolution) {
     
-    // 7b) A file is being downloaded, and there is a file upload for the same file. Choose to refuse the download and keep our upload.
+        var numberSyncDoneExpected = numberFileUploads + (uploadDeletion ? 1 : 0)
+        var actualNumberSyncDone = 0
+        var numberUploadsExpected = numberFileUploads
+        var actualNumberUploads = 0
+        
+        var conflictTypeExpected:
+            SyncServerConflict<FileDownloadResolution>.ClientOperation
+        if numberFileUploads > 0 && uploadDeletion {
+            conflictTypeExpected = .bothFileUploadAndDeletion
+        }
+        else if numberFileUploads > 0 {
+            conflictTypeExpected = .fileUpload
+        }
+        else {
+            conflictTypeExpected = .uploadDeletion
+        }
+    
+        let mimeType = "text/plain"
+        let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
+        
+        // 1) Upload a file, not using the sync system.
+        let masterVersion = getMasterVersion()
+        
+        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
 
-    // 8a) A file is being downloaded, and there is an upload deletion pending for the same file. Choose to accept the download.
+        // 2) Setup our callbacks & expectations
+        let done = self.expectation(description: "done")
+        var fileUploadExp:XCTestExpectation?
+        var uploadDeletionExp:XCTestExpectation?
+        var saveDownloadsExp:XCTestExpectation?
+        
+        var uploadResolution:FileDownloadResolution.UploadResolution?
+
+        switch resolution {
+        case .acceptFileDownload:
+            saveDownloadsExp = self.expectation(description: "saveDownloadsExp")
+            
+        case .rejectFileDownload(let upRes):
+            uploadResolution = upRes
+            
+            if upRes.keepFileUploads {
+                fileUploadExp = self.expectation(description: "fileUploadExp")
+            }
+            
+            if upRes.keepUploadDeletions {
+                uploadDeletionExp = self.expectation(description: "uploadDeletionExp")
+            }
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.delegate = self
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                actualNumberSyncDone += 1
+                if actualNumberSyncDone == numberSyncDoneExpected {
+                    done.fulfill()
+                }
+                
+            case .fileUploadsCompleted(let num):
+                Log.msg("uploadResolution: \(String(describing: uploadResolution))")
+                XCTAssert(num == 1)
+                
+                actualNumberUploads += 1
+                if actualNumberUploads < numberUploadsExpected {
+                    break
+                }
+                
+                if let uploadResolution = uploadResolution, uploadResolution.keepFileUploads {
+                    guard let fileUploadExp = fileUploadExp else {
+                        XCTFail()
+                        return
+                    }
+                    fileUploadExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
+                
+            case .uploadDeletionsCompleted(let numberDeletions):
+                if let uploadResolution = uploadResolution, uploadResolution.keepUploadDeletions {
+                    XCTAssert(uploadDeletion)
+                    XCTAssert(numberDeletions == 1)
+                    guard let uploadDeletionExp = uploadDeletionExp else {
+                        XCTFail()
+                        return
+                    }
+                    uploadDeletionExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerMustResolveFileDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) in
+            XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
+            XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+            
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
+            uploadConflict.resolutionCallback(resolution)
+        }
+        
+        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
+            if case .acceptFileDownload = resolution {
+                XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
+                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+                guard let saveDownloadsExp = saveDownloadsExp else {
+                    XCTFail()
+                    return
+                }
+                saveDownloadsExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        // 3) Queue up uploads and/or upload deletions. Note that these will kick off immediately, but will cause a file index request which shouldn't finish before all of these are queued up. In theory a race condition, but not in practice.
+        
+        if numberFileUploads > 0 {
+            for _ in 1...numberFileUploads {
+                let attr = SyncAttributes(fileUUID: file.fileUUID, mimeType: mimeType)
+                try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
+                SyncServer.session.sync()
+            }
+        }
+        
+        if uploadDeletion {
+            try! SyncServer.session.delete(fileWithUUID: file.fileUUID)
+            SyncServer.session.sync()
+        }
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
+    }
     
-    // 8b) A file is being downloaded, and there is an upload deletion pending for the same file. Choose to refuse the download and keep our upload deletion.
+    func testFileDownloadConflict_Accept_FU1_UD0() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptFileDownload)
+    }
+    
+    func testFileDownloadConflict_Accept_FU2_UD0() {
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptFileDownload)
+    }
+    
+    func testFileDownloadConflict_Accept_FU1_UD1() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptFileDownload)
+    }
+    
+    func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.removeAll))
+    }
+
+   func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.keepFileUploads))
+    }
+
+    func testFileDownloadConflict_Reject_FU2_Keep_UD0() {
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectFileDownload(.keepFileUploads))
+    }
+    
+    func testFileDownloadConflict_Reject_FU1_Keep_UD1() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepFileUploads))
+    }
+    
+    func testFileDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepUploadDeletions))
+    }
+    
+    func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepAll))
+    }
     
 /*
 1) What happens if you empty a queue in the upload queues by removing pending deletions?

@@ -28,8 +28,17 @@ public enum FileDownloadResolution {
         public let rawValue: Int
         public init(rawValue:Int){ self.rawValue = rawValue}
         
+        // If you are going to use `rejectFileDownload`, this the typical upload resolution.
+        public static let keepAll:UploadResolution = [keepFileUploads, keepUploadDeletions]
+        
+        public static let removeAll = UploadResolution(rawValue: 0)
+        
         // Not having this option means to remove your conflicting file uploads
         public static let keepFileUploads = UploadResolution(rawValue: 1 << 0)
+        
+        public var keepFileUploads:Bool {
+            return self.contains(UploadResolution.keepFileUploads)
+        }
         
         public var removeFileUploads:Bool {
             return !self.contains(UploadResolution.keepFileUploads)
@@ -37,6 +46,10 @@ public enum FileDownloadResolution {
         
         // Not having this option means to remove your conflicting upload deletions.
         public static let keepUploadDeletions = UploadResolution(rawValue: 1 << 1)
+        
+        public var keepUploadDeletions:Bool {
+            return self.contains(UploadResolution.keepUploadDeletions)
+        }
         
         public var removeUploadDeletions:Bool {
             return !self.contains(UploadResolution.keepUploadDeletions)
