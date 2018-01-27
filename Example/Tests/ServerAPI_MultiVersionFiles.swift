@@ -221,6 +221,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         Let's try having one of each of these and then do a DoneUploads.
     */
     func testDifferentTypesOfUploadAtSameTime() {
+        // This is preparation: Getting ready for staging the items to be pending for the DoneUploads test.
         guard let file1:ServerAPI.File = uploadDeleteFileVersion1() else {
             XCTFail()
             return
@@ -237,13 +238,21 @@ class ServerAPI_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         masterVersion += 1
         
-        // 1) The upload undeletion
+        // 1) The upload of file version N (Doesn't do the last DoneUploads).
+        guard let (fileSize4, file4, updatedMasterVersion) = uploadToFileVersion(4, masterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        masterVersion = updatedMasterVersion
+        
+        // 2) Stage an upload undeletion
         guard let (fileSize1, file1b) = uploadFile(fileURL:file1.localURL, mimeType: file1.mimeType, fileUUID: file1.fileUUID, serverMasterVersion: masterVersion, fileVersion: file1.fileVersion + FileVersionInt(1), undelete: true) else {
             XCTFail()
             return
         }
         
-        // 2) The file upload
+        // 3) The file upload
         let fileUUID2 = UUID().uuidString
         let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
@@ -252,29 +261,21 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        // 3) The upload deletion
+        // 4) The upload deletion
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: file3.fileUUID, fileVersion: 0)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-
-        // 4) The upload of file version N
-        guard let (fileSize4, file4, updatedMasterVersion) = uploadToFileVersion(4, masterVersion: masterVersion) else {
-            XCTFail()
-            return
-        }
         
-        masterVersion = updatedMasterVersion
-        
-        // Finally, do the DoneUploads
+        // Finally: This tests DoneUploads with these four different types of pending uploads.
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 4)
         
         // Test to make sure we got what we wanted.
-        // 1) Download the undeleted file.
+        // A) Download the undeleted file.
         onlyDownloadFile(comparisonFileURL: file1.localURL, file: file1b, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize1)
 
-        // 2) Download the uploaded file.
+        // B) Download the uploaded file.
         onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize2)
         
-        // 3) Make sure the deleted file was deleted.
+        // C) Make sure the deleted file was deleted.
         let fileIndex:[FileInfo] = getFileIndex()
         let result = fileIndex.filter({$0.fileUUID == file3.fileUUID})
         guard result.count == 1, result[0].deleted else {
@@ -282,7 +283,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
 
-        // 4) Download the uploaded file
+        // D) Download the uploaded file
         onlyDownloadFile(comparisonFileURL: file4.localURL, file: file4, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize4)
     }
 }
