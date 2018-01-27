@@ -76,9 +76,9 @@ class ConflictManager {
         }
     }
     
-    // In the completion, gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
+    // In the completion, `keepTheseOnes` gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
     static func handleAnyDownloadDeletionConflicts(downloadDeletionAttrs:[SyncAttributes], delegate: SyncServerDelegate,
-        completion:@escaping (_ keepTheseOnes: [SyncAttributes], _ noDeletionDelegateCallback: [SyncAttributes])->()) {
+        completion:@escaping (_ keepTheseOnes: [SyncAttributes], _ havePendingUploadDeletions: [SyncAttributes])->()) {
     
         var remainingDownloadDeletionAttrs = downloadDeletionAttrs
         
@@ -88,7 +88,7 @@ class ConflictManager {
         var conflicts = [(downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict<DownloadDeletionResolution>)]()
         
         // We'll want no deletion delegate callback for these.
-        var downloadDeletionsWithUploadDeletions = [SyncAttributes]()
+        var havePendingUploadDeletions = [SyncAttributes]()
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let pendingUploadDeletions = UploadFileTracker.fetchAll().filter({$0.deleteOnServer})
@@ -99,7 +99,7 @@ class ConflictManager {
                 CoreData.sessionNamed(Constants.coreDataName).remove(uft)
                 let index = remainingDownloadDeletionAttrs.index(where: {$0.fileUUID == fileUUID})!
                 remainingDownloadDeletionAttrs.remove(at: index)
-                downloadDeletionsWithUploadDeletions += [attr]
+                havePendingUploadDeletions += [attr]
             }
             
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
@@ -139,7 +139,7 @@ class ConflictManager {
                         numberConflicts -= 1
                         
                         if numberConflicts == 0 {
-                            completion(deletionsToIgnore, downloadDeletionsWithUploadDeletions)
+                            completion(deletionsToIgnore, havePendingUploadDeletions)
                         }
                     })
                     
@@ -153,7 +153,7 @@ class ConflictManager {
             delegate.syncServerMustResolveDownloadDeletionConflicts(conflicts: conflicts)
         }
         else {
-            completion([], downloadDeletionsWithUploadDeletions)
+            completion([], havePendingUploadDeletions)
         }
     }
     
@@ -170,7 +170,7 @@ class ConflictManager {
         }
     }
     
-    // What we need to do here is to remove any pending file upload's with this UUID.
+    // Remove any pending file upload's with this UUID.
     private static func removeConflictingUpload(pendingFileUploads: [UploadFileTracker], fileUUID:String) {
         // [1] Having deadlock issue here. Resolving it by documenting that delegate is *not* called on main thread for the two conflict delegate methods. Not the best solution.
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {

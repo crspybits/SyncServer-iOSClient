@@ -118,6 +118,8 @@ public protocol SyncServerDelegate : class {
     // Conflicts will not include UploadDeletion.
     // Not called on the main thread. You must call the conflict resolution callbacks on the same thread as this was called on.
     typealias DownloadDeletionConflict = (downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict<DownloadDeletionResolution>)
+    
+    // The number of elements in this array reflects the number of conflicts in the download deletions. E.g., if there is only a single download deletion, there can be at most one conflict.
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict])
     
     // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SyncAttributes's (i.e., the UUID's).

@@ -297,8 +297,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // MARK: Conflict resolution
     
-    // Deletion conflict: a file is being download deleted, but there is a pending upload for the same file. A) Choose to accept the download deletion.
-    func testDownloadDeletionConflict_AcceptDownloadDeletion() {
+    func downloadDeletionConflict_AcceptDownloadDeletion(numberUploads:Int) {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
         let (fileUUID, _) = uploadVersion(fileVersion)
@@ -313,7 +312,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
-        // 3) Queue up a file upload of the same file.
+        // 3) Queue up file upload(s) of the same file.
         SyncServer.session.eventsDesired = [.syncDone]
         SyncServer.session.delegate = self
         
@@ -361,14 +360,27 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync()
+        
+        for _ in 1...numberUploads {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            SyncServer.session.sync()
+        }
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    // Deletion conflict: a file is being download deleted, but there is a pending upload for the same file. B) Choose to refuse the deletion-- do an upload undeletion.
-    func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload() {
+    // Deletion conflict: a file is being download deleted, but there are pending upload(s) for the same file. A) Choose to accept the download deletion.
+    func testDownloadDeletionConflict_AcceptDownloadDeletion_1() {
+        downloadDeletionConflict_AcceptDownloadDeletion(numberUploads: 1)
+    }
+    
+    func testDownloadDeletionConflict_AcceptDownloadDeletion_2() {
+        downloadDeletionConflict_AcceptDownloadDeletion(numberUploads: 2)
+    }
+    
+    func downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:Int) {
+        var actualNumberUploads = 0
+        
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
         let (fileUUID, _) = uploadVersion(fileVersion)
@@ -383,14 +395,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
-        // 3) Queue up a file upload of the same file.
+        // 3) Queue up file upload(s) of the same file.
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
         let uploads = self.expectation(description: "uploads")
         
-        // 4) Reject the download deletion- and keep the upload.
+        // 4) Reject the download deletion- and keep the upload(s).
         syncServerMustResolveDownloadDeletionConflicts = { conflicts in
             guard conflicts.count == 1 else {
                 XCTFail()
@@ -411,11 +423,16 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         syncServerEventOccurred = { event in
             switch event {
             case .syncDone:
-                done.fulfill()
+                if actualNumberUploads == numberUploadsToDo {
+                    done.fulfill()
+                }
                 
             case .fileUploadsCompleted(let numberUploads):
                 XCTAssert(numberUploads == 1)
-                uploads.fulfill()
+                actualNumberUploads += 1
+                if actualNumberUploads == numberUploadsToDo {
+                    uploads.fulfill()
+                }
                 
             default:
                 XCTFail()
@@ -428,10 +445,22 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync()
+        
+        for _ in 1...numberUploadsToDo {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            SyncServer.session.sync()
+        }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+    }
+    
+    // Deletion conflict: a file is being download deleted, but there is a pending upload for the same file. B) Choose to refuse the deletion-- do an upload undeletion.
+    func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_1() {
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:1)
+    }
+    
+    func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_2() {
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2)
     }
     
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
@@ -564,28 +593,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
     }
     
-    /* Cases for file-download conflict:
-        acceptFileDownload
-        rejectFileDownload
-            file uploads    upload deletion
-            keep            keep
-            keep            reject
-            reject          keep
-            reject          reject
-     
-        Test name coding:
-     
-        testFileDownloadConflict_[Accept|Reject]_[FU<N>_[Keep|Remove]_][UD<N>_[Keep|Remove]]
-     
-        FU= File Upload
-        UD= Upload Deletion
-        The <N> refers to the number of these pending.
-    */
     func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:FileDownloadResolution) {
     
-        var numberSyncDoneExpected = numberFileUploads + (uploadDeletion ? 1 : 0)
+        let numberSyncDoneExpected = numberFileUploads + (uploadDeletion ? 1 : 0)
         var actualNumberSyncDone = 0
-        var numberUploadsExpected = numberFileUploads
+        let numberUploadsExpected = numberFileUploads
         var actualNumberUploads = 0
         
         var conflictTypeExpected:
@@ -743,8 +755,26 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.removeAll))
     }
+    
+    /* Cases for file-download conflict:
+        acceptFileDownload
+        rejectFileDownload
+            file uploads    upload deletion
+            keep            keep
+            keep            reject
+            reject          keep
+            reject          reject
+     
+        Test name coding:
+     
+        testFileDownloadConflict_[Accept|Reject]_[FU<N>_[Keep|Remove]_][UD<N>_[Keep|Remove]]
+     
+        FU= File Upload
+        UD= Upload Deletion
+        The <N> refers to the number of these pending.
+    */
 
-   func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
+    func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.keepFileUploads))
     }
 
@@ -763,19 +793,78 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepAll))
     }
-    
-/*
-1) What happens if you empty a queue in the upload queues by removing pending deletions?
-    To test this, queue an upload deletion. Then, receive a download deletion (someone else deleted the file first).
-It would also be good to (a) queue an independent upload and call sync, then (b) queue an upload deletion and call sync. Then, receive a download deletion (someone else deleted the file first).
 
-2) Queue upload deletion, sync, queue upload deletion, sync. Then get a download deletion. (Is this double upload deletion/sync of the same UUID allowed? I think we should *not* allow this-- CHECK!).
-
-3) What happens if you queue a file, sync, queue the same file, sync, then receive a download deletion for that file?
-    Try this with (a) keeping client operations and (b) deleting client operations;
- 
-4) Queue upload deletion, sync, queue upload deletion, sync. Then get a file download for the same file. (Is this double upload deletion/sync of the same UUID allowed?).
-*/
-    
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
+    func testLocalDeletionDownloadedAgainBecauseUndeleted() {
+        // 1) Upload the file.
+        let (url, attr) = uploadSingleFileUsingSync()
+
+        // 2) Upload delete the file
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        // 3) "Someone else" do an upload undeletion-- do this using the Server API directly.
+        
+        var masterVersion:MasterVersionInt!
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            masterVersion = Singleton.get().masterVersion
+        }
+        
+        guard let (_, _) = uploadFile(fileURL:url, mimeType: attr.mimeType, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        // 4) So we're ready: Locally, we've deleted the file. On the server, the file has been undeleted. We should get an event indicating the file has been downloaded. And after, I'd expect the file to not be marked as deleted in our local directory.
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done2 = self.expectation(description: "done2")
+        let downloadedFileExp = self.expectation(description: "downloadedFileExp")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done2.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        shouldSaveDownload = { url, attr in
+            downloadedFileExp.fulfill()
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            guard let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(!result.deletedOnServer)
+        }
+    }
 }

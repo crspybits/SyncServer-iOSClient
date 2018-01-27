@@ -534,11 +534,13 @@ class TestCase: XCTestCase {
         let expectation = self.expectation(description: "doneUploads")
 
         ServerAPI.session.downloadFile(file: file, serverMasterVersion: masterVersion) { (result, error) in
-        
-            XCTAssert(error == nil)
-            XCTAssert(result != nil)
             
-            if case .success(let downloadedFile) = result! {
+            guard let result = result, error == nil else {
+                XCTFail()
+                return
+            }
+            
+            if case .success(let downloadedFile) = result {
                 XCTAssert(FilesMisc.compareFiles(file1: comparisonFileURL, file2: downloadedFile.url as URL))
                 if appMetaData != nil {
                     XCTAssert(downloadedFile.appMetaData == appMetaData)
@@ -548,7 +550,7 @@ class TestCase: XCTestCase {
                 }
             }
             else {
-                XCTFail("\(result!)")
+                XCTFail("\(result)")
             }
             
             expectation.fulfill()

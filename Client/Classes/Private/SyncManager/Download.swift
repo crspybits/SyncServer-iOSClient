@@ -41,7 +41,7 @@ class Download {
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 do {
                     let (downloads, deletions) =
-                        try Directory.session.checkFileIndex(fileIndex: fileIndex!)
+                        try Directory.session.checkFileIndex(serverFileIndex: fileIndex!)
                     completionResult =
                         .checkResult(downloadFiles:downloads, downloadDeletions:deletions, masterVersion)
                 } catch (let error) {

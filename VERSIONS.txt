@@ -3,8 +3,9 @@ SyncServer-iOSClient
 Version 11.0.0
 	* Added multi-version file support
 	* Upload undeletion added at Server API level.
-	* Added new delegate methods for conflict resolution (breaking change)
+	* Added support for conflict resolution, including new delegate methods (breaking change)
 	* Fixed a longstanding issue: UploadFileTracker's were not being removed after files were uploaded or upload deleted.
+	* Added test cases in example app.
 	
 Version 10.0.0 (1/7/18)
 	* Continue operation in the background-- at least for the current upload or download.
