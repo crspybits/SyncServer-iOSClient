@@ -16,7 +16,7 @@ import SMCoreLib
 // These tests must have the flag BACKGROUND_TASKS_TESTS set.
 
 /*
-I added code that runs when `BACKGROUND_TASKS_TESTS` is set for the simulator to work around the followin gissue. When I run the second test, I get a path that looks like this for the running app:
+I added code that runs when `BACKGROUND_TASKS_TESTS` is set for the simulator to work around the following issue. When I run the second test, I get a path that looks like this for the running app:
 
 /Users/chris/Library/Developer/CoreSimulator/Devices/F1714332-2FED-4F13-B6BD-B1209F6FA457/data/Containers/Data/Application/767A45D9-4B23-4058-A185-B58283E43909/Documents/
 
@@ -97,7 +97,7 @@ class BackgroundTaskTest: TestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
-    // After the first test, wait a minute or two for the download to finish in the background. Then, the defining expectation with this test is that the NetworkCached object will be used.
+    // After the first test, wait a minute or two for the download to finish in the background. Then, the defining expectation with this test is that the NetworkCached object will be used. Search through the console log output for "Using cached download result".
     func testRestartDownload() {
         SyncServer.session.eventsDesired = [.syncDone]
         SyncServer.session.delegate = self
@@ -168,6 +168,7 @@ class BackgroundTaskTest: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
+    // Search through the console log output for "Using cached upload result".
     func testRestartUpload() {
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
         SyncServer.session.delegate = self
