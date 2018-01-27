@@ -20,7 +20,6 @@
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
 		831EEC4920021D82001821B9 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831EEC4820021D81001821B9 /* Cat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
-		8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */; };
 		832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */; };
 		832F2009200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */; };
 		833768BB1F2EC4AA00650446 /* GoogleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833768BA1F2EC4AA00650446 /* GoogleSignIn.swift */; };
@@ -55,7 +54,6 @@
 		83D95CA41E6B546500DF3BF3 /* UploadMe2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */; };
 		83D95CA61E6C8EBC00DF3BF3 /* UploadMe3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83D95CA51E6C8EBC00DF3BF3 /* UploadMe3.txt */; };
 		83E2BE731FFCA57700E4EF5B /* HTTPURLResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E2BE721FFCA57700E4EF5B /* HTTPURLResponseTests.swift */; };
-		83EB63011E9F1A2100B20B9B /* ServerAPI_CreateSharingInvitation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83EB63001E9F1A2100B20B9B /* ServerAPI_CreateSharingInvitation.swift */; };
 		83F37A171E4445CB00479175 /* Server.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30821E15880000A0C7AD /* Server.plist */; };
 		83F37A181E4445E500479175 /* Consts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BEF1E1205CF005209F2 /* Consts.swift */; };
 		83F37A1A1E44478100479175 /* FileIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F37A191E44478100479175 /* FileIndex.swift */; };
@@ -105,7 +103,6 @@
 		831DE3CC1EDA850F0084070F /* SmallerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SmallerCat.jpg; sourceTree = "<group>"; };
 		831EEC4820021D81001821B9 /* Cat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = Cat.jpg; path = Tests/Cat.jpg; sourceTree = SOURCE_ROOT; };
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
-		8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_DownloadDeletion.swift; sourceTree = "<group>"; };
 		832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_MultiVersionFiles.swift; sourceTree = "<group>"; };
 		832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_MultiVersionFiles.swift; sourceTree = "<group>"; };
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
@@ -142,7 +139,6 @@
 		83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe2.txt; sourceTree = "<group>"; };
 		83D95CA51E6C8EBC00DF3BF3 /* UploadMe3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe3.txt; sourceTree = "<group>"; };
 		83E2BE721FFCA57700E4EF5B /* HTTPURLResponseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPURLResponseTests.swift; sourceTree = "<group>"; };
-		83EB63001E9F1A2100B20B9B /* ServerAPI_CreateSharingInvitation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_CreateSharingInvitation.swift; sourceTree = "<group>"; };
 		83F37A191E44478100479175 /* FileIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileIndex.swift; sourceTree = "<group>"; };
 		83F37A1F1E46D40500479175 /* UploadFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadFile.swift; sourceTree = "<group>"; };
 		83F37A211E46D52500479175 /* UploadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe.txt; sourceTree = "<group>"; };
@@ -261,10 +257,8 @@
 				8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */,
 				838ED40B1ED2B46200078E9F /* Performance.swift */,
 				83709F7F1EA4718F00BCDC32 /* ServerAPI_Sharing.swift */,
-				83EB63001E9F1A2100B20B9B /* ServerAPI_CreateSharingInvitation.swift */,
 				8378D9C11E95F29700470D49 /* ServerAPI_SingleError.swift */,
 				8378D9BD1E91B8F000470D49 /* Client_SyncServer_Error.swift */,
-				8324EE5B1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift */,
 				8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */,
 				83F882141E6FB03D008F644A /* Client_SyncServer_UploadDeletion.swift */,
 				83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */,
@@ -658,7 +652,6 @@
 				835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */,
 				83D95C9E1E6A923700DF3BF3 /* Client_SyncManager_MasterVersionChange.swift in Sources */,
 				83F37A1A1E44478100479175 /* FileIndex.swift in Sources */,
-				8324EE5C1E8367C2000656AF /* Client_SyncServer_DownloadDeletion.swift in Sources */,
 				838ED40C1ED2B46200078E9F /* Performance.swift in Sources */,
 				8378D9C21E95F29700470D49 /* ServerAPI_SingleError.swift in Sources */,
 				837244561E419EE600155E89 /* TestCase.swift in Sources */,
@@ -682,7 +675,6 @@
 				83E2BE731FFCA57700E4EF5B /* HTTPURLResponseTests.swift in Sources */,
 				83F37A301E51120B00479175 /* ServerAPI_DownloadFile.swift in Sources */,
 				835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */,
-				83EB63011E9F1A2100B20B9B /* ServerAPI_CreateSharingInvitation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
