@@ -867,4 +867,79 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(!result.deletedOnServer)
         }
     }
+    
+    func testFileDownloadConflictRejectRemoveAllAndUploadNewFile() {
+        let uploadResolution:FileDownloadResolution.UploadResolution = .removeAll
+        let resolution = FileDownloadResolution.rejectFileDownload(uploadResolution)
+        
+        let numberSyncDoneExpected = 2
+        var actualNumberSyncDone = 0
+        
+        let conflictTypeExpected:
+            SyncServerConflict<FileDownloadResolution>.ClientOperation = .fileUpload
+    
+        let mimeType = "text/plain"
+        let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
+        
+        // 1) Upload a file, not using the sync system.
+        let masterVersion = getMasterVersion()
+        
+        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+
+        // 2) Setup our callbacks & expectations
+        let done = self.expectation(description: "done")
+        let fileUploadExp = self.expectation(description: "fileUploadExp")
+
+        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.delegate = self
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                actualNumberSyncDone += 1
+                if actualNumberSyncDone == numberSyncDoneExpected {
+                    done.fulfill()
+                }
+                
+            case .fileUploadsCompleted(let num):
+                Log.msg("uploadResolution: \(String(describing: uploadResolution))")
+                XCTAssert(num == 1)
+                fileUploadExp.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerMustResolveFileDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) in
+            XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
+            XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+            
+            // Do another upload-- to compensate for deleting both the upload and download.
+            do {
+                try SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: downloadedFileAttributes)
+            }
+            catch {
+                XCTFail()
+                uploadConflict.resolutionCallback(resolution)
+                return
+            }
+            
+            SyncServer.session.sync()
+            
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
+            uploadConflict.resolutionCallback(resolution)
+        }
+        
+        let attr = SyncAttributes(fileUUID: file.fileUUID, mimeType: mimeType)
+        try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
+    }
 }

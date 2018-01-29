@@ -1,5 +1,10 @@
 SyncServer-iOSClient
 
+Version 11.0.1 (1/28/18)
+	* Fixed bug in incrementing age for file trackers
+		Somehow my use of synchronization was causing an infinite loop, incrementing this age value. Very odd. Hacked my way around it.
+	* Added another test case-- a situation that I'm using in SharedImages but that I hadn't tested for yet.
+
 Version 11.0.0 (1/27/18)
 	* Added multi-version file support
 	* Upload undeletion added at Server API level.
