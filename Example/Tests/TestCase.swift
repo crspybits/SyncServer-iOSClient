@@ -88,7 +88,7 @@ class TestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         ServerAPI.session.delegate = self
-        ServerNetworking.session.authenticationDelegate = self
+        ServerNetworking.session.delegate = self
         
         self.authTokens = [
             ServerConstants.XTokenTypeKey: TestCase.currTestAccount.accountType.rawValue,
@@ -702,8 +702,12 @@ class TestCase: XCTestCase {
     }
 }
 
-extension TestCase : ServerNetworkingAuthentication {
-    func headerAuthentication(forServerNetworking: Any?) -> [String:String]? {
+extension TestCase : ServerNetworkingDelegate {
+    func serverNetworkingServerVersion(_ version:ServerVersion?) -> Bool  {
+        return true
+    }
+    
+    func serverNetworkingHeaderAuthentication(forServerNetworking: Any?) -> [String:String]? {
         var result = [String:String]()
         for (key, value) in self.authTokens {
             result[key] = value
@@ -723,6 +727,10 @@ extension TestCase : ServerNetworkingAuthentication {
 }
 
 extension TestCase : ServerAPIDelegate {
+    func serverVersion(_ version:ServerVersion?) -> Bool  {
+        return true
+    }
+    
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval? {
         testLockSyncCalled = true
         return testLockSync
@@ -742,6 +750,10 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
+    func syncServerVersion(_ version:ServerVersion?) -> Bool {
+        return true
+    }
+    
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         shouldSaveDownload(url, attr)
     }

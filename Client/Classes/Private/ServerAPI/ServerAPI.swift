@@ -16,6 +16,8 @@ protocol ServerAPIDelegate : class {
     // Got a 401 status code back from server for current signed-in user
     func userWasUnauthorized(forServerAPI: ServerAPI)
     
+    func serverVersion(_ version: ServerVersion?) -> Bool
+    
 #if DEBUG
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval?
     func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval?
@@ -26,7 +28,10 @@ class ServerAPI {
     // These need to be set by user of this class.
     var baseURL:String!
     weak var delegate:ServerAPIDelegate!
+    
+    // Used in ServerAPI extension(s).
     weak var syncServerDelegate:SyncServerDelegate?
+    
     var desiredEvents:EventDesired = .defaults
 
 #if DEBUG
@@ -64,7 +69,7 @@ class ServerAPI {
     public static let session = ServerAPI()
     
     fileprivate init() {
-        ServerNetworking.session.authenticationDelegate = self
+        ServerNetworking.session.delegate = self
     }
     
     func updateCreds(_ creds:GenericCredentials?) {
@@ -615,8 +620,12 @@ class ServerAPI {
     }
 }
 
-extension ServerAPI : ServerNetworkingAuthentication {
-    func headerAuthentication(forServerNetworking: Any?) -> [String:String]? {
+extension ServerAPI : ServerNetworkingDelegate {
+    func serverNetworkingServerVersion(_ version:ServerVersion?) -> Bool {
+        return delegate?.serverVersion(version) ?? true
+    }
+    
+    func serverNetworkingHeaderAuthentication(forServerNetworking: Any?) -> [String:String]? {
         var result = [String:String]()
         if self.authTokens != nil {
             for (key, value) in self.authTokens! {

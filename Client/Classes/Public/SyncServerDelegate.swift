@@ -100,6 +100,47 @@ public struct EventDesired: OptionSet {
     }
 }
 
+public struct ServerVersion {
+    public let rawValue: String
+    let major:Int
+    let minor:Int
+    let patch:Int
+    
+    // Format: X.Y.Z, where X, Y, and Z are integers.
+    public init?(rawValue: String) {
+        self.rawValue = rawValue
+        
+        let components = rawValue.components(separatedBy: ".")
+        guard components.count == 3 else {
+            return nil
+        }
+        
+        guard let c1 = Int(components[0]),
+            let c2 = Int(components[1]),
+            let c3 = Int(components[2]) else {
+            return nil
+        }
+        
+        major = c1
+        minor = c2
+        patch = c3
+    }
+
+    // e.g., ServerVersion(rawValue: "1.2.3") < ServerVersion(rawValue: "2.0.0")
+    public static func <(lhs: ServerVersion, rhs: ServerVersion) -> Bool {
+        if lhs.major < rhs.major {
+            return true
+        }
+        else if lhs.major == rhs.major && lhs.minor < rhs.minor {
+            return true
+        } else if lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.patch < rhs.patch {
+            return true
+        }
+        
+        return false
+    }
+}
+
 // Except as noted, these delegate methods are called on the main thread.
 
 public protocol SyncServerDelegate : class {
@@ -127,6 +168,9 @@ public protocol SyncServerDelegate : class {
     // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SyncAttributes's (i.e., the UUID's).
     // This may be called sometime after the deletions have been received from the server. E.g., on a recovery step after the app launches and not after recent server interaction.
     func syncServerShouldDoDeletions(downloadDeletions:[SyncAttributes])
+    
+    // Regularly reports the version of the server, if the server has a version. Normally, an app returns `true`-- which means "keep running." Returning false indicates that the client cannot run with the given server version and means "stop running".
+    func syncServerVersion(_ version:ServerVersion?) -> Bool
     
     func syncServerErrorOccurred(error:SyncServerError)
 

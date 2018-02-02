@@ -34,7 +34,7 @@ class ServerAPI_UploadFile: TestCase {
     }
     
     func testUploadTextFileWithNoAuthFails() {
-        ServerNetworking.session.authenticationDelegate = nil
+        ServerNetworking.session.delegate = nil
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", expectError: true)
     }

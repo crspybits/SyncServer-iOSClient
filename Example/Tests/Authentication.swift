@@ -51,7 +51,7 @@ class ServerAPI_Authentication: TestCase {
         }
         
         let expectation = self.expectation(description: "authentication")
-        ServerNetworking.session.authenticationDelegate = nil
+        ServerNetworking.session.delegate = nil
         
         ServerAPI.session.addUser { error in
             XCTAssert(error != nil) 

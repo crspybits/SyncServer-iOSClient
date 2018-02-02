@@ -152,6 +152,15 @@ public class SyncServerUser {
 }
 
 extension SyncServerUser : ServerAPIDelegate {
+    func serverVersion(_ version:ServerVersion?) -> Bool  {
+        // Whether or not this version is suitable depends on the client. Need to pass this up to the client.
+        var result: Bool = true
+        Thread.runSync(onMainThread: {
+            result = SyncServer.session.delegate?.syncServerVersion(version) ?? true
+        })
+        return result
+    }
+    
     func deviceUUID(forServerAPI: ServerAPI) -> Foundation.UUID {
         return Foundation.UUID(uuidString: SyncServerUser.mobileDeviceUUID.stringValue)!
     }
@@ -159,8 +168,7 @@ extension SyncServerUser : ServerAPIDelegate {
     // 1/3/18 somewhat before 9am MST; Bushrod just got this after installing v0.10.0 of SharedImages, "I just upgraded sharedimages. When i launched it, it said it was having trouble authenticating me and that I should log out and back in. I didn’t do that, changed to the login tab, back to the images tab, and it downloaded new images so I guess the sticky login worked despite the complaining."
     func userWasUnauthorized(forServerAPI: ServerAPI) {
         Thread.runSync(onMainThread: {
-            self.showAlert(with: "The server is having problems authenticating you. Please sign out and sign back in.")
-            // May want to explicitly force a user sign-out here. Shall see.
+            self.showAlert(with: "The server is having problems authenticating you. You may need to sign out and sign back in.")
         })
     }
 

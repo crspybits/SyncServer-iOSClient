@@ -13,7 +13,7 @@ class ServerAPI_HealthCheck: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        ServerNetworking.session.authenticationDelegate = nil
+        ServerNetworking.session.delegate = nil
     }
     
     override func tearDown() {
