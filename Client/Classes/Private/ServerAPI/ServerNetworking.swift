@@ -13,14 +13,13 @@ import SyncServer_Shared
 protocol ServerNetworkingDelegate : class {
     // Key/value pairs to be added to the outgoing HTTP header for authentication
     func serverNetworkingHeaderAuthentication(forServerNetworking: Any?) -> [String:String]?
-    
-    // Each API call results in a call to this method, after the response is received from the server-- this reports the current server version. Nil is passed in the parameter if the server is an early version and doesn't report the version.
-    func serverNetworkingServerVersion(_ version:ServerVersion?) -> Bool
 }
 
 class ServerNetworking : NSObject {
     static let session = ServerNetworking()
-    
+    var minimumServerVersion:ServerVersion?
+    weak var syncServerDelegate:SyncServerDelegate?
+
     private weak var _delegate:ServerNetworkingDelegate?
 
     var delegate:ServerNetworkingDelegate? {
@@ -70,7 +69,21 @@ class ServerNetworking : NSObject {
             serverVersion = ServerVersion(rawValue: version)
         }
         
-        return delegate?.serverNetworkingServerVersion(serverVersion) ?? true
+        if minimumServerVersion == nil {
+            // Client doesn't care which version of the server they are using.
+            return true
+        }
+        else if serverVersion == nil || serverVersion! < minimumServerVersion! {
+            // Either: a) Client *does* care, but server isn't versioned, or
+            // b) the actual server version is less than what the client needs.
+            Thread.runSync(onMainThread: {
+                self.syncServerDelegate?.syncServerErrorOccurred(error:
+                    .badServerVersion(actualServerVersion: serverVersion))
+            })
+            return false
+        }
+        
+        return true
     }
     
     public func download(file: ServerNetworkingLoadingFile, fromServerURL serverURL: URL, method: ServerHTTPMethod, completion:((SMRelativeLocalURL?, _ serverResponse:HTTPURLResponse?, _ statusCode:Int?, _ error:SyncServerError?)->())?) {

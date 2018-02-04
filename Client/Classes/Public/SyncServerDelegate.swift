@@ -169,9 +169,6 @@ public protocol SyncServerDelegate : class {
     // This may be called sometime after the deletions have been received from the server. E.g., on a recovery step after the app launches and not after recent server interaction.
     func syncServerShouldDoDeletions(downloadDeletions:[SyncAttributes])
     
-    // Regularly reports the version of the server, if the server has a version. Normally, an app returns `true`-- which means "keep running." Returning false indicates that the client cannot run with the given server version and means "stop running".
-    func syncServerVersion(_ version:ServerVersion?) -> Bool
-    
     func syncServerErrorOccurred(error:SyncServerError)
 
     // Reports events. Useful for testing and UI.

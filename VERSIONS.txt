@@ -1,8 +1,8 @@
 SyncServer-iOSClient
 
 Version 12.0.0
-	* Added server version delegate method-- so client can agree or disagree to the current server version.
-
+	* Added minimumServerVersion parameter to `appLaunchSetup`, and  `badServerVersion` error if the server doesn't meet the minimum. (Not using a delegate for this because a client is only going to have a static need for a minimum server version).
+ 
 Version 11.0.1 (1/28/18)
 	* Fixed bug in incrementing age for file trackers
 		Somehow my use of synchronization was causing an infinite loop, incrementing this age value. Very odd. Hacked my way around it.

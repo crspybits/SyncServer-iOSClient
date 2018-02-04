@@ -726,11 +726,7 @@ extension TestCase : ServerNetworkingDelegate {
     }
 }
 
-extension TestCase : ServerAPIDelegate {
-    func serverVersion(_ version:ServerVersion?) -> Bool  {
-        return true
-    }
-    
+extension TestCase : ServerAPIDelegate {    
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval? {
         testLockSyncCalled = true
         return testLockSync
@@ -749,11 +745,7 @@ extension TestCase : ServerAPIDelegate {
     }
 }
 
-extension TestCase : SyncServerDelegate {
-    func syncServerVersion(_ version:ServerVersion?) -> Bool {
-        return true
-    }
-    
+extension TestCase : SyncServerDelegate {    
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         shouldSaveDownload(url, attr)
     }

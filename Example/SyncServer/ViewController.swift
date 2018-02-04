@@ -161,11 +161,7 @@ extension ViewController : GenericSignInDelegate {
     }
 }
 
-extension ViewController : SyncServerDelegate {
-    func syncServerVersion(_ version:ServerVersion?) -> Bool {
-        return true
-    }
-    
+extension ViewController : SyncServerDelegate {    
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         assert(false)
     }
@@ -185,7 +181,15 @@ extension ViewController : SyncServerDelegate {
     }
     
     func syncServerErrorOccurred(error:SyncServerError) {
-        assert(false)
+        switch error {
+        case .badServerVersion(let actualServerVersion):
+            let version = actualServerVersion == nil ? "nil" : actualServerVersion!.rawValue
+            SMCoreLib.Alert.show(fromVC: self, withTitle: "Bad server version", message: "actualServerVersion: \(version)")
+            
+        default:
+            assert(false)
+        }
+        
     }
 }
 

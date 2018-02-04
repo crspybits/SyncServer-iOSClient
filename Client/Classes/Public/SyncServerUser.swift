@@ -151,16 +151,7 @@ public class SyncServerUser {
     }
 }
 
-extension SyncServerUser : ServerAPIDelegate {
-    func serverVersion(_ version:ServerVersion?) -> Bool  {
-        // Whether or not this version is suitable depends on the client. Need to pass this up to the client.
-        var result: Bool = true
-        Thread.runSync(onMainThread: {
-            result = SyncServer.session.delegate?.syncServerVersion(version) ?? true
-        })
-        return result
-    }
-    
+extension SyncServerUser : ServerAPIDelegate {    
     func deviceUUID(forServerAPI: ServerAPI) -> Foundation.UUID {
         return Foundation.UUID(uuidString: SyncServerUser.mobileDeviceUUID.stringValue)!
     }

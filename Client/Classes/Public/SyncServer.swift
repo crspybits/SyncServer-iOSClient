@@ -35,6 +35,7 @@ public class SyncServer {
         set {
             SyncManager.session.delegate = newValue
             ServerAPI.session.syncServerDelegate = newValue
+            ServerNetworking.session.syncServerDelegate = newValue
             Download.session.delegate = newValue
             Upload.session.delegate = delegate
         }
@@ -43,11 +44,12 @@ public class SyncServer {
             return SyncManager.session.delegate
         }
     }
-        
-    public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String) {
+    
+    // Leave the minimumServerVersion as nil if your app doesn't have a specific server version requirement.
+    public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String, minimumServerVersion:ServerVersion? = nil) {
         Log.msg("cloudFolderName: \(cloudFolderName)")
         Log.msg("serverURL: \(serverURL.absoluteString)")
-
+        
         // This seems a little hacky, but can't find a better way to get the bundle of the framework containing our model. I.e., "this" framework. Just using a Core Data object contained in this framework to track it down.
         // Without providing this bundle reference, I wasn't able to dynamically locate the model contained in the framework.
         let bundle = Bundle(for: NSClassFromString(Singleton.entityName())!)
@@ -70,6 +72,8 @@ public class SyncServer {
         // 12/31/17; I put this in as part of: https://github.com/crspybits/SharedImages/issues/36
         resetFileTrackers()
         
+        ServerNetworking.session.minimumServerVersion = minimumServerVersion
+
         // Remember: `ServerNetworkingLoading` relies on Core Data, so this setup call must be after the CoreData setup.
         ServerNetworkingLoading.session.appLaunchSetup()
         

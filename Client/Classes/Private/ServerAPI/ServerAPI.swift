@@ -16,8 +16,6 @@ protocol ServerAPIDelegate : class {
     // Got a 401 status code back from server for current signed-in user
     func userWasUnauthorized(forServerAPI: ServerAPI)
     
-    func serverVersion(_ version: ServerVersion?) -> Bool
-    
 #if DEBUG
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval?
     func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval?
@@ -620,11 +618,7 @@ class ServerAPI {
     }
 }
 
-extension ServerAPI : ServerNetworkingDelegate {
-    func serverNetworkingServerVersion(_ version:ServerVersion?) -> Bool {
-        return delegate?.serverVersion(version) ?? true
-    }
-    
+extension ServerAPI : ServerNetworkingDelegate {    
     func serverNetworkingHeaderAuthentication(forServerNetworking: Any?) -> [String:String]? {
         var result = [String:String]()
         if self.authTokens != nil {

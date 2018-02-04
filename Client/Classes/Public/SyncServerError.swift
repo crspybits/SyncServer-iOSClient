@@ -12,6 +12,9 @@ public enum SyncServerError: Error {
     // The network connection was lost.
     case noNetworkError
     
+    // The minimum server version you gave in `appLaunchSetup` was not met. Immediately this is raised as an error, the SyncServer client stops operating.
+    case badServerVersion(actualServerVersion: ServerVersion?)
+    
     case mimeTypeOfFileChanged
     case fileAlreadyDeleted
     case fileQueuedForDeletion
