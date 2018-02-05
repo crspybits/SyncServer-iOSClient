@@ -16,6 +16,8 @@ public enum SyncServerError: Error {
     case badServerVersion(actualServerVersion: ServerVersion?)
     
     case mimeTypeOfFileChanged
+    case noMimeType
+    case downloadedFileVersionNotGreaterThanCurrent
     case fileAlreadyDeleted
     case fileQueuedForDeletion
     case deletingUnknownFile

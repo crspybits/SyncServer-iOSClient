@@ -38,6 +38,7 @@ public class SyncServer {
             ServerNetworking.session.syncServerDelegate = newValue
             Download.session.delegate = newValue
             Upload.session.delegate = delegate
+            Directory.session.delegate = delegate
         }
         
         get {
@@ -97,6 +98,10 @@ public class SyncServer {
     
     private func upload(fileURL:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
         var errorToThrow:Error?
+        
+        guard attr.mimeType != nil else {
+            throw SyncServerError.noMimeType
+        }
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             var entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
