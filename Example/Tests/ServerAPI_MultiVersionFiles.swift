@@ -77,6 +77,35 @@ class ServerAPI_MultiVersionFiles: TestCase {
     
         onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
     }
+
+    // Version 1 with nil app meta data doesn't reset app meta data.
+    func testAppMetaData() {
+        var masterVersion = getMasterVersion()
+        var fileVersion:FileVersionInt = 0
+        let fileUUID = UUID().uuidString
+        let mimeType = "text/plain"
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let appMetaData = "foobar"
+        
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        fileVersion += 1
+        masterVersion += 1
+        
+        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        masterVersion += 1
+
+        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion, appMetaData: appMetaData, fileSize: fileSize)
+    }
     
     func testUploadTextFileVersion1() {
         uploadTextFileVersion(1)

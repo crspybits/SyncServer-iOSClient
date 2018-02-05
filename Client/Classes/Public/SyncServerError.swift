@@ -41,6 +41,7 @@ public enum SyncServerError: Error {
     case couldNotGetHTTPURLResponse
     case non200StatusCode(Int)
     case badCheckCreds
+    case badAddUser
     case unknownServerError
     case coreDataError(Error)
     case generic(String)
