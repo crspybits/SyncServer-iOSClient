@@ -82,6 +82,7 @@ public class SyncServer {
         SyncServerUser.session.appLaunchSetup()
     }
     
+    // For dealing with background uploading/downloading.
     public func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
         ServerNetworkingLoading.session.application(application, handleEventsForBackgroundURLSession: identifier, completionHandler: completionHandler)
     }
@@ -96,14 +97,14 @@ public class SyncServer {
         try upload(fileURL: localFile, withAttributes: attr)
     }
     
-    private func upload(fileURL:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
+    private func upload(fileURL:SMRelativeLocalURL, withAttributes attr: SyncAttributes, copy:Bool = false) throws {
         var errorToThrow:Error?
         
         guard attr.mimeType != nil else {
             throw SyncServerError.noMimeType
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[unowned self] in
             var entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
             
             if nil == entry {
@@ -124,22 +125,44 @@ public class SyncServer {
             }
             
             let newUft = UploadFileTracker.newObject() as! UploadFileTracker
-            newUft.localURL = fileURL
             newUft.appMetaData = attr.appMetaData
             newUft.fileUUID = attr.fileUUID
             newUft.mimeType = attr.mimeType
+            newUft.uploadCopy = copy
+            
+            if copy {
+                // Make a copy of the file
+                guard let copyOfFileURL = SyncServer.urlForCopy() else {
+                    errorToThrow = SyncServerError.couldNotCreateNewFile
+                    return
+                }
+                
+                do {
+                    try FileManager.default.copyItem(at: fileURL as URL, to: copyOfFileURL as URL)
+                } catch (let error) {
+                    errorToThrow = SyncServerError.fileManagerError(error)
+                    return
+                }
+                
+                newUft.localURL = copyOfFileURL
+            }
+            else {
+                newUft.localURL = fileURL
+            }
             
             // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
 
             Synchronized.block(self) {
-                // Has this file UUID been added to `pendingSync` already? i.e., Has the client called `uploadImmutable`, then a little later called `uploadImmutable` again, with the same uuid, all without calling `sync`-- so, we don't have a new file version because new file versions only occur once the upload hits the server.
+                // Has this file UUID been added to `pendingSync` already? i.e., Has the client called `uploadImmutable/Copy`, then a little later called `uploadImmutable/Copy` again, with the same uuid, all without calling `sync`-- so, we don't have a new file version because new file versions only occur once the upload hits the server.
                 do {
                     let result = try Upload.pendingSync().uploadFileTrackers.filter
                         {$0.fileUUID == attr.fileUUID}
                     
-                    if result.count > 0 {
-                        _ = result.map { uft in
-                            CoreData.sessionNamed(Constants.coreDataName).remove(uft)
+                    result.forEach { uft in
+                        do {
+                            try uft.remove()
+                        } catch {
+                            errorToThrow = SyncServerError.couldNotRemoveFileTracker
                         }
                     }
                     
@@ -154,6 +177,23 @@ public class SyncServer {
         guard errorToThrow == nil else {
             throw errorToThrow!
         }
+    }
+    
+    // A copy of the file is made, and that is used for uploading. The caller can then change their original and it doesn't affect the upload. The copy is removed after the upload completes. This operation proceeds like `uploadImmutable` otherwise.
+    public func uploadCopy(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
+        try upload(fileURL: localFile, withAttributes: attr, copy: true)
+    }
+    
+    // Creates a new file name; doesn't create the file.
+    static func urlForCopy() -> SMRelativeLocalURL? {
+        let directoryURL = FileStorage.url(ofItem: Constants.tempDirectory)
+        FileStorage.createDirectoryIfNeeded(directoryURL)
+        
+        guard let newFileName = FileStorage.createTempFileName(inDirectory: directoryURL?.path, withPrefix: "TempCopy", andExtension: "dat") else {
+            return nil
+        }
+        
+        return SMRelativeLocalURL(withRelativePath: Constants.tempDirectory + "/" + newFileName, toBaseURLType: .documentsDirectory)
     }
     
     // The following two methods enqueue upload deletion operation(s). The operation(s) persists across app launches. It is an error to try again later to upload, or delete the file(s) referenced by the(se) UUID. You can only delete files that are already known to the SyncServer (e.g., that you've uploaded).
@@ -222,8 +262,12 @@ public class SyncServer {
                 // Remove any upload for this UUID from the pendingSync queue.
                 let pendingSync = try Upload.pendingSync().uploadFileTrackers.filter
                     {$0.fileUUID == uuid }
-                _ = pendingSync.map { uft in
-                    CoreData.sessionNamed(Constants.coreDataName).remove(uft)
+                pendingSync.forEach { uft in
+                    do {
+                        try uft.remove()
+                    } catch {
+                        errorToThrow = SyncServerError.couldNotRemoveFileTracker
+                    }
                 }
                 
                 // If we just removed any references to a new file, by removing the reference from pendingSync, then we're done.

@@ -16,7 +16,7 @@ public class FilesMisc {
     // Creates a file within the Documents/<SMAppConstants.tempDirectory> directory. If the URL returned is non-nil, the file will have been created, and zero length upon return.
     public class func createTemporaryRelativeFile() -> SMRelativeLocalURL? {
         
-        // I'm going to use a directory within /Documents and not the NSTemporaryDirectory because I want control over when these files are deleted. E.g., It is possible that it will take any number of days for these files to be uploaded. I don't want to take the chance that they will be deleted before I'm done with them.
+        // I'm going to use a directory within /Documents and not the NSTemporaryDirectory because I want control over when these files are deleted. E.g., It is possible that it will take any number of days for these files to be uploaded or downloaded. I don't want to take the chance that they will be deleted before I'm done with them.
         
         guard let tempDirectory = FileStorage.path(toItem: Constants.tempDirectory) else {
             Log.error("nil result from FileStorage.path")

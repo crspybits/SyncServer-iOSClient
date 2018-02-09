@@ -275,7 +275,7 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
 
         // Transfer the temporary file to a more permanent location. Have to do it right now. https://developer.apple.com/reference/foundation/urlsessiondownloaddelegate/1411575-urlsession
         if movedDownloadedFile == nil {
-            returnError = .couldNotCreateNewFileForDownload
+            returnError = .couldNotCreateNewFile
         }
         else {
             do {

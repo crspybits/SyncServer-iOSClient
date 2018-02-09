@@ -31,7 +31,8 @@ public enum SyncServerError: Error {
     case couldNotCreateRequest
     case didNotGetDownloadURL
     case couldNotMoveDownloadFile
-    case couldNotCreateNewFileForDownload
+    case couldNotCreateNewFile
+    case couldNotRemoveFileTracker
     case obtainedAppMetaDataButWasNotString
     case noExpectedResultKey
     case nilResponse
@@ -46,6 +47,7 @@ public enum SyncServerError: Error {
     case badAddUser
     case unknownServerError
     case coreDataError(Error)
+    case fileManagerError(Error)
     case generic(String)
     
 #if TEST_REFRESH_FAILURE

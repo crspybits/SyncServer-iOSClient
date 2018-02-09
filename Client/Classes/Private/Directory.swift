@@ -121,12 +121,18 @@ class Directory {
                         self.delegate.syncServerErrorOccurred(error: .mimeTypeOfFileChanged)
                     })
                 }
+                
+                // Only assign the appMetaData if it's non-nil-- otherwise, the value isn't intended to be changed by the previously uploading client.
+                if let appMetaData = dft.appMetaData {
+                    entry.appMetaData = appMetaData
+                }
             }
             else {
                 let newEntry = DirectoryEntry.newObject() as! DirectoryEntry
                 newEntry.fileUUID = dft.fileUUID
                 newEntry.fileVersion = dft.fileVersion
                 newEntry.mimeType = dft.mimeType
+                newEntry.appMetaData = dft.appMetaData
             }
         }
     }
