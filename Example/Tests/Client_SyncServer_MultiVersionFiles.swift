@@ -973,4 +973,44 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
+    
+   // Version 1 upload of a file gets access to original appMetaData in the callback, when uploaded with nil appMetaData (which doesn't change the app meta data).
+    func testCallbackHasOrignalAppMetaData() {
+        let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        
+        // The meta data in attr1 is explicitly supposed to be nil.
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+       
+        let appMetaData = "123themetadata"
+        
+        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData) else {
+            XCTFail()
+            return
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone, .singleFileUploadComplete]
+        let expectSyncDone = self.expectation(description: "test1")
+        let expectSingleUploadComplete = self.expectation(description: "test2")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectSyncDone.fulfill()
+            
+            case .singleFileUploadComplete(let attr):
+                XCTAssert(attr.appMetaData == appMetaData)
+                expectSingleUploadComplete.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+    }
 }

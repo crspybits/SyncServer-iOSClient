@@ -559,7 +559,7 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
-    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, uploadCopy:Bool = false) -> (URL, SyncAttributes)? {
+    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (URL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         if fileURL == nil {
@@ -580,7 +580,10 @@ class TestCase: XCTestCase {
             url = copyOfFileURL
         }
 
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        if let appMetaData = appMetaData {
+            attr.appMetaData = appMetaData
+        }
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")

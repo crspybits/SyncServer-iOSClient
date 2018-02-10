@@ -78,8 +78,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
     }
 
-    // Version 1 with nil app meta data doesn't reset app meta data.
-    func testAppMetaData() {
+    // Uploading version 1 of file with nil app meta data doesn't reset app meta data.
+    func testAppMetaDataNotChangedWithNilValue() {
         var masterVersion = getMasterVersion()
         var fileVersion:FileVersionInt = 0
         let fileUUID = UUID().uuidString
@@ -96,7 +96,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         fileVersion += 1
         masterVersion += 1
         
-        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
+        // Second upload-- nil appMetaData
+        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil, fileVersion: fileVersion) else {
             XCTFail()
             return
         }
