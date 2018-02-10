@@ -132,7 +132,7 @@ public class SyncServer {
             
             if copy {
                 // Make a copy of the file
-                guard let copyOfFileURL = SyncServer.urlForCopy() else {
+                guard let copyOfFileURL = FilesMisc.newTempFileURL() else {
                     errorToThrow = SyncServerError.couldNotCreateNewFile
                     return
                 }
@@ -182,18 +182,6 @@ public class SyncServer {
     // A copy of the file is made, and that is used for uploading. The caller can then change their original and it doesn't affect the upload. The copy is removed after the upload completes. This operation proceeds like `uploadImmutable` otherwise.
     public func uploadCopy(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
         try upload(fileURL: localFile, withAttributes: attr, copy: true)
-    }
-    
-    // Creates a new file name; doesn't create the file.
-    static func urlForCopy() -> SMRelativeLocalURL? {
-        let directoryURL = FileStorage.url(ofItem: Constants.tempDirectory)
-        FileStorage.createDirectoryIfNeeded(directoryURL)
-        
-        guard let newFileName = FileStorage.createTempFileName(inDirectory: directoryURL?.path, withPrefix: "TempCopy", andExtension: "dat") else {
-            return nil
-        }
-        
-        return SMRelativeLocalURL(withRelativePath: Constants.tempDirectory + "/" + newFileName, toBaseURLType: .documentsDirectory)
     }
     
     // The following two methods enqueue upload deletion operation(s). The operation(s) persists across app launches. It is an error to try again later to upload, or delete the file(s) referenced by the(se) UUID. You can only delete files that are already known to the SyncServer (e.g., that you've uploaded).

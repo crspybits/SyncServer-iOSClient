@@ -25,8 +25,11 @@ class Client_SyncServer_FileUpload: TestCase {
         super.tearDown()
     }
 
-    func testThatUploadingASingleFileWorks() {
-        let (url, attr) = uploadSingleFileUsingSync()
+    func uploadASingleFile(copy:Bool) {
+        guard let (url, attr) = uploadSingleFileUsingSync(uploadCopy: copy) else {
+            XCTFail()
+            return
+        }
         
         getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
@@ -39,7 +42,15 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url, file: file, masterVersion: masterVersion)
     }
     
-    func testThatUploadingTwoSeparateFilesWorks() {
+    func testThatUploadingASingleImmutableFileWorks() {
+        uploadASingleFile(copy:false)
+    }
+    
+    func testThatUploadingASingleCopyFileWorks() {
+        uploadASingleFile(copy:true)
+    }
+    
+    func uploadTwoSeparateFilesWorks(copy:Bool) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
@@ -71,8 +82,15 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr1)
+            try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr2)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
+        }
+        
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 20.0, handler: nil)
@@ -93,6 +111,14 @@ class Client_SyncServer_FileUpload: TestCase {
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
+    
+    func testThatUploadingTwoSeparateImmutableFilesWorks() {
+        uploadTwoSeparateFilesWorks(copy:false)
+    }
+    
+    func testThatUploadingTwoSeparateCopyFilesWorks() {
+        uploadTwoSeparateFilesWorks(copy:true)
+    }
 
     // TODO: *2* file will have deleted flag set in local Directory.
     // This is commented out until we do multi-version files.
@@ -101,7 +127,7 @@ class Client_SyncServer_FileUpload: TestCase {
     }
 */
 
-    func testThatAddingSameFileToUploadQueueTwiceBeforeSyncReplaces() {
+    func addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy:Bool) {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
@@ -130,8 +156,15 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr)
-        try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url1, withAttributes: attr)
+            try! SyncServer.session.uploadCopy(localFile: url2, withAttributes: attr)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr)
+            try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr)
+        }
+        
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 20.0, handler: nil)
@@ -148,8 +181,16 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file, masterVersion: masterVersion)
     }
     
-    func testThatChangingTheMimeTypeOnSecondUploadFails() {
-        let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+    func testThatAddingSameImmutableFileToUploadQueueTwiceBeforeSyncReplaces() {
+        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: false)
+    }
+    
+    func testThatAddingSameCopyFileToUploadQueueTwiceBeforeSyncReplaces() {
+        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: true)
+    }
+    
+    func changingTheMimeTypeOnSecondUploadFails(copy: Bool) {
+       let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
         
@@ -158,19 +199,37 @@ class Client_SyncServer_FileUpload: TestCase {
         // Different mime type for second upload attempt.
         let attr2 = SyncAttributes(fileUUID: fileUUID, mimeType: "image/jpeg")
         
-        try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url1, withAttributes: attr1)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
+        }
         
         var gotError = false
         do {
-            try SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
+            if copy {
+                try SyncServer.session.uploadCopy(localFile: url2, withAttributes: attr2)
+            }
+            else {
+                try SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
+            }
         } catch {
             gotError = true
         }
         
         XCTAssert(gotError)
     }
+    
+    func testThatChangingTheMimeTypeOnSecondUploadImmutableFails() {
+        changingTheMimeTypeOnSecondUploadFails(copy: false)
+    }
+    
+    func testThatChangingTheMimeTypeOnSecondUploadCopyFails() {
+        changingTheMimeTypeOnSecondUploadFails(copy: true)
+    }
 
-    func testSyncAferCompleteUploadWorks() {
+    func syncAferCompleteUploadWorks(copy: Bool) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
@@ -213,7 +272,13 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        }
+        
         SyncServer.session.sync()
         SyncServer.session.sync()
         
@@ -230,8 +295,15 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
     }
     
-    func testUploadsOfDifferentFilesAcrossDifferentSyncsWorks() {
-        
+    func testSyncAferCompleteUploadImmutableWorks() {
+        syncAferCompleteUploadWorks(copy: false)
+    }
+    
+    func testSyncAferCompleteUploadCopyWorks() {
+        syncAferCompleteUploadWorks(copy: true)
+    }
+    
+    func uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: Bool) {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
@@ -300,10 +372,22 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url1, withAttributes: attr1)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
+        }
+        
         SyncServer.session.sync()
 
-        try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url2, withAttributes: attr2)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
+        }
+        
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 10.0, handler: nil)
@@ -326,14 +410,26 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion)
     }
     
-    // The purpose of this test is to make sure that, despite the fact that we queue the file for upload, that the file creation date/time occurs *after* we start the sync operation.
-    func testThatCreationDateOfFileIsCorrect() {
+    func testUploadImmutableOfDifferentFilesAcrossDifferentSyncsWorks() {
+        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: false)
+    }
+    
+    func testUploadCopyOfDifferentFilesAcrossDifferentSyncsWorks() {
+        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: true)
+    }
+    
+    func creationDateOfFileIsCorrect(copy: Bool) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
         
         // Queue's the file for upload.
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        if copy {
+            try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        }
         
         // Get the server date/time *after* the queuing.
         guard let health1 = healthCheck(), let serverDateTimeBefore = health1.currentServerDateTime else {
@@ -377,6 +473,15 @@ class Client_SyncServer_FileUpload: TestCase {
         else {
             XCTFail()
         }
+    }
+    
+    // The purpose of this test is to make sure that, despite the fact that we queue the file for upload, that the file creation date/time occurs *after* we start the sync operation.
+    func testThatCreationDateOfImmutableFileIsCorrect() {
+        creationDateOfFileIsCorrect(copy: false)
+    }
+    
+    func testThatCreationDateOfCopyFileIsCorrect() {
+        creationDateOfFileIsCorrect(copy: true)
     }
     
     // TODO: *3* Test of upload file1, sync, upload file1, sync-- uploads both files.

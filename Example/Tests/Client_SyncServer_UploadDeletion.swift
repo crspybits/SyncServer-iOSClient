@@ -25,7 +25,10 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     @discardableResult
     func uploadDeletionWorksWhenWaitUntilAfterUpload() -> String? {
-        let (_, attr) = uploadSingleFileUsingSync()
+        guard let (_, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return nil
+        }
         
         SyncServer.session.eventsDesired = [.syncDone, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         

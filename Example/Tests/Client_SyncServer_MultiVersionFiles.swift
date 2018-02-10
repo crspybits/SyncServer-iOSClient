@@ -28,8 +28,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // uploads text files.
     @discardableResult
-    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, fileURL:SMRelativeLocalURL? = nil) -> URL {
-        let (url, attr) = uploadSingleFileUsingSync(fileUUID: fileUUID, fileURL:fileURL)
+    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, fileURL:SMRelativeLocalURL? = nil) -> URL? {
+        
+        guard let (url, attr) = uploadSingleFileUsingSync(fileUUID: fileUUID, fileURL:fileURL) else {
+            XCTFail()
+            return nil
+        }
         
         getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
@@ -130,9 +134,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Returns the fileUUID
     @discardableResult
-    func uploadVersion(_ maxVersion:FileVersionInt) -> (fileUUID: String, URL) {
+    func uploadVersion(_ maxVersion:FileVersionInt) -> (fileUUID: String, URL)? {
         let fileUUID = UUID().uuidString
-        let url = sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0)
+        guard let url = sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0) else {
+            XCTFail()
+            return nil
+        }
         
         if maxVersion > 0 {
             for version in 1...maxVersion {
@@ -147,8 +154,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         i.e., Use sync to upload different file versions, e.g., version 1 of file UUID X, version 3 of file UUID Y. Reset local meta data. Sync again. Should get those different file versions.
     */
     func testFileDownloadOfDifferentVersions() {
-        let (fileUUID1, url1) = uploadVersion(1)
-        let (fileUUID2, url2) = uploadVersion(3)
+        guard let (fileUUID1, url1) = uploadVersion(1),
+        let (fileUUID2, url2) = uploadVersion(3) else {
+            XCTFail()
+            return
+        }
         
         let urls = [fileUUID1: url1,
             fileUUID2: url2]
@@ -216,7 +226,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testUploadDeleteHigherNumberedFileVersionWorks() {
         let fileVersion:FileVersionInt = 3
         
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
         
         SyncServer.session.eventsDesired = [.syncDone, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
@@ -256,7 +269,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     func testDownloadDeleteHigherNumberedFileVersion() {
         let fileVersion:FileVersionInt = 3
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
         
         var masterVersion:MasterVersionInt!
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
@@ -300,7 +316,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func downloadDeletionConflict_AcceptDownloadDeletion(numberUploads:Int) {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
@@ -383,7 +402,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
@@ -466,7 +488,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
@@ -534,7 +559,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testDownloadDeletionWithPendingUploadDeletion() {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 0
-        let (fileUUID, _) = uploadVersion(fileVersion)
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
@@ -797,7 +825,10 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
     func testLocalDeletionDownloadedAgainBecauseUndeleted() {
         // 1) Upload the file.
-        let (url, attr) = uploadSingleFileUsingSync()
+        guard let (url, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
 
         // 2) Upload delete the file
         SyncServer.session.eventsDesired = [.syncDone]

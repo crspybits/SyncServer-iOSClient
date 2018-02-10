@@ -12,7 +12,18 @@ import Foundation
 import SMCoreLib
 
 public class FilesMisc {
-
+    // Creates a new file name; doesn't create the file.
+    static func newTempFileURL() -> SMRelativeLocalURL? {
+        let directoryURL = FileStorage.url(ofItem: Constants.tempDirectory)
+        FileStorage.createDirectoryIfNeeded(directoryURL)
+        
+        guard let newFileName = FileStorage.createTempFileName(inDirectory: directoryURL?.path, withPrefix: "TempCopy", andExtension: "dat") else {
+            return nil
+        }
+        
+        return SMRelativeLocalURL(withRelativePath: Constants.tempDirectory + "/" + newFileName, toBaseURLType: .documentsDirectory)
+    }
+    
     // Creates a file within the Documents/<SMAppConstants.tempDirectory> directory. If the URL returned is non-nil, the file will have been created, and zero length upon return.
     public class func createTemporaryRelativeFile() -> SMRelativeLocalURL? {
         

@@ -559,7 +559,7 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
-    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil) -> (URL, SyncAttributes) {
+    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, uploadCopy:Bool = false) -> (URL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         if fileURL == nil {
@@ -567,6 +567,17 @@ class TestCase: XCTestCase {
         }
         else {
             url = fileURL!
+        }
+        
+        if uploadCopy {
+            // In exercising the `copy` characteristics, we're going to delete the file immediately after uploadCopy. So, make a copy now since we can't delete a bundle file.
+            guard let copyOfFileURL = FilesMisc.newTempFileURL() else {
+                XCTFail()
+                return nil
+            }
+            
+            try! FileManager.default.copyItem(at: url as URL, to: copyOfFileURL as URL)
+            url = copyOfFileURL
         }
 
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
@@ -595,7 +606,16 @@ class TestCase: XCTestCase {
             }
         }
         
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        if uploadCopy {
+            try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr)
+            
+            // To truly exercise the `copy` characteristics-- delete the file now.
+            try! FileManager.default.removeItem(at: url as URL)
+        }
+        else {
+            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        }
+        
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 20.0, handler: nil)

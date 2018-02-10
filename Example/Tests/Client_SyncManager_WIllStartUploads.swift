@@ -78,7 +78,10 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
-        let (_, attr) = uploadSingleFileUsingSync()
+        guard let (_, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
         
         SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
         SyncServer.session.delegate = self
@@ -108,7 +111,10 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForFileUploadAndUploadDeletion() {
-        let (_, deletionAttr) = uploadSingleFileUsingSync()
+        guard let (_, deletionAttr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString

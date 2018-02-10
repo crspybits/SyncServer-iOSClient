@@ -282,8 +282,11 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect 2nd to occur normally.
     */
     func testStopSyncBetweenTwoUploadDeletions() {
-        let (_, attr1) = uploadSingleFileUsingSync()
-        let (_, attr2) = uploadSingleFileUsingSync()
+        guard let (_, attr1) = uploadSingleFileUsingSync(),
+            let (_, attr2) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
         
         SyncServer.session.eventsDesired = [.syncStopping, .singleUploadDeletionComplete]
         
