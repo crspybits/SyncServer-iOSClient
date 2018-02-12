@@ -68,8 +68,9 @@ class ServerAPI_Authentication: TestCase {
         
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser { error in
+        ServerAPI.session.addUser { userId, error in
             XCTAssert(error == nil)
+            XCTAssert(userId != nil)
             expectation.fulfill()
         }
         
@@ -86,8 +87,9 @@ class ServerAPI_Authentication: TestCase {
 
         Log.msg("deviceUUID1: \(self.deviceUUID)")
 
-        ServerAPI.session.addUser { error in
+        ServerAPI.session.addUser { userId, error in
             XCTAssert(error == nil)
+            XCTAssert(userId != nil)
             addUserExpectation.fulfill()
             ServerAPI.session.checkCreds { checkCredsResult, error in
                 XCTAssert(error == nil)
@@ -111,8 +113,9 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser { error in
+        ServerAPI.session.addUser { userId, error in
             XCTAssert(error == nil)
+            XCTAssert(userId != nil)
             addUserExpectation.fulfill()
             
             self.authTokens[ServerConstants.HTTPOAuth2AccessTokenKey] = "foobar"
@@ -138,8 +141,9 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
         
-        ServerAPI.session.addUser { error in
+        ServerAPI.session.addUser { userId, error in
             XCTAssert(error == nil)
+            XCTAssert(userId != nil)
             addUserExpectation.fulfill()
             
             self.authTokens[ServerConstants.HTTPOAuth2AccessTokenKey] = "foobar"
@@ -163,8 +167,9 @@ class ServerAPI_Authentication: TestCase {
         let removeUserExpectation = self.expectation(description: "removeUser")
         let addUserExpectation2 = self.expectation(description: "addUser2")
 
-        ServerAPI.session.addUser { error in
+        ServerAPI.session.addUser { userId, error in
             XCTAssert(error == nil)
+            XCTAssert(userId != nil)
             addUserExpectation.fulfill()
             
             ServerAPI.session.removeUser { error in
@@ -172,8 +177,9 @@ class ServerAPI_Authentication: TestCase {
                 removeUserExpectation.fulfill()
                 
                 // Because we don't want to leave tests in a state where we don't hav the user we need.
-                ServerAPI.session.addUser { error in
+                ServerAPI.session.addUser { userId, error in
                     XCTAssert(error == nil)
+                    XCTAssert(userId != nil)
                     addUserExpectation2.fulfill()
                 }
             }
@@ -208,8 +214,9 @@ class ServerAPI_Authentication: TestCase {
             
             let addUserExpectation = self.expectation(description: "addUser")
             
-            ServerAPI.session.addUser { error in
+            ServerAPI.session.addUser { userId, error in
                 XCTAssert(error == nil)
+                XCTAssert(userId != nil)
                 addUserExpectation.fulfill()
             }
             

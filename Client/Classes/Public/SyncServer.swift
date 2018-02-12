@@ -91,7 +91,9 @@ public class SyncServer {
     // This operation survives app launches, as long as the the call itself completes. 
     // If there is a file with the same uuid, which has been enqueued for upload but not yet `sync`'ed, it will be replaced by the given file. 
     // This operation does not access the server, and thus runs quickly and synchronously.
-    // When uploading a file for the 2nd or more time ("multi-version upload") the 2nd and following updates must have the same mimeType as the first version of the file. If the attr.appMetaData is given as nil, and an earlier version had non-nil appMetaData, then the nil appMetaData is ignored-- i.e., the existing app meta data is not set to nil.
+    // When uploading a file for the 2nd or more time ("multi-version upload"):
+    // a) the 2nd and following updates must have the same mimeType as the first version of the file.
+    // b) If the attr.appMetaData is given as nil, and an earlier version had non-nil appMetaData, then the nil appMetaData is ignored-- i.e., the existing app meta data is not set to nil.
     // Warning: If you indicate that the mime type is "text/plain", and you are using Google Drive and the text contains unusual characters, you may run into problems-- e.g., downloading the files may fail.
     public func uploadImmutable(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
         try upload(fileURL: localFile, withAttributes: attr)
