@@ -116,7 +116,7 @@ class Directory {
                     entry.deletedOnServer = false
                 }
                 
-                if entry.mimeType == dft.mimeType {
+                if entry.mimeType != dft.mimeType {
                     Thread.runSync(onMainThread: {[unowned self] in
                         self.delegate.syncServerErrorOccurred(error: .mimeTypeOfFileChanged)
                     })
