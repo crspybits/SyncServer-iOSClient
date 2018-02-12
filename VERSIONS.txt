@@ -1,11 +1,11 @@
 SyncServer-iOSClient
 
-Version 12.0.0
-	* Added minimumServerVersion parameter to `appLaunchSetup`, and  `badServerVersion` error if the server doesn't meet the minimum. (Not using a delegate for this because a client is only going to have a static need for a minimum server version).
+Version 12.0.0 (2/11/18)
+	* Added minimumServerVersion parameter to `appLaunchSetup`, and  `badServerVersion` error if the server doesn't meet the minimum. (Not using a delegate for this because presumably a client is only going to have a static need for a minimum server version).
 	* Added syncServerUserId into SyncServerUser-- needed this for a unique, cross user identifier, in SharedImages. And it was contained internally-- just exposed it. Not going to *ever* send this back to the server-- just for purely client usage.
  	* Fixed issue where, on downloading a file, the mimeType wasn't set in the directory.
  	* Fixed issue: Need to cache the appMetaData for files in the local directory-- to deal with the case where the client uploads the file, but gives the appMetaData as nil, to not update it. But, we still need that meta data locally for callback for client. As a result of this, needed to change Core Data objects to have appMetaData.
- 	* Added `uploadCopy` method to main SyncServer client interface-- to deal with queuing changed versions of a file.
+ 	* Added `uploadCopy` method to main SyncServer client interface-- to deal with queuing changed versions of a file and not making immutable assumption.
   	* Added test cases.
  	
 Version 11.0.1 (1/28/18)
