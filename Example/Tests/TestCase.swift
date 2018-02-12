@@ -562,12 +562,16 @@ class TestCase: XCTestCase {
     func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (URL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
+        var originalURL:SMRelativeLocalURL
+        
         if fileURL == nil {
             url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         }
         else {
             url = fileURL!
         }
+        
+        originalURL = url
         
         if uploadCopy {
             // In exercising the `copy` characteristics, we're going to delete the file immediately after uploadCopy. So, make a copy now since we can't delete a bundle file.
@@ -623,7 +627,7 @@ class TestCase: XCTestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        return (url as URL, attr)
+        return (originalURL as URL, attr)
     }
     
     func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {        

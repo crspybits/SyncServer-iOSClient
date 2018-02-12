@@ -146,13 +146,13 @@ public struct ServerVersion {
 public protocol SyncServerDelegate : class {
     // The client has to decide how to resolve the file-download conflicts. The resolveConflict method of the SyncServerConflict must be called. The statements below apply for the SMRelativeLocalURL's.
     // Not called on the main thread. You must call the conflict resolution callbacks on the same thread as this was called on.
-    // The `syncServerSingleFileDownloadComplete` will be called after, if you allow the download to continue.
+    // The `syncServerSingleFileDownloadComplete` will be called after, if you allow the download to continue. i.e., if you use acceptFileDownload of FileDownloadResolution.
     func syncServerMustResolveFileDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>)
     
     /* Called at the end of a single download, on non-error conditions.
-    The client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be moved to a more permanent location.
+    The client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be copied and/or moved to a more permanent location.
     Client should replace their existing data with that from the given file.
-    This method doesn't get called for a particular download if (a) there is a conflict and (b) the client resolves that conflict by using `keepConflictingClientOperations`.
+    This method doesn't get called for a particular download if (a) there is a conflict and (b) the client resolves that conflict by using .rejectFileDownload
     */
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes)
 
