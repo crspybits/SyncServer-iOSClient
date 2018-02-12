@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 12.0.1 (2/11/18)
+	* Fixed issue with mis-reporting of error of mime type change.
+	
 Version 12.0.0 (2/11/18)
 	* Added minimumServerVersion parameter to `appLaunchSetup`, and  `badServerVersion` error if the server doesn't meet the minimum. (Not using a delegate for this because presumably a client is only going to have a static need for a minimum server version).
 	* Added syncServerUserId into SyncServerUser-- needed this for a unique, cross user identifier, in SharedImages. And it was contained internally-- just exposed it. Not going to *ever* send this back to the server-- just for purely client usage.
