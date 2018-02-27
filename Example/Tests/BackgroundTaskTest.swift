@@ -9,6 +9,7 @@
 import XCTest
 @testable import SyncServer
 import SMCoreLib
+import SyncServer_Shared
 
 // For ideas about how to extend the current background task operation, see https://github.com/crspybits/SharedImages/issues/36
 
@@ -45,7 +46,7 @@ class BackgroundTaskTest: TestCase {
         
         let fileName = "Cat"
         let fileExtension = "jpg"
-        let mimeType = "image/jpeg"
+        let mimeType:MimeType = .jpeg
         
         // First upload a file.
         let masterVersion = getMasterVersion()
@@ -133,7 +134,7 @@ class BackgroundTaskTest: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "Cat.jpg", toBaseURLType: .mainBundle)!
         
         let uploadFileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: uploadFileUUID, mimeType: "image/jpeg")
+        let attr = SyncAttributes(fileUUID: uploadFileUUID, mimeType: .jpeg)
         
         SyncServer.session.eventsDesired = [.syncDone, .willStartUploads]
         SyncServer.session.delegate = self

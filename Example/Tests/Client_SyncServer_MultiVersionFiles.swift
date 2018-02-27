@@ -98,7 +98,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let version:FileVersionInt = 1
         for index in 0...version {
-            let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+            let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
             let url = urls[Int(index)]
             
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
@@ -348,7 +348,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             let conflict = conflicts[0]
             
             let deletion = conflict.downloadDeletion
-            XCTAssert(deletion.mimeType == "text/plain")
+            XCTAssert(deletion.mimeType == MimeType.text)
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
@@ -378,7 +378,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         for _ in 1...numberUploads {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
@@ -434,7 +434,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             let conflict = conflicts[0]
             
             let deletion = conflict.downloadDeletion
-            XCTAssert(deletion.mimeType == "text/plain")
+            XCTAssert(deletion.mimeType == .text)
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
@@ -466,7 +466,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         for _ in 1...numberUploadsToDo {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
@@ -519,7 +519,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             let conflict = conflicts[0]
             
             let deletion = conflict.downloadDeletion
-            XCTAssert(deletion.mimeType == "text/plain")
+            XCTAssert(deletion.mimeType == .text)
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
@@ -546,7 +546,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         SyncServer.session.sync()
         
@@ -640,7 +640,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             conflictTypeExpected = .uploadDeletion
         }
     
-        let mimeType = "text/plain"
+        let mimeType:MimeType = .text
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
@@ -730,7 +730,6 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         syncServerMustResolveFileDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) in
             XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedFileAttributes.mimeType == mimeType)
-            
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
             uploadConflict.resolutionCallback(resolution)
         }
@@ -739,6 +738,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             if case .acceptFileDownload = resolution {
                 XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
                 XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+                
                 guard let saveDownloadsExp = saveDownloadsExp else {
                     XCTFail()
                     return
@@ -909,7 +909,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let conflictTypeExpected:
             SyncServerConflict<FileDownloadResolution>.ClientOperation = .fileUpload
     
-        let mimeType = "text/plain"
+        let mimeType:MimeType = .text
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
@@ -980,7 +980,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileUUID1 = UUID().uuidString
         
         // The meta data in attr1 is explicitly supposed to be nil.
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
        
         let appMetaData = "123themetadata"
         

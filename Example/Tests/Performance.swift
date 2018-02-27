@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import SyncServer
+import SyncServer_Shared
 
 class Performance: TestCase {
     
@@ -21,7 +22,7 @@ class Performance: TestCase {
         super.tearDown()
     }
     
-    func downloadNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:String) {
+    func downloadNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
         // First upload N files.
         let masterVersion = getMasterVersion()
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
@@ -70,25 +71,25 @@ class Performance: TestCase {
     }
     
     func test10SmallTextFileDownloads() {
-        downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+        downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
     }
     
     func test10_120K_ImageFileDownloads() {
-        downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType:"image/jpeg")
+        downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType: .jpeg)
     }
  
     // 5/27/17; I've been having problems with large-ish downloads. E.g., See https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
     func test10SmallerImageFileDownloads() {
-        downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType:"image/jpeg")
+        downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType: .jpeg)
     }
     
     func test10LargeImageFileDownloads() {
-        downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType:"image/jpeg")
+        downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType: .jpeg)
     }
     
     func interspersedDownloadsOfSmallTextFile(_ N:Int) {
         for _ in 1...N {
-            doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+            doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
         }
     }
     
@@ -97,7 +98,7 @@ class Performance: TestCase {
         interspersedDownloadsOfSmallTextFile(10)
     }
     
-    func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:String) {
+    func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
         // First upload N files.
         let masterVersion = getMasterVersion()
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
@@ -127,12 +128,12 @@ class Performance: TestCase {
     
     // Failed with `shouldSaveDownload` being nil, when run with others as a group.
     func test10Deletions() {
-        deleteNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+        deleteNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
     }
     
     func test25Deletions() {
         // 12/25/17; Previously I had this set to 50 deletions, but I run into a 504 HTTP response from the server, and I think it's from NGINX. See https://github.com/crspybits/SyncServerII/issues/48
-        deleteNFiles(25, fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+        deleteNFiles(25, fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
     }
     
     // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39
@@ -143,7 +144,7 @@ class Performance: TestCase {
         let N = 10
         let fileName = "Cat"
         let fileExtension = "jpg"
-        let mimeType = "image/jpeg"
+        let mimeType:MimeType = .jpeg
 
         // First upload N files.
         let masterVersion = getMasterVersion()

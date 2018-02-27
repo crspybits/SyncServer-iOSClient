@@ -8,6 +8,7 @@
 
 import Foundation
 import SMCoreLib
+import SyncServer_Shared
 
 public class SyncServer {
     public static let session = SyncServer()
@@ -112,10 +113,16 @@ public class SyncServer {
             if nil == entry {
                 entry = (DirectoryEntry.newObject() as! DirectoryEntry)
                 entry!.fileUUID = attr.fileUUID
-                entry!.mimeType = attr.mimeType
+                entry!.mimeType = attr.mimeType.rawValue
             }
             else {
-                if attr.mimeType != entry!.mimeType {
+                guard let entryMimeTypeString = entry!.mimeType,
+                    let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
+                    errorToThrow = SyncServerError.noMimeType
+                    return
+                }
+                
+                if attr.mimeType != entryMimeType {
                     errorToThrow = SyncServerError.mimeTypeOfFileChanged
                     return
                 }
@@ -129,7 +136,7 @@ public class SyncServer {
             let newUft = UploadFileTracker.newObject() as! UploadFileTracker
             newUft.appMetaData = attr.appMetaData
             newUft.fileUUID = attr.fileUUID
-            newUft.mimeType = attr.mimeType
+            newUft.mimeType = attr.mimeType.rawValue
             newUft.uploadCopy = copy
             
             if copy {

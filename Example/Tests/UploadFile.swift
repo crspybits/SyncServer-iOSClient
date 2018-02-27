@@ -24,19 +24,19 @@ class ServerAPI_UploadFile: TestCase {
     func testUploadTextFile() {
         let masterVersion = getMasterVersion()
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, serverMasterVersion: masterVersion)
     }
     
     func testUploadJPEGFile() {
         let masterVersion = getMasterVersion()
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
-        _ = uploadFile(fileURL:fileURL, mimeType: "image/jpeg", serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .jpeg, serverMasterVersion: masterVersion)
     }
     
     func testUploadTextFileWithNoAuthFails() {
         ServerNetworking.session.delegate = nil
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", expectError: true)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, expectError: true)
     }
     
     // This should not fail because the second attempt doesn't add a second upload deletion-- the second attempt is to allow for recovery/retries.
@@ -45,9 +45,9 @@ class ServerAPI_UploadFile: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion)
         
-        _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion)
     }
     
     func testParallelUploadsWork() {
@@ -59,9 +59,9 @@ class ServerAPI_UploadFile: TestCase {
         let fileUUID2 = UUID().uuidString
         Log.special("fileUUID1= \(fileUUID1); fileUUID2= \(fileUUID2)")
         
-        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID1, serverMasterVersion: masterVersion, withExpectation:expectation1)
+        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: .text, fileUUID:fileUUID1, serverMasterVersion: masterVersion, withExpectation:expectation1)
         
-        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: "text/plain", fileUUID:fileUUID2, serverMasterVersion: masterVersion, withExpectation:expectation2)
+        uploadFile(fileName: "UploadMe", fileExtension: "txt", mimeType: .text, fileUUID:fileUUID2, serverMasterVersion: masterVersion, withExpectation:expectation2)
 
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -79,7 +79,7 @@ class ServerAPI_UploadFile: TestCase {
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: "text/plain", cloudFolderName: cloudFolderName, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: .text, cloudFolderName: cloudFolderName, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
         
         var uploadResult:ServerAPI.UploadFileResult?
         

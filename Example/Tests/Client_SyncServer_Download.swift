@@ -26,7 +26,7 @@ class Client_SyncServer_Download: TestCase {
     // TODO: *1* Other download test cases using .sync()
     
     func testDownloadByDifferentDeviceUUIDThanUpload() {
-         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain")
+         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
     }
     
     // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
@@ -43,11 +43,11 @@ class Client_SyncServer_Download: TestCase {
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return
         }
         
@@ -99,11 +99,11 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testDownloadWithMetaData() {
-         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain", appMetaData: "Some app meta data")
+         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: "Some app meta data")
     }
     
     func testThatResetWorksAfterDownload() {
-        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: "text/plain", appMetaData: "Some app meta data")
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: "Some app meta data")
         
         do {
             try SyncServer.session.reset()
@@ -134,7 +134,7 @@ class Client_SyncServer_Download: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion+1) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion+1) else {
             return
         }
         

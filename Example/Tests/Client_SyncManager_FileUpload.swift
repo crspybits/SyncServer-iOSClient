@@ -55,8 +55,8 @@ class Client_SyncServer_FileUpload: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
@@ -131,7 +131,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
@@ -194,10 +194,10 @@ class Client_SyncServer_FileUpload: TestCase {
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
         
-        let attr1 = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         // Different mime type for second upload attempt.
-        let attr2 = SyncAttributes(fileUUID: fileUUID, mimeType: "image/jpeg")
+        let attr2 = SyncAttributes(fileUUID: fileUUID, mimeType: .jpeg)
         
         if copy {
             try! SyncServer.session.uploadCopy(localFile: url1, withAttributes: attr1)
@@ -232,7 +232,7 @@ class Client_SyncServer_FileUpload: TestCase {
     func syncAferCompleteUploadWorks(copy: Bool) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         let syncDone1 = self.expectation(description: "test1")
@@ -264,7 +264,7 @@ class Client_SyncServer_FileUpload: TestCase {
                 
             case .singleFileUploadComplete(attr: let attr):
                 XCTAssert(attr.fileUUID == fileUUID, "FileUUID was: \(fileUUID)")
-                XCTAssert(attr.mimeType == "text/plain")
+                XCTAssert(attr.mimeType == .text)
                 expectation4.fulfill()
                 
             default:
@@ -306,11 +306,11 @@ class Client_SyncServer_FileUpload: TestCase {
     func uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: Bool) {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
 
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         let expectSyncDone1 = self.expectation(description: "test1")
@@ -421,7 +421,7 @@ class Client_SyncServer_FileUpload: TestCase {
     func creationDateOfFileIsCorrect(copy: Bool) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         // Queue's the file for upload.
         if copy {

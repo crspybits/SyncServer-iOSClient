@@ -59,6 +59,6 @@ class ServerAPI_FileIndex: TestCase {
         }
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        _ = uploadFile(fileURL:fileURL, mimeType: "text/plain", serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, serverMasterVersion: masterVersion)
     }
 }

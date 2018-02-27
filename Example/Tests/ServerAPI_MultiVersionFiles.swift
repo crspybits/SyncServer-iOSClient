@@ -25,10 +25,10 @@ class ServerAPI_MultiVersionFiles: TestCase {
     
     func uploadTextFileVersion(_ version:FileVersionInt) {
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        uploadFileVersion(version, fileURL: fileURL, mimeType: "text/plain")
+        uploadFileVersion(version, fileURL: fileURL, mimeType: .text)
     }
     
-    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:String) {
+    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType) {
         var masterVersion = getMasterVersion()
         var fileVersion:FileVersionInt = 0
         let fileUUID = UUID().uuidString
@@ -46,7 +46,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             masterVersion += 1
             fileVersion += 1
         
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
                 XCTFail()
                 return
             }
@@ -71,10 +71,16 @@ class ServerAPI_MultiVersionFiles: TestCase {
 
         XCTAssert(result[0].fileVersion == fileVersion)
         XCTAssert(result[0].appMetaData == file.appMetaData)
-        XCTAssert(result[0].cloudFolderName == file.cloudFolderName)
         XCTAssert(result[0].deviceUUID == file.deviceUUID)
-        XCTAssert(result[0].mimeType == file.mimeType)
-    
+        
+        if let resultMimeTypeString = result[0].mimeType {
+            let resultMimeType = MimeType(rawValue: resultMimeTypeString)
+            XCTAssert(resultMimeType == file.mimeType)
+        }
+        else {
+            XCTFail()
+        }
+        
         onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
     }
 
@@ -83,7 +89,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         var masterVersion = getMasterVersion()
         var fileVersion:FileVersionInt = 0
         let fileUUID = UUID().uuidString
-        let mimeType = "text/plain"
+        let mimeType:MimeType = .text
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         let appMetaData = "foobar"
         
@@ -118,7 +124,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return
         }
@@ -129,7 +135,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         // +1 works, but +2 should fail.
         fileVersion += 2
         
-        uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, fileVersion: fileVersion)
+        uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, fileVersion: fileVersion)
     }
     
     @discardableResult
@@ -141,7 +147,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return nil
         }
@@ -150,7 +156,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion += 1
         fileVersion += 1
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return nil
         }
@@ -187,7 +193,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
     func testUploadAndDownloadImageFileVersion2Works() {
         let fileName = "Cat"
         let fileExtension = "jpg"
-        let mimeType = "image/jpeg"
+        let mimeType:MimeType = .jpeg
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
         uploadFileVersion(2, fileURL: fileURL, mimeType: mimeType)
     }
@@ -213,7 +219,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         var fileVersion:FileVersionInt = 0
-        let mimeType = "text/plain"
+        let mimeType:MimeType = .text
         var masterVersion = masterVersion
         
         guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
@@ -230,7 +236,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             masterVersion += 1
             fileVersion += 1
             
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
                 XCTFail()
                 return nil
             }
@@ -261,7 +267,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileURL3 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
         var masterVersion = getMasterVersion()
-        guard let (_, file3) = uploadFile(fileURL:fileURL3, mimeType: "text/plain", fileUUID: fileUUID3, serverMasterVersion: masterVersion, fileVersion: 0) else {
+        guard let (_, file3) = uploadFile(fileURL:fileURL3, mimeType: .text, fileUUID: fileUUID3, serverMasterVersion: masterVersion, fileVersion: 0) else {
             XCTFail()
             return
         }
@@ -286,7 +292,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID2 = UUID().uuidString
         let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (fileSize2, file2) = uploadFile(fileURL:fileURL2, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileVersion: 0) else {
+        guard let (fileSize2, file2) = uploadFile(fileURL:fileURL2, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileVersion: 0) else {
             XCTFail()
             return
         }

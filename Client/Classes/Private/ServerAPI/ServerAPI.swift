@@ -118,10 +118,26 @@ class ServerAPI {
     // MARK: Authentication/user-sign in
     
     // Adds the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil).
-    public func addUser(completion:((UserId?, SyncServerError?)->(Void))?) {
+    // If the type of owning user being added needs a cloud folder name, you must give it here (e.g., Google).
+    public func addUser(cloudFolderName: String? = nil, completion:((UserId?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.addUser
-        let url = makeURL(forEndpoint: endpoint)
+        var parameters:String?
         
+        if let cloudFolderName = cloudFolderName {
+            let params:[String : Any] = [
+                AddUserRequest.cloudFolderNameKey: cloudFolderName,
+            ]
+            
+            guard let addUserRequest = UploadFileRequest(json: params) else {
+                completion?(nil, .couldNotCreateRequest)
+                return
+            }
+            
+            parameters = addUserRequest.urlParameters()!
+        }
+
+        let url = makeURL(forEndpoint: endpoint, parameters: parameters)
+
         sendRequestUsing(method: endpoint.method,
             toURL: url) { (response,  httpStatus, error) in
            
@@ -245,7 +261,7 @@ class ServerAPI {
     struct File : Filenaming {
         let localURL:URL!
         let fileUUID:String!
-        let mimeType:String!
+        let mimeType:MimeType!
         let cloudFolderName:String!
         let deviceUUID:String!
         let appMetaData:String?
@@ -266,7 +282,6 @@ class ServerAPI {
         var params:[String : Any] = [
             UploadFileRequest.fileUUIDKey: file.fileUUID,
             UploadFileRequest.mimeTypeKey: file.mimeType,
-            UploadFileRequest.cloudFolderNameKey: file.cloudFolderName,
             UploadFileRequest.appMetaDataKey: file.appMetaData as Any,
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion

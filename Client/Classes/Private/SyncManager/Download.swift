@@ -214,8 +214,8 @@ class Download {
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()
                     
                     // TODO: Not using downloadedFile.fileSizeBytes. Why?
-                    
-                    var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: nextToDownload.mimeType!, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
+                    let mimeType = MimeType(rawValue: nextToDownload.mimeType!)!
+                    var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: mimeType, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
                     attr.appMetaData = downloadedFile.appMetaData
                     attr.creationDate = nextToDownload.creationDate as Date?
                     attr.updateDate = nextToDownload.updateDate as Date?

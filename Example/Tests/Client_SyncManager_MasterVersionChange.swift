@@ -56,7 +56,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             XCTAssert(error == nil)
             XCTAssert(masterVersion! >= 0)
             
-            let mimeType:String! = "text/plain"
+            let mimeType:MimeType = .text
             let file = ServerAPI.File(localURL: url, fileUUID: fileUUID, mimeType: mimeType, cloudFolderName: self.cloudFolderName, deviceUUID: self.deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
             
             ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion!) { uploadFileResult, error in
@@ -98,8 +98,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
         
@@ -229,8 +229,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
 
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
@@ -352,7 +352,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
 
         // 1) Preparation: Upload a file, identified by UUID1. This is the file we'll delete below. We have to use the SyncServer.session client interface so that it will get recorded in the local meta data for the client.
 
@@ -383,7 +383,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // File to upload which will cause a SyncServer event which will allow us to upload fileUUID2
         let fileUUID3 = UUID().uuidString
         
-        let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: "text/plain")
+        let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted]
         
@@ -478,12 +478,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID3, url: fileURL3)
         ]
         
-        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -574,12 +574,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID2, url: fileURL2)
         ]
         
-        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }

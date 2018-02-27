@@ -49,7 +49,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     func testThatWillUploadEventIsTriggeredForOneFileUpload() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
         SyncServer.session.delegate = self
@@ -118,7 +118,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let uploadAttr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let uploadAttr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
         SyncServer.session.delegate = self

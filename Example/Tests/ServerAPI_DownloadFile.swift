@@ -34,8 +34,8 @@ class ServerAPI_DownloadFile: TestCase {
         let masterVersion = getMasterVersion()
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
-        let (_, file1) = uploadFile(fileURL:fileURL, mimeType: "image/jpeg", serverMasterVersion: masterVersion)!
-        let (_, file2) = uploadFile(fileURL:fileURL, mimeType: "image/jpeg", serverMasterVersion: masterVersion)!
+        let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .jpeg, serverMasterVersion: masterVersion)!
+        let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .jpeg, serverMasterVersion: masterVersion)!
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
 

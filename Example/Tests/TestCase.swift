@@ -219,7 +219,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:String? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:String? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -275,7 +275,7 @@ class TestCase: XCTestCase {
         }
     }
     
-    func uploadFile(fileName:String, fileExtension:String, mimeType:String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, withExpectation expectation:XCTestExpectation) {
+    func uploadFile(fileName:String, fileExtension:String, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, withExpectation expectation:XCTestExpectation) {
     
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -417,7 +417,7 @@ class TestCase: XCTestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
@@ -467,7 +467,7 @@ class TestCase: XCTestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
@@ -521,7 +521,7 @@ class TestCase: XCTestCase {
             actualFileUUID = UUID().uuidString
         }
         
-        guard let (fileSize, file) = uploadFile(fileURL:uploadFileURL, mimeType: "text/plain", fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let (fileSize, file) = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             return
         }
         
@@ -584,7 +584,7 @@ class TestCase: XCTestCase {
             url = copyOfFileURL
         }
 
-        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         if let appMetaData = appMetaData {
             attr.appMetaData = appMetaData
         }
@@ -605,7 +605,7 @@ class TestCase: XCTestCase {
                 
             case .singleFileUploadComplete(attr: let attr):
                 XCTAssert(attr.fileUUID == fileUUID)
-                XCTAssert(attr.mimeType == "text/plain")
+                XCTAssert(attr.mimeType == .text)
                 expectation3.fulfill()
                 
             default:
@@ -642,7 +642,7 @@ class TestCase: XCTestCase {
         }
     }
     
-    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:String, appMetaData:String? = nil) {
+    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:String? = nil) {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload a file.

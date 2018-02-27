@@ -51,7 +51,7 @@ class Client_SyncServer_StopSync: TestCase {
     func testStopSyncBeforeUpload() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .fileUploadsCompleted]
         let syncStarted = self.expectation(description: "SyncStarted")
@@ -104,8 +104,8 @@ class Client_SyncServer_StopSync: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStopping, .fileUploadsCompleted, .singleFileUploadComplete]
         
@@ -165,7 +165,7 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: "text/plain", fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
@@ -224,11 +224,11 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID2 = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
@@ -335,8 +335,8 @@ class Client_SyncServer_StopSync: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .fileUploadsCompleted]
         
@@ -401,11 +401,11 @@ class Client_SyncServer_StopSync: TestCase {
             (uuid: fileUUID2, url: url as URL)
         ]
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: "text/plain", fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: "text/plain", fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     

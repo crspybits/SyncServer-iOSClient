@@ -82,7 +82,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
@@ -116,7 +116,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
                 
             case .singleFileUploadComplete(attr: let attr):
                 XCTAssert(attr.fileUUID == fileUUID)
-                XCTAssert(attr.mimeType == "text/plain")
+                XCTAssert(attr.mimeType == .text)
                 expectation3.fulfill()
                 
             case .uploadDeletionsCompleted(numberOfFiles: let number):
@@ -153,7 +153,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testUploadImmediatelyFollowedByDeletionWorks() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         // Include events other than syncDone just as a means of ensuring they don't occur.
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
@@ -211,9 +211,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testMultipleFileDeletionWorks() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -270,9 +270,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testMultipleSimultaneousFileDeletionWorks() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: "text/plain")
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -328,7 +328,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: "text/plain")
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         

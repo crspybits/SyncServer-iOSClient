@@ -93,7 +93,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let uuid = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: uuid, mimeType: "text/plain")
+        let attr = SyncAttributes(fileUUID: uuid, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         SyncServer.session.sync()
     }
