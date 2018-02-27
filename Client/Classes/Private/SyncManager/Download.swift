@@ -35,6 +35,16 @@ class Download {
                 completion?(.error(error!))
                 return
             }
+            
+            // Make sure the mime types we get back from the server are known to the client.
+            for file in fileIndex! {
+                guard let fileMimeTypeString = file.mimeType,
+                    let _ = MimeType(rawValue: fileMimeTypeString) else {
+                        Log.error("Unknown mime type from server: \(String(describing: file.mimeType))")
+                    completion?(.error(.badMimeType))
+                    return
+                }
+            }
 
             var completionResult:OnlyCheckCompletion!
             
@@ -81,7 +91,6 @@ class Download {
                         let allFiles = (fileDownloads ?? []) + (downloadDeletions ?? [])
                         var numberFileDownloads:Int32 = 0
                         var numberDownloadDeletions:Int32 = 0
-                        
                         
                         for file in allFiles {
                             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker

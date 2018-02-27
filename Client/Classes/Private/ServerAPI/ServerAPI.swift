@@ -281,7 +281,7 @@ class ServerAPI {
 
         var params:[String : Any] = [
             UploadFileRequest.fileUUIDKey: file.fileUUID,
-            UploadFileRequest.mimeTypeKey: file.mimeType,
+            UploadFileRequest.mimeTypeKey: file.mimeType.rawValue,
             UploadFileRequest.appMetaDataKey: file.appMetaData as Any,
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion
