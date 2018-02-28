@@ -128,7 +128,7 @@ class ServerAPI {
                 AddUserRequest.cloudFolderNameKey: cloudFolderName,
             ]
             
-            guard let addUserRequest = UploadFileRequest(json: params) else {
+            guard let addUserRequest = AddUserRequest(json: params) else {
                 completion?(nil, .couldNotCreateRequest)
                 return
             }
@@ -262,7 +262,6 @@ class ServerAPI {
         let localURL:URL!
         let fileUUID:String!
         let mimeType:MimeType!
-        let cloudFolderName:String!
         let deviceUUID:String!
         let appMetaData:String?
         let fileVersion:FileVersionInt!

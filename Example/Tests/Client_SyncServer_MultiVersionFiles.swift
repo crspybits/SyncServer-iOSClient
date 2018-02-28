@@ -48,7 +48,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == expectedVersion)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
         onlyDownloadFile(comparisonFileURL: url, file: file, masterVersion: masterVersion)
         
         return url
@@ -122,7 +122,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == version)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, cloudFolderName: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
         
         // Expecting last file contents uploaded.
         let url = urls[urls.count - 1]

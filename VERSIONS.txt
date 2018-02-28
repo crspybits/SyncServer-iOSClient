@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 13.0.0
+	* Updates for mime type and cloud folder name changes on the server.
+	* Breaking changes to `appLaunchSetup` for SyncServer and SyncServerUser.
+
 Version 12.0.1 (2/11/18)
 	* Fixed issue with mis-reporting of error of mime type change.
 	

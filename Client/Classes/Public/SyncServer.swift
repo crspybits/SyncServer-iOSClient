@@ -47,9 +47,9 @@ public class SyncServer {
         }
     }
     
-    // Leave the minimumServerVersion as nil if your app doesn't have a specific server version requirement.
-    public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String, minimumServerVersion:ServerVersion? = nil) {
-        Log.msg("cloudFolderName: \(cloudFolderName)")
+    // Leave the minimumServerVersion as nil if your app doesn't have a specific server version requirement. `cloudFolderName` is optional because it's only needed for some of the cloud storage services (e.g., Google Drive).
+    public func appLaunchSetup(withServerURL serverURL: URL, cloudFolderName:String?, minimumServerVersion:ServerVersion? = nil) {
+        Log.msg("cloudFolderName: \(String(describing: cloudFolderName))")
         Log.msg("serverURL: \(serverURL.absoluteString)")
         
         // This seems a little hacky, but can't find a better way to get the bundle of the framework containing our model. I.e., "this" framework. Just using a Core Data object contained in this framework to track it down.
@@ -67,7 +67,6 @@ public class SyncServer {
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
         
-        Upload.session.cloudFolderName = cloudFolderName
         Network.session().appStartup()
         ServerAPI.session.baseURL = serverURL.absoluteString
         
@@ -80,7 +79,7 @@ public class SyncServer {
         ServerNetworkingLoading.session.appLaunchSetup()
         
         // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
-        SyncServerUser.session.appLaunchSetup()
+        SyncServerUser.session.appLaunchSetup(cloudFolderName: cloudFolderName)
     }
     
     // For dealing with background uploading/downloading.
