@@ -47,7 +47,7 @@ class ServerAPI_NetworkLoss: TestCase {
     
     func testAddUserNetworkLoss() {
         apiCallNetworkLoss() { exp in
-            ServerAPI.session.addUser { error in
+            ServerAPI.session.addUser(cloudFolderName: cloudFolderName) { userId, error in
                 XCTAssert(error != nil)
                 exp.fulfill()
             }

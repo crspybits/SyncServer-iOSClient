@@ -46,7 +46,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             masterVersion += 1
             fileVersion += 1
         
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
                 XCTFail()
                 return
             }
