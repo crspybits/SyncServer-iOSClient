@@ -176,7 +176,7 @@ class ServerAPI_Authentication: TestCase {
                 XCTAssert(error == nil)
                 removeUserExpectation.fulfill()
                 
-                // Because we don't want to leave tests in a state where we don't hav the user we need.
+                // Because we don't want to leave tests in a state where we don't have the user we need.
                 ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
                     XCTAssert(error == nil)
                     XCTAssert(userId != nil)
