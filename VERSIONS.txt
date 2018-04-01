@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 14.0.0
+	* Added versioning to appMetaData
+
 Version 13.0.0 (3/1/18)
 	* Updates for mime type and cloud folder name changes on the server.
 	* Breaking changes to `appLaunchSetup` for SyncServer and SyncServerUser.

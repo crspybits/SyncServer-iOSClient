@@ -23,6 +23,11 @@ protocol ServerAPIDelegate : class {
 }
 
 class ServerAPI {
+    enum Result<T> {
+        case success(T)
+        case error(Error)
+    }
+    
     // These need to be set by user of this class.
     var baseURL:String!
     weak var delegate:ServerAPIDelegate!
@@ -642,6 +647,81 @@ class ServerAPI {
             }
             else {
                 completion?(nil, resultError)
+            }
+        }
+    }
+    
+    enum UploadAppMetaDataResult {
+    case success
+    case serverMasterVersionUpdate(Int64)
+    }
+    
+    func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
+        let endpoint = ServerEndpoints.uploadAppMetaData
+        
+        let uploadRequest = UploadAppMetaDataRequest()
+        uploadRequest.appMetaData = appMetaData
+        uploadRequest.fileUUID = fileUUID
+        
+        let parameters = uploadRequest.urlParameters()!
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL) { (response,  httpStatus, error) in
+            if let resultError = self.checkForError(statusCode: httpStatus, error: error) {
+                completion?(.error(resultError))
+            }
+            else {
+                if let uploadAppMetaDataResponse = UploadAppMetaDataResponse(json: response!) {
+                    if let masterVersionUpdate = uploadAppMetaDataResponse.masterVersionUpdate {
+                        completion?(.success(.serverMasterVersionUpdate(masterVersionUpdate)))
+                    }
+                    else {
+                        completion?(.success(.success))
+                    }
+                }
+                else {
+                    completion?(.error(SyncServerError.couldNotCreateResponse))
+                }
+            }
+        }
+    }
+    
+    enum DownloadAppMetaDataResult {
+    case appMetaData(String)
+    case serverMasterVersionUpdate(Int64)
+    }
+
+    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, completion:((Result<DownloadAppMetaDataResult>)->(Void))?) {
+    
+        let endpoint = ServerEndpoints.downloadAppMetaData
+        
+        var paramsForRequest:[String:Any] = [:]
+        paramsForRequest[DownloadAppMetaDataRequest.fileUUIDKey] = fileUUID
+        paramsForRequest[DownloadAppMetaDataRequest.appMetaDataVersionKey] = appMetaDataVersion
+        let downloadAppMetaData = DownloadAppMetaDataRequest(json: paramsForRequest)!
+        
+        let parameters = downloadAppMetaData.urlParameters()!
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL) { (response,  httpStatus, error) in
+            if let resultError = self.checkForError(statusCode: httpStatus, error: error) {
+                completion?(.error(resultError))
+            }
+            else {
+                if let downloadAppMetaDataResponse = DownloadAppMetaDataResponse(json: response!) {
+                    if let masterVersionUpdate = downloadAppMetaDataResponse.masterVersionUpdate {
+                        completion?(.success(.serverMasterVersionUpdate(masterVersionUpdate)))
+                    }
+                    else if let appMetaData = downloadAppMetaDataResponse.appMetaData {
+                        completion?(.success(.appMetaData(appMetaData)))
+                    }
+                    else {
+                        completion?(.error(SyncServerError.nilResponse))
+                    }
+                }
+                else {
+                    completion?(.error(SyncServerError.couldNotCreateResponse))
+                }
             }
         }
     }

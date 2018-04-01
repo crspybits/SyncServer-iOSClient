@@ -247,7 +247,7 @@ public class SyncServer {
         }
 
         // Check to see if there is a pending upload deletion with this UUID.
-        let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.deleteOnServer }
+        let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.operation.isDeletion }
         if pendingUploadDeletions.count > 0 {
             throw SyncServerError.fileQueuedForDeletion
         }
@@ -279,7 +279,7 @@ public class SyncServer {
                 }
                 
                 let newUft = UploadFileTracker.newObject() as! UploadFileTracker
-                newUft.deleteOnServer = true
+                newUft.operation = .deletion
                 newUft.fileUUID = uuid
                 
                 /* [1]: `entry.fileVersion` will be nil if we are in the process of uploading a new file. Which causes the following to fail:
@@ -347,7 +347,7 @@ public class SyncServer {
     }
     
     public struct Stats {
-        public let downloadsAvailable:Int
+        public let contentDownloadsAvailable:Int
         public let downloadDeletionsAvailable:Int
     }
     
@@ -358,9 +358,9 @@ public class SyncServer {
             case .error(let error):
                 Log.error("Error on Download onlyCheck: \(error)")
                 completion(nil)
-                
-            case .checkResult(downloadFiles: let downloadFiles, downloadDeletions: let downloadDeletions, _):
-                let stats = Stats(downloadsAvailable: downloadFiles?.count ?? 0, downloadDeletionsAvailable: downloadDeletions?.count ?? 0)
+            
+            case .checkResult(downloadSet: let downloadSet, _):
+                let stats = Stats(contentDownloadsAvailable: downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count, downloadDeletionsAvailable: downloadSet.downloadDeletions.count)
                 completion(stats)
             }
         }

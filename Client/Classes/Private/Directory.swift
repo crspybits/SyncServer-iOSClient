@@ -19,18 +19,33 @@ class Directory {
     private init() {
     }
     
-    // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
+    struct DownloadSet {
+        let downloadFiles:Set<FileInfo>
+        let downloadDeletions:Set<FileInfo>
+        let downloadAppMetaData:Set<FileInfo>
+        
+        func isEmpty() -> Bool {
+            return downloadFiles.count == 0 && downloadDeletions.count == 0 && downloadAppMetaData.count == 0
+        }
+        
+        func allFiles() -> Set<FileInfo> {
+            return downloadFiles.union(downloadDeletions).union(downloadAppMetaData)
+        }
+    }
+    
     // Compares the passed fileIndex to the current DirecotoryEntry objects, and returns just the FileInfo objects we need to download/delete, if any. The directory is not changed as a result of this call, except for the case where the file isn't in the directory already, but has been deleted on the server.
+    // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
     // 1/25/18; Now dealing with the case where a file is marked as deleted locally, but was undeleted on the server-- we need to download the file again.
     // 3/23/18; Now dealing with appMetaData versioning.
-    func checkFileIndex(serverFileIndex:[FileInfo]) throws ->
-        (downloadFiles:[FileInfo]?, downloadDeletions:[FileInfo]?)  {
+    func checkFileIndex(serverFileIndex:[FileInfo]) throws -> DownloadSet {
     
-        var downloadFiles = [FileInfo]()
-        var downloadDeletions = [FileInfo]()
+        var downloadFiles = Set<FileInfo>()
+        var downloadDeletions = Set<FileInfo>()
+        var downloadAppMetaData = Set<FileInfo>()
 
         enum Action {
-        case needToDownload
+        case needToDownloadFile
+        case needToDownloadAppMetaData
         case needToDownloadAndUndelete
         case needToDelete
         case none
@@ -58,13 +73,17 @@ class Directory {
                         action = .needToDelete
                     }
                     else if entry.fileVersion != serverFile.fileVersion {
-                        // Not same version here locally as on server:
-                        action = .needToDownload
+                        // Not same file version here locally as on server
+                        action = .needToDownloadFile
+                    }
+                    else if entry.appMetaDataVersion != serverFile.appMetaDataVersion {
+                        // Not the same appMetaData version locally as on server.
+                        action = .needToDownloadAppMetaData
                     }
                 }
             }
-            else {
-                // File is unknown to the client
+            else { // File is unknown to the client.
+                // Will never do just an appMetaData download in this case because an initial download of a file will also download any appMetaData for the file.
                 
                 if serverFile.deleted! {
                     // The file is unknown to the client, plus it's deleted on the server. No need to inform the client, but for consistency I'm going to create an entry in the directory.
@@ -75,26 +94,32 @@ class Directory {
                     try CoreData.sessionNamed(Constants.coreDataName).context.save()
                 }
                 else {
-                    action = .needToDownload
+                    action = .needToDownloadFile
                 }
             }
             
             // For these actions, we need to create or modify DirectoryEntry, but do this later. Not going to do these changes right now because then this state looks identical to having downloaded/deleted the file/version previously.
             
             switch action {
-            case .needToDownload, .needToDownloadAndUndelete:
-                downloadFiles += [serverFile]
+            case .needToDownloadFile, .needToDownloadAndUndelete:
+                downloadFiles.insert(serverFile)
                 
             case .needToDelete:
-                downloadDeletions += [serverFile]
+                downloadDeletions.insert(serverFile)
+                
+            case .needToDownloadAppMetaData:
+                downloadAppMetaData.insert(serverFile)
                 
             case .none:
                 break
             }
         }
 
-        return (downloadFiles.count == 0 ? nil : downloadFiles,
-            downloadDeletions.count == 0 ? nil : downloadDeletions)
+        let downloadSet = DownloadSet(
+                downloadFiles: downloadFiles,
+                downloadDeletions: downloadDeletions,
+                downloadAppMetaData: downloadAppMetaData)
+        return downloadSet
     }
     
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`

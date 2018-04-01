@@ -352,7 +352,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .fileUpload)
+            XCTAssert(uploadConflict.conflictType == .contentUpload)
             uploadConflict.resolutionCallback(.acceptDownloadDeletion)
         }
         
@@ -438,8 +438,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .fileUpload)
-            uploadConflict.resolutionCallback(.rejectDownloadDeletion(.keepFileUpload))
+            XCTAssert(uploadConflict.conflictType == .contentUpload)
+            uploadConflict.resolutionCallback(
+                .rejectDownloadDeletion(.keepContentUpload))
         }
         
         syncServerEventOccurred = { event in
@@ -523,9 +524,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .fileUpload)
+            XCTAssert(uploadConflict.conflictType == .contentUpload)
             uploadConflict.resolutionCallback(
-                .rejectDownloadDeletion(.removeFileUpload))
+                .rejectDownloadDeletion(.removeContentUpload))
         }
         
         syncServerEventOccurred = { event in
@@ -621,7 +622,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
     }
     
-    func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:FileDownloadResolution) {
+    func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
     
         let numberSyncDoneExpected = numberFileUploads + (uploadDeletion ? 1 : 0)
         var actualNumberSyncDone = 0
@@ -629,12 +630,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         var actualNumberUploads = 0
         
         var conflictTypeExpected:
-            SyncServerConflict<FileDownloadResolution>.ClientOperation
+            SyncServerConflict<ContentDownloadResolution>.ClientOperation
         if numberFileUploads > 0 && uploadDeletion {
-            conflictTypeExpected = .bothFileUploadAndDeletion
+            conflictTypeExpected = .both
         }
         else if numberFileUploads > 0 {
-            conflictTypeExpected = .fileUpload
+            conflictTypeExpected = .contentUpload
         }
         else {
             conflictTypeExpected = .uploadDeletion
@@ -659,16 +660,16 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         var uploadDeletionExp:XCTestExpectation?
         var saveDownloadsExp:XCTestExpectation?
         
-        var uploadResolution:FileDownloadResolution.UploadResolution?
+        var uploadResolution:ContentDownloadResolution.UploadResolution?
 
         switch resolution {
-        case .acceptFileDownload:
+        case .acceptContentDownload:
             saveDownloadsExp = self.expectation(description: "saveDownloadsExp")
             
-        case .rejectFileDownload(let upRes):
+        case .rejectContentDownload(let upRes):
             uploadResolution = upRes
             
-            if upRes.keepFileUploads {
+            if upRes.keepContentUploads {
                 fileUploadExp = self.expectation(description: "fileUploadExp")
             }
             
@@ -697,7 +698,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     break
                 }
                 
-                if let uploadResolution = uploadResolution, uploadResolution.keepFileUploads {
+                if let uploadResolution = uploadResolution, uploadResolution.keepContentUploads {
                     guard let fileUploadExp = fileUploadExp else {
                         XCTFail()
                         return
@@ -727,7 +728,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveFileDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) in
+        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
             XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedFileAttributes.mimeType == mimeType)
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
@@ -735,7 +736,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
-            if case .acceptFileDownload = resolution {
+            if case .acceptContentDownload = resolution {
                 XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
                 XCTAssert(downloadedFileAttributes.mimeType == mimeType)
                 
@@ -769,19 +770,19 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflict_Accept_FU1_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptFileDownload)
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
     func testFileDownloadConflict_Accept_FU2_UD0() {
-        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptFileDownload)
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
     func testFileDownloadConflict_Accept_FU1_UD1() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptFileDownload)
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
     
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.removeAll))
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
     }
     
     /* Cases for file-download conflict:
@@ -803,23 +804,23 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     */
 
     func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectFileDownload(.keepFileUploads))
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
     }
 
     func testFileDownloadConflict_Reject_FU2_Keep_UD0() {
-        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectFileDownload(.keepFileUploads))
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepFileUploads))
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
     }
     
     func testFileDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepUploadDeletions))
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectFileDownload(.keepAll))
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
 
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
@@ -900,14 +901,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflictRejectRemoveAllAndUploadNewFile() {
-        let uploadResolution:FileDownloadResolution.UploadResolution = .removeAll
-        let resolution = FileDownloadResolution.rejectFileDownload(uploadResolution)
+        let uploadResolution:ContentDownloadResolution.UploadResolution = .removeAll
+        let resolution = ContentDownloadResolution.rejectContentDownload(uploadResolution)
         
         let numberSyncDoneExpected = 2
         var actualNumberSyncDone = 0
         
         let conflictTypeExpected:
-            SyncServerConflict<FileDownloadResolution>.ClientOperation = .fileUpload
+            SyncServerConflict<ContentDownloadResolution>.ClientOperation = .contentUpload
     
         let mimeType:MimeType = .text
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
@@ -947,7 +948,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveFileDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) in
+        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
             XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedFileAttributes.mimeType == mimeType)
             

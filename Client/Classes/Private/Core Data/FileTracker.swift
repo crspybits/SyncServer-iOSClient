@@ -45,6 +45,30 @@ public class FileTracker: NSManagedObject, Filenaming, FileUUID {
         }
     }
     
+    public enum Operation: String {
+        case file // File upload or download
+        case appMetaData // appMetaData upload or download.
+        case deletion // Upload or download deletion
+        
+        var isContents: Bool {
+            return self == .file || self == .appMetaData
+        }
+        
+        var isDeletion: Bool {
+            return self == .deletion
+        }
+    }
+    
+    public var operation: Operation! {
+        get {
+            return operationInternal == nil ? nil : Operation(rawValue: operationInternal!)
+        }
+        
+        set {
+            operationInternal = newValue.rawValue
+        }
+    }
+    
     // Only call this when creating an object.
     // 1/28/18; I used to have this in the Singleton itself, but ran into a really odd infinite loop.
     public func addAge() {

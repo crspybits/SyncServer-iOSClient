@@ -20,7 +20,7 @@ class Download {
     }
     
     enum OnlyCheckCompletion {
-    case checkResult(downloadFiles:[FileInfo]?, downloadDeletions:[FileInfo]?, MasterVersionInt?)
+    case checkResult(downloadSet: Directory.DownloadSet, MasterVersionInt?)
     case error(SyncServerError)
     }
     
@@ -50,10 +50,10 @@ class Download {
             
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 do {
-                    let (downloads, deletions) =
+                    let downloadSet =
                         try Directory.session.checkFileIndex(serverFileIndex: fileIndex!)
                     completionResult =
-                        .checkResult(downloadFiles:downloads, downloadDeletions:deletions, masterVersion)
+                        .checkResult(downloadSet: downloadSet, masterVersion)
                 } catch (let error) {
                     completionResult = .error(.coreDataError(error))
                 }
@@ -65,7 +65,7 @@ class Download {
     
     enum CheckCompletion {
     case noDownloadsOrDeletionsAvailable
-    case downloadsAvailable(numberOfDownloadFiles:Int32, numberOfDownloadDeletions:Int32)
+    case downloadsAvailable(numberOfContentDownloads:Int, numberOfDownloadDeletions:Int)
     case error(SyncServerError)
     }
     
@@ -77,35 +77,34 @@ class Download {
             case .error(let error):
                 completion?(.error(error))
             
-            case .checkResult(downloadFiles: let fileDownloads, downloadDeletions: let downloadDeletions, let masterVersion):
-                
+            case .checkResult(downloadSet: let downloadSet, let masterVersion):
                 var completionResult:CheckCompletion!
 
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     Singleton.get().masterVersion = masterVersion!
                     
-                    if fileDownloads == nil && downloadDeletions == nil {
-                        completionResult = .noDownloadsOrDeletionsAvailable
-                    }
-                    else {
-                        let allFiles = (fileDownloads ?? []) + (downloadDeletions ?? [])
-                        var numberFileDownloads:Int32 = 0
-                        var numberDownloadDeletions:Int32 = 0
-                        
-                        for file in allFiles {
+                    if downloadSet.allFiles().count > 0 {
+                        for file in downloadSet.allFiles() {
                             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
                             dft.fileUUID = file.fileUUID
                             dft.fileVersion = file.fileVersion
                             dft.mimeType = file.mimeType
-                            dft.deletedOnServer = file.deleted!
-                            dft.appMetaDataVersion = file.appMetaDataVersion
                             
-                            if file.deleted! {
-                                numberDownloadDeletions += 1
+                            if downloadSet.downloadFiles.contains(file) {
+                                dft.operation = .file
+                            }
+                            else if downloadSet.downloadDeletions.contains(file) {
+                                dft.operation = .deletion
+                            }
+                            else if downloadSet.downloadAppMetaData.contains(file) {
+                                dft.operation = .appMetaData
                             }
                             else {
-                                numberFileDownloads += 1
+                                completionResult = .error(.generic("Internal Error"))
+                                return
                             }
+                            
+                            dft.appMetaDataVersion = file.appMetaDataVersion
                             
                             if file.creationDate != nil {
                                 dft.creationDate = file.creationDate! as NSDate
@@ -113,7 +112,12 @@ class Download {
                             }
                         }
                         
-                        completionResult = .downloadsAvailable(numberOfDownloadFiles:numberFileDownloads, numberOfDownloadDeletions:numberDownloadDeletions)
+                        completionResult = .downloadsAvailable(
+                            numberOfContentDownloads:downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count,
+                            numberOfDownloadDeletions:downloadSet.downloadDeletions.count)
+                    }
+                    else {
+                        completionResult = .noDownloadsOrDeletionsAvailable
                     }
                     
                     do {
@@ -148,7 +152,7 @@ class Download {
         var nextResult:NextResult?
         var downloadFile:FilenamingObject!
         var nextToDownload:DownloadFileTracker!
-        var numberFileDownloads = 0
+        var numberContentDownloads = 0
         var numberDownloadDeletions = 0
         var appMetaDataVersion:AppMetaDataVersionInt?
         
@@ -159,8 +163,8 @@ class Download {
                 return
             }
             
-            numberDownloadDeletions = (dfts.filter {$0.deletedOnServer}).count
-            numberFileDownloads = dfts.count - numberDownloadDeletions
+            numberDownloadDeletions = (dfts.filter {$0.operation.isDeletion}).count
+            numberContentDownloads = dfts.count - numberDownloadDeletions
 
             let alreadyDownloading = dfts.filter {$0.status == .downloading}
             guard alreadyDownloading.count == 0 else {
@@ -169,7 +173,7 @@ class Download {
                 return
             }
             
-            let notStarted = dfts.filter {$0.status == .notStarted && !$0.deletedOnServer}
+            let notStarted = dfts.filter {$0.status == .notStarted && $0.operation.isContents}
             guard notStarted.count != 0 else {
                 nextResult = .allDownloadsCompleted
                 return
@@ -197,7 +201,7 @@ class Download {
         }
         
         if first {
-            EventDesired.reportEvent( .willStartDownloads(numberFileDownloads: UInt(numberFileDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
+            EventDesired.reportEvent( .willStartDownloads(numberContentDownloads: UInt(numberContentDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
         ServerAPI.session.downloadFile(file: downloadFile, appMetaDataVersion: appMetaDataVersion, serverMasterVersion: masterVersion) { (result, error)  in

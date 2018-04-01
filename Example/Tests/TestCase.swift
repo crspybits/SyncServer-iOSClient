@@ -83,8 +83,9 @@ class TestCase: XCTestCase {
     var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?
-    var syncServerMustResolveFileDownloadConflict:((_ downloadedFile: SMRelativeLocalURL, _ downloadedFileAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<FileDownloadResolution>)->())?
-    
+    var syncServerMustResolveContentDownloadConflict:((_ downloadedFile: SMRelativeLocalURL, _ downloadedFileAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
+    var syncServerAppMetaDataDownloadComplete: ((SyncAttributes)->())!
+
     override func setUp() {
         super.setUp()
         ServerAPI.session.delegate = self
@@ -772,7 +773,11 @@ extension TestCase : ServerAPIDelegate {
     }
 }
 
-extension TestCase : SyncServerDelegate {    
+extension TestCase : SyncServerDelegate {
+    func syncServerAppMetaDataDownloadComplete(attr: SyncAttributes) {
+        syncServerAppMetaDataDownloadComplete(attr)
+    }
+    
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         shouldSaveDownload(url, attr)
     }
@@ -781,8 +786,8 @@ extension TestCase : SyncServerDelegate {
         shouldDoDeletions(downloadDeletions)
     }
     
-    func syncServerMustResolveFileDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) {
-        syncServerMustResolveFileDownloadConflict?(downloadedFile, downloadedFileAttributes, uploadConflict)
+    func syncServerMustResolveContentDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
+        syncServerMustResolveContentDownloadConflict?(downloadedFile, downloadedFileAttributes, uploadConflict)
     }
     
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict]) {

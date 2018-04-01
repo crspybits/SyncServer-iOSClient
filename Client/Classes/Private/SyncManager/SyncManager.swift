@@ -164,7 +164,7 @@ class SyncManager {
 
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
-            downloadDeletionDfts = dfts.filter {$0.deletedOnServer == true}
+            downloadDeletionDfts = dfts.filter {$0.operation.isDeletion}
 
             downloadDeletionDfts.forEach { dft in
                 let mimeType = MimeType(rawValue: dft.mimeType!)!
@@ -250,12 +250,11 @@ class SyncManager {
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
                 self.checkForPendingUploads(first: true)
-                
-            case .downloadsAvailable(numberOfDownloadFiles: let numberFileDownloads, numberOfDownloadDeletions: let numberDownloadDeletions):
             
+            case .downloadsAvailable(numberOfContentDownloads:let numberContentDownloads, numberOfDownloadDeletions:let numberDownloadDeletions):
                 // This is not redundant with the `willStartDownloads` reporting in `Download.session.next` because we're calling start with first=false (implicitly), so willStartDownloads will not get reported twice.
                 EventDesired.reportEvent(
-                    .willStartDownloads(numberFileDownloads: UInt(numberFileDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)),
+                    .willStartDownloads(numberContentDownloads: UInt(numberContentDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)),
                     mask: self.desiredEvents, delegate: self.delegate)
                 
                 // We've got DownloadFileTracker's queued up now. Go deal with them!
@@ -346,7 +345,7 @@ class SyncManager {
                 
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     uploadQueue = Upload.getHeadSyncQueue()!
-                    fileUploads = uploadQueue.uploadFileTrackers.filter {!$0.deleteOnServer}
+                    fileUploads = uploadQueue.uploadFileTrackers.filter {$0.operation.isContents}
                 }
                 
                 if fileUploads.count > 0 {
@@ -379,7 +378,7 @@ class SyncManager {
                         }
                     }
                     
-                    uploadDeletions = uploadQueue.uploadFileTrackers.filter {$0.deleteOnServer}
+                    uploadDeletions = uploadQueue.uploadFileTrackers.filter {$0.operation.isDeletion}
                 }
 
                 if uploadDeletions.count > 0 {
@@ -387,7 +386,7 @@ class SyncManager {
                 }
                 
                 var errorResult:SyncServerError?
-                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[unowned self] in
+                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     if uploadDeletions.count > 0 {
                         // Each of the DirectoryEntry's for the uploads needs to now be marked as deleted.
                         uploadDeletions.forEach { uft in

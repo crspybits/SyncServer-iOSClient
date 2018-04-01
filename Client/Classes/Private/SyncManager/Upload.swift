@@ -44,7 +44,7 @@ class Upload {
         var nextToUpload:UploadFileTracker!
         var uploadQueue:UploadQueue!
         var deleteOnServer:Bool!
-        var numberFileUploads:Int!
+        var numberContentUploads:Int!
         var numberUploadDeletions:Int!
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
@@ -54,14 +54,14 @@ class Upload {
                 return
             }
             
-            numberFileUploads =
+            numberContentUploads =
                 uploadQueue.uploadFileTrackers.filter {
-                    $0.status == .notStarted && !$0.deleteOnServer
+                    $0.status == .notStarted && $0.operation.isContents
                 }.count
             
             numberUploadDeletions =
                 uploadQueue.uploadFileTrackers.filter {
-                    $0.status == .notStarted && $0.deleteOnServer
+                    $0.status == .notStarted && $0.operation.isDeletion
                 }.count
             
             let alreadyUploading =
@@ -79,7 +79,7 @@ class Upload {
             }
 
             nextToUpload.status = .uploading
-            deleteOnServer = nextToUpload.deleteOnServer
+            deleteOnServer = nextToUpload.operation.isDeletion
             
             masterVersion = Singleton.get().masterVersion
             
@@ -95,7 +95,7 @@ class Upload {
         }
         
         if first {
-            EventDesired.reportEvent(.willStartUploads(numberFileUploads: UInt(numberFileUploads), numberUploadDeletions: UInt(numberUploadDeletions)), mask: desiredEvents, delegate: delegate)
+            EventDesired.reportEvent(.willStartUploads(numberContentUploads: UInt(numberContentUploads), numberUploadDeletions: UInt(numberUploadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
         if deleteOnServer! {

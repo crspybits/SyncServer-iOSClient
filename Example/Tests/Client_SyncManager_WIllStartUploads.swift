@@ -58,8 +58,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
-                XCTAssert(numberFileUploads == 1)
+            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberContentUploads == 1)
                 XCTAssert(numberUploadDeletions == 0)
                 willStartUploadsExp.fulfill()
             
@@ -91,8 +91,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
-                XCTAssert(numberFileUploads == 0)
+            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberContentUploads == 0)
                 XCTAssert(numberUploadDeletions == 1)
                 willStartUploadsExp.fulfill()
             
@@ -128,8 +128,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
 
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartUploads(numberFileUploads: let numberFileUploads, numberUploadDeletions: let numberUploadDeletions):
-                XCTAssert(numberFileUploads == 1)
+            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions):
+                XCTAssert(numberContentUploads == 1)
                 XCTAssert(numberUploadDeletions == 1)
                 willStartUploadsExp.fulfill()
             

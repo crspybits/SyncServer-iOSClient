@@ -161,7 +161,10 @@ extension ViewController : GenericSignInDelegate {
     }
 }
 
-extension ViewController : SyncServerDelegate {    
+extension ViewController : SyncServerDelegate {
+    func syncServerAppMetaDataDownloadComplete(attr: SyncAttributes) {
+    }
+    
     func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
         assert(false)
     }
@@ -170,7 +173,7 @@ extension ViewController : SyncServerDelegate {
         assert(false)
     }
     
-    func syncServerMustResolveFileDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<FileDownloadResolution>) {
+    func syncServerMustResolveContentDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
     }
     
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict]) {

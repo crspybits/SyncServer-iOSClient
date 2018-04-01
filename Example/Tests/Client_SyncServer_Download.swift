@@ -77,8 +77,8 @@ class Client_SyncServer_Download: TestCase {
 
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartDownloads(numberFileDownloads: let numberDownloads, _):
-                XCTAssert(numberDownloads == 2)
+            case .willStartDownloads(numberContentDownloads: let numberContentDownloads, _):
+                XCTAssert(numberContentDownloads == 2)
                 willStartDownloadsExp.fulfill()
             
             case .syncDone:
@@ -148,8 +148,13 @@ class Client_SyncServer_Download: TestCase {
         // 3) Now, check to make sure we have what we expect
         
         SyncServer.session.getStats { stats in
-            XCTAssert(stats!.downloadsAvailable == 1)
-            XCTAssert(stats!.downloadDeletionsAvailable == 1)
+            guard let stats = stats else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(stats.contentDownloadsAvailable == 1)
+            XCTAssert(stats.downloadDeletionsAvailable == 1)
             uploadDeletionExp.fulfill()
         }
         

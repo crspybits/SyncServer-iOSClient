@@ -33,8 +33,8 @@ class Client_Downloads: TestCase {
             case .noDownloadsOrDeletionsAvailable:
                 XCTAssert(expectedFiles.count == 0)
             
-            case .downloadsAvailable(numberOfDownloadFiles: let numDownloads, numberOfDownloadDeletions: let numDeletions):
-                let total = numDownloads + numDeletions
+            case .downloadsAvailable(numberOfContentDownloads: let numberOfContentDownloads, numberOfDownloadDeletions: let numDeletions):
+                let total = numberOfContentDownloads + numDeletions
                 XCTAssert(Int32(expectedFiles.count) == total, "numDownloads: \(total); expectedFiles.count: \(expectedFiles.count)")
                 
             case .error(_):
@@ -296,9 +296,10 @@ class Client_Downloads: TestCase {
             case .error(let error):
                 XCTFail("Failed: \(error)")
             
-            case .checkResult(downloadFiles: let downloads, downloadDeletions: let deletions, let masterVersion):
-                XCTAssert(downloads?.count == expectedDownloads)
-                XCTAssert(deletions?.count == expectedDownloadDeletions)
+            case .checkResult(downloadSet: let downloadSet, let masterVersion):
+                XCTAssert(downloadSet.downloadFiles.count == expectedDownloads)
+                XCTAssert(downloadSet.downloadDeletions.count == expectedDownloadDeletions)
+                XCTAssert(downloadSet.downloadAppMetaData.count == 0)
                 XCTAssert(masterVersion == masterVersionFirst)
             }
             
