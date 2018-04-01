@@ -263,7 +263,7 @@ class ServerAPI {
         let fileUUID:String!
         let mimeType:MimeType!
         let deviceUUID:String!
-        let appMetaData:String?
+        let appMetaData:AppMetaData?
         let fileVersion:FileVersionInt!
     }
     
@@ -281,7 +281,6 @@ class ServerAPI {
         var params:[String : Any] = [
             UploadFileRequest.fileUUIDKey: file.fileUUID,
             UploadFileRequest.mimeTypeKey: file.mimeType.rawValue,
-            UploadFileRequest.appMetaDataKey: file.appMetaData as Any,
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion
         ]
@@ -290,10 +289,12 @@ class ServerAPI {
             params[UploadFileRequest.undeleteServerFileKey] = 1
         }
         
-        guard let uploadRequest = UploadFileRequest(json: params) else {
+        guard var uploadRequest = UploadFileRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest);
             return;
         }
+        
+        uploadRequest.appMetaData = file.appMetaData
         
         assert(endpoint.method == .post)
         
@@ -396,7 +397,7 @@ class ServerAPI {
     struct DownloadedFile {
     let url: SMRelativeLocalURL
     let fileSizeBytes:Int64
-    let appMetaData:String?
+    let appMetaData:AppMetaData?
     }
     
     enum DownloadFileResult {
@@ -404,13 +405,14 @@ class ServerAPI {
     case serverMasterVersionUpdate(Int64)
     }
     
-    func downloadFile(file: Filenaming, serverMasterVersion:MasterVersionInt!, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
+    func downloadFile(file: Filenaming, appMetaDataVersion: AppMetaDataVersionInt?, serverMasterVersion:MasterVersionInt!, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.downloadFile
         
         var params = [String : Any]()
         params[DownloadFileRequest.masterVersionKey] = serverMasterVersion
         params[DownloadFileRequest.fileUUIDKey] = file.fileUUID
         params[DownloadFileRequest.fileVersionKey] = file.fileVersion
+        params[DownloadFileRequest.appMetaDataVersionKey] = appMetaDataVersion
 
         guard let downloadFileRequest = DownloadFileRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest)
@@ -436,26 +438,21 @@ class ServerAPI {
                 if let parms = response!.allHeaderFields[ServerConstants.httpResponseMessageParams] as? String,
                     let jsonDict = self.toJSONDictionary(jsonString: parms) {
                     Log.msg("jsonDict: \(jsonDict)")
+                    
+                    guard let downloadFileResponse = DownloadFileResponse(json: jsonDict) else {
+                        completion?(nil, .couldNotObtainHeaderParameters)
+                        return
+                    }
 
-                    if let fileSizeBytes = jsonDict[DownloadFileResponse.fileSizeBytesKey] as? Int64 {
-                        var appMetaDataString:String?
-                        let appMetaData = jsonDict[DownloadFileResponse.appMetaDataKey]
-                        if appMetaData != nil {
-                            if appMetaData is String {
-                                appMetaDataString = (appMetaData as! String)
-                            }
-                            else {
-                                completion?(nil, .obtainedAppMetaDataButWasNotString)
-                                return
-                            }
-                        }
-                        
+                    if let fileSizeBytes = downloadFileResponse.fileSizeBytes {
                         guard resultURL != nil else {
                             completion?(nil, .resultURLObtainedWasNil)
                             return
                         }
                         
-                        let downloadedFile = DownloadedFile(url: resultURL!, fileSizeBytes: fileSizeBytes, appMetaData: appMetaDataString)
+                        let appMetaData = AppMetaData(version: appMetaDataVersion, contents: downloadFileResponse.appMetaData)
+                        
+                        let downloadedFile = DownloadedFile(url: resultURL!, fileSizeBytes: fileSizeBytes, appMetaData: appMetaData)
                         completion?(.success(downloadedFile), nil)
                     }
                     else if let masterVersionUpdate = jsonDict[DownloadFileResponse.masterVersionUpdateKey] as? Int64 {

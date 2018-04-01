@@ -367,6 +367,7 @@ class SyncManager {
                             
                             if let amd = uft.appMetaData {
                                 uploadedEntry.appMetaData = amd
+                                uploadedEntry.appMetaDataVersion = uft.appMetaDataVersion
                             }
                             
                             do {

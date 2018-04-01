@@ -22,6 +22,7 @@ class Directory {
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
     // Compares the passed fileIndex to the current DirecotoryEntry objects, and returns just the FileInfo objects we need to download/delete, if any. The directory is not changed as a result of this call, except for the case where the file isn't in the directory already, but has been deleted on the server.
     // 1/25/18; Now dealing with the case where a file is marked as deleted locally, but was undeleted on the server-- we need to download the file again.
+    // 3/23/18; Now dealing with appMetaData versioning.
     func checkFileIndex(serverFileIndex:[FileInfo]) throws ->
         (downloadFiles:[FileInfo]?, downloadDeletions:[FileInfo]?)  {
     
@@ -125,6 +126,7 @@ class Directory {
                 // Only assign the appMetaData if it's non-nil-- otherwise, the value isn't intended to be changed by the previously uploading client.
                 if let appMetaData = dft.appMetaData {
                     entry.appMetaData = appMetaData
+                    entry.appMetaDataVersion = dft.appMetaDataVersion
                 }
             }
             else {
@@ -133,6 +135,7 @@ class Directory {
                 newEntry.fileVersion = dft.fileVersion
                 newEntry.mimeType = dft.mimeType
                 newEntry.appMetaData = dft.appMetaData
+                newEntry.appMetaDataVersion = dft.appMetaDataVersion
             }
         }
     }

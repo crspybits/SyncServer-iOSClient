@@ -35,6 +35,16 @@ public class FileTracker: NSManagedObject, Filenaming, FileUUID {
         }
     }
     
+    public var appMetaDataVersion: AppMetaDataVersionInt? {
+        get {
+            return appMetaDataVersionInternal?.int32Value
+        }
+        
+        set {
+            appMetaDataVersionInternal = newValue == nil ? nil : NSNumber(value: newValue!)
+        }
+    }
+    
     // Only call this when creating an object.
     // 1/28/18; I used to have this in the Singleton itself, but ran into a really odd infinite loop.
     public func addAge() {

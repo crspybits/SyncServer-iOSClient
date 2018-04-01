@@ -219,7 +219,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:String? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -512,7 +512,7 @@ class TestCase: XCTestCase {
         XCTAssert(foundDeletedFile)
     }
     
-    func uploadAndDownloadTextFile(appMetaData:String? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
+    func uploadAndDownloadTextFile(appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
     
         let masterVersion = getMasterVersion()
         
@@ -530,10 +530,10 @@ class TestCase: XCTestCase {
         onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, appMetaData: appMetaData, fileSize: fileSize)
     }
     
-    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, appMetaData:String? = nil, fileSize:Int64? = nil) {
+    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, appMetaData:AppMetaData? = nil, fileSize:Int64? = nil) {
         let expectation = self.expectation(description: "doneUploads")
 
-        ServerAPI.session.downloadFile(file: file, serverMasterVersion: masterVersion) { (result, error) in
+        ServerAPI.session.downloadFile(file: file, appMetaDataVersion: appMetaData?.version, serverMasterVersion: masterVersion) { (result, error) in
             
             guard let result = result, error == nil else {
                 XCTFail()
@@ -642,7 +642,7 @@ class TestCase: XCTestCase {
         }
     }
     
-    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:String? = nil) {
+    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:AppMetaData? = nil) {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload a file.
@@ -665,7 +665,7 @@ class TestCase: XCTestCase {
         shouldSaveDownload = { url, attr in
             downloadCount += 1
             XCTAssert(downloadCount == 1)
-            XCTAssert(attr.appMetaData == appMetaData)
+            XCTAssert(attr.appMetaData == appMetaData?.contents)
             expectation.fulfill()
         }
         

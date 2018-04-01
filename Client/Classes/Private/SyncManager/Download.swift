@@ -98,7 +98,7 @@ class Download {
                             dft.fileVersion = file.fileVersion
                             dft.mimeType = file.mimeType
                             dft.deletedOnServer = file.deleted!
-                            dft.appMetaData = file.appMetaData
+                            dft.appMetaDataVersion = file.appMetaDataVersion
                             
                             if file.deleted! {
                                 numberDownloadDeletions += 1
@@ -150,7 +150,8 @@ class Download {
         var nextToDownload:DownloadFileTracker!
         var numberFileDownloads = 0
         var numberDownloadDeletions = 0
-
+        var appMetaDataVersion:AppMetaDataVersionInt?
+        
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
             guard dfts.count != 0 else {
@@ -187,6 +188,8 @@ class Download {
             
             // Need this inside the `performAndWait` to bridge the gap without an NSManagedObject
             downloadFile = FilenamingObject(fileUUID: nextToDownload.fileUUID, fileVersion: nextToDownload.fileVersion)
+            
+            appMetaDataVersion = nextToDownload.appMetaDataVersion
         }
         
         guard nextResult == nil else {
@@ -197,7 +200,7 @@ class Download {
             EventDesired.reportEvent( .willStartDownloads(numberFileDownloads: UInt(numberFileDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
-        ServerAPI.session.downloadFile(file: downloadFile, serverMasterVersion: masterVersion) { (result, error)  in
+        ServerAPI.session.downloadFile(file: downloadFile, appMetaDataVersion: appMetaDataVersion, serverMasterVersion: masterVersion) { (result, error)  in
         
             // Don't hold the performAndWait while we do completion-- easy to get a deadlock!
 
@@ -218,14 +221,19 @@ class Download {
             case .success(let downloadedFile):
                 var nextCompletionResult:NextCompletion!
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                    // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
+                    nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
+                    nextToDownload.appMetaDataVersion = downloadedFile.appMetaData?.version
+                
                     // 9/16/17; Not really crucial since we'll be deleting this DownloadFileTracker quickly. But, useful for testing.
                     nextToDownload.status = .downloaded
+                    
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()
                     
                     // TODO: Not using downloadedFile.fileSizeBytes. Why?
                     let mimeType = MimeType(rawValue: nextToDownload.mimeType!)!
                     var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: mimeType, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
-                    attr.appMetaData = downloadedFile.appMetaData
+                    attr.appMetaData = downloadedFile.appMetaData?.contents
                     attr.creationDate = nextToDownload.creationDate as Date?
                     attr.updateDate = nextToDownload.updateDate as Date?
                     

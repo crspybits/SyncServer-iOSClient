@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import SyncServer
+import SyncServer_Shared
 
 class ServerAPI_DownloadFile: TestCase {
     
@@ -26,7 +27,8 @@ class ServerAPI_DownloadFile: TestCase {
     }
     
     func testDownloadTextFileWithAppMetaData() {
-        uploadAndDownloadTextFile(appMetaData: "foobar was here")
+        let appMetaData = AppMetaData(version: 0, contents: "foobar was here")
+        uploadAndDownloadTextFile(appMetaData: appMetaData)
     }
     
     // TODO: These downloads should really be with *different* files-- similar size would be good, but different files.
@@ -42,7 +44,7 @@ class ServerAPI_DownloadFile: TestCase {
         let expectation1 = self.expectation(description: "downloadFile1")
         let expectation2 = self.expectation(description: "downloadFile2")
 
-        ServerAPI.session.downloadFile(file: file1, serverMasterVersion: masterVersion + 1) { (result, error) in
+        ServerAPI.session.downloadFile(file: file1, appMetaDataVersion: nil, serverMasterVersion: masterVersion + 1) { (result, error) in
         
             XCTAssert(error == nil)
             XCTAssert(result != nil)
@@ -57,7 +59,7 @@ class ServerAPI_DownloadFile: TestCase {
             expectation1.fulfill()
         }
         
-        ServerAPI.session.downloadFile(file: file2, serverMasterVersion: masterVersion + 1) { (result, error) in
+        ServerAPI.session.downloadFile(file: file2, appMetaDataVersion: nil, serverMasterVersion: masterVersion + 1) { (result, error) in
         
             XCTAssert(error == nil)
             XCTAssert(result != nil)

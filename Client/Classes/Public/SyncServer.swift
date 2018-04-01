@@ -159,6 +159,7 @@ public class SyncServer {
             }
             
             // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
+            // Similarly, the appMetaData version will be determined immediately before the upload.
 
             Synchronized.block(self) {
                 // Has this file UUID been added to `pendingSync` already? i.e., Has the client called `uploadImmutable/Copy`, then a little later called `uploadImmutable/Copy` again, with the same uuid, all without calling `sync`-- so, we don't have a new file version because new file versions only occur once the upload hits the server.

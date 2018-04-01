@@ -70,7 +70,6 @@ class ServerAPI_MultiVersionFiles: TestCase {
         }
 
         XCTAssert(result[0].fileVersion == fileVersion)
-        XCTAssert(result[0].appMetaData == file.appMetaData)
         XCTAssert(result[0].deviceUUID == file.deviceUUID)
         
         if let resultMimeTypeString = result[0].mimeType {
@@ -91,7 +90,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let mimeType:MimeType = .text
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        let appMetaData = "foobar"
+        let appMetaData = AppMetaData(version: 0, contents: "foobar")
         
         guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
             XCTFail()

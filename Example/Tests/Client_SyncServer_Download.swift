@@ -10,6 +10,7 @@ import XCTest
 @testable import SyncServer
 import SMCoreLib
 import Foundation
+import SyncServer_Shared
 
 class Client_SyncServer_Download: TestCase {
     
@@ -99,11 +100,13 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testDownloadWithMetaData() {
-         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: "Some app meta data")
+        let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
+         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: appMetaData)
     }
     
     func testThatResetWorksAfterDownload() {
-        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: "Some app meta data")
+        let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: appMetaData)
         
         do {
             try SyncServer.session.reset()
