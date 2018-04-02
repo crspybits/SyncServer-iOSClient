@@ -88,8 +88,8 @@ public class SyncServer {
     }
     
     // Enqueue a local immutable file for subsequent upload. Immutable files are assumed to not change (at least until after the upload has completed). This immutable characteristic is not enforced by this class but needs to be enforced by the caller of this class.
-    // This operation survives app launches, as long as the the call itself completes. 
-    // If there is a file with the same uuid, which has been enqueued for upload but not yet `sync`'ed, it will be replaced by the given file. 
+    // This operation survives app launches, as long as the call itself completes.
+    // If there is a file with the same uuid, which has been enqueued for upload (file contents or appMetaData) but not yet `sync`'ed, it will be replaced by this upload request.
     // This operation does not access the server, and thus runs quickly and synchronously.
     // When uploading a file for the 2nd or more time ("multi-version upload"):
     // a) the 2nd and following updates must have the same mimeType as the first version of the file.
@@ -99,6 +99,11 @@ public class SyncServer {
         try upload(fileURL: localFile, withAttributes: attr)
     }
     
+    // A copy of the file is made, and that is used for uploading. The caller can then change their original and it doesn't affect the upload. The copy is removed after the upload completes. This operation proceeds like `uploadImmutable` otherwise.
+    public func uploadCopy(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
+        try upload(fileURL: localFile, withAttributes: attr, copy: true)
+    }
+    
     private func upload(fileURL:SMRelativeLocalURL, withAttributes attr: SyncAttributes, copy:Bool = false) throws {
         var errorToThrow:Error?
         
@@ -106,7 +111,7 @@ public class SyncServer {
             throw SyncServerError.noMimeType
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[unowned self] in
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[weak self] in
             var entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
             
             if nil == entry {
@@ -137,6 +142,7 @@ public class SyncServer {
             newUft.fileUUID = attr.fileUUID
             newUft.mimeType = attr.mimeType.rawValue
             newUft.uploadCopy = copy
+            newUft.operation = .file
             
             if copy {
                 // Make a copy of the file
@@ -160,27 +166,8 @@ public class SyncServer {
             
             // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
             // Similarly, the appMetaData version will be determined immediately before the upload.
-
-            Synchronized.block(self) {
-                // Has this file UUID been added to `pendingSync` already? i.e., Has the client called `uploadImmutable/Copy`, then a little later called `uploadImmutable/Copy` again, with the same uuid, all without calling `sync`-- so, we don't have a new file version because new file versions only occur once the upload hits the server.
-                do {
-                    let result = try Upload.pendingSync().uploadFileTrackers.filter
-                        {$0.fileUUID == attr.fileUUID}
-                    
-                    result.forEach { uft in
-                        do {
-                            try uft.remove()
-                        } catch {
-                            errorToThrow = SyncServerError.couldNotRemoveFileTracker
-                        }
-                    }
-                    
-                    try Upload.pendingSync().addToUploadsOverride(newUft)
-                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
-                } catch (let error) {
-                    errorToThrow = error
-                }
-            }
+            
+            errorToThrow = self?.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
         }
         
         guard errorToThrow == nil else {
@@ -188,9 +175,91 @@ public class SyncServer {
         }
     }
     
-    // A copy of the file is made, and that is used for uploading. The caller can then change their original and it doesn't affect the upload. The copy is removed after the upload completes. This operation proceeds like `uploadImmutable` otherwise.
-    public func uploadCopy(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
-        try upload(fileURL: localFile, withAttributes: attr, copy: true)
+    // Enqueue an upload of changed app meta data for an existing file. The appMetaData of the attr must not be nil.
+    // Like the other uploads above: This operation survives app launches, as long as the call itself completes, this operation does not access the server, and thus runs quickly and synchronously, and if there is a file with the same uuid, which has been enqueued for upload (file contents or appMetaData) but not yet `sync`'ed, it will be replaced by this upload request.
+    public func uploadAppMetaData(attr: SyncAttributes) throws {
+        guard let _ = attr.appMetaData else {
+            throw SyncServerError.badAppMetaData
+        }
+
+        // This doesn't really use the mimeType, but just for consistency.
+        guard let mimeType = attr.mimeType else {
+            throw SyncServerError.noMimeType
+        }
+        
+        var errorToThrow:Error?
+
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[weak self] in
+            guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
+                errorToThrow = SyncServerError.couldNotFindFileUUID(attr.fileUUID)
+                return
+            }
+            
+            guard let entryMimeTypeString = entry.mimeType,
+                let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
+                errorToThrow = SyncServerError.noMimeType
+                return
+            }
+            
+            if mimeType != entryMimeType {
+                errorToThrow = SyncServerError.mimeTypeOfFileChanged
+                return
+            }
+            
+            if entry.deletedOnServer {
+                errorToThrow = SyncServerError.fileAlreadyDeleted
+                return
+            }
+            
+            let newUft = UploadFileTracker.newObject() as! UploadFileTracker
+            newUft.appMetaData = attr.appMetaData
+            newUft.fileUUID = attr.fileUUID
+            newUft.mimeType = attr.mimeType.rawValue
+            newUft.uploadCopy = false
+            newUft.operation = .appMetaData
+            
+            // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
+            // Similarly, the appMetaData version will be determined immediately before the upload.
+            
+            errorToThrow = self?.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
+        }
+        
+        guard errorToThrow == nil else {
+            throw errorToThrow!
+        }
+    }
+    
+    // Do this in a Core Data perform block.
+    private func tryToAddUploadFileTracker(attr:SyncAttributes, newUft: UploadFileTracker) -> Error? {
+        var errorToThrow: Error?
+        
+        Synchronized.block(self) {
+            do {
+                let queuedForDeletion = try Upload.pendingSync().uploadFileTrackers.filter
+                    {$0.fileUUID == attr.fileUUID && $0.operation.isDeletion }
+                if queuedForDeletion.count > 0 {
+                    throw SyncServerError.fileQueuedForDeletion
+                }
+                
+                let result = try Upload.pendingSync().uploadFileTrackers.filter
+                    {$0.fileUUID == attr.fileUUID}
+                
+                result.forEach { uft in
+                    do {
+                        try uft.remove()
+                    } catch {
+                        errorToThrow = SyncServerError.couldNotRemoveFileTracker
+                    }
+                }
+                
+                try Upload.pendingSync().addToUploadsOverride(newUft)
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let error) {
+                errorToThrow = error
+            }
+        }
+        
+        return errorToThrow
     }
     
     // The following two methods enqueue upload deletion operation(s). The operation(s) persists across app launches. It is an error to try again later to upload, or delete the file(s) referenced by the(se) UUID. You can only delete files that are already known to the SyncServer (e.g., that you've uploaded).

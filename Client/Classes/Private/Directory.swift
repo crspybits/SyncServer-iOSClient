@@ -123,7 +123,7 @@ class Directory {
     }
     
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
-    func updateAfterDownloadingFiles(downloads:[DownloadFileTracker]) {
+    func updateAfterDownloading(downloads:[DownloadFileTracker]) {
         downloads.forEach { dft in
             if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: dft.fileUUID) {
                 // This will really only ever happen in testing: A situation where the DirectoryEntry has been created for the file uuid, but we don't have a fileVersion assigned. e.g., The file gets uploaded (not using the sync system), then uploaded by the sync system, and then we get the download that was created not using the sync system.
@@ -135,11 +135,14 @@ class Directory {
                     })
                 }
 #endif
-                entry.fileVersion = dft.fileVersion
-                
-                // 1/25/18; Deal with undeletion.
-                if entry.deletedOnServer {
-                    entry.deletedOnServer = false
+
+                if dft.operation == .file {
+                    entry.fileVersion = dft.fileVersion
+                    
+                    // 1/25/18; Deal with undeletion.
+                    if entry.deletedOnServer {
+                        entry.deletedOnServer = false
+                    }
                 }
                 
                 if entry.mimeType != dft.mimeType {

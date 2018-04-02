@@ -125,10 +125,10 @@ class ServerAPI_NetworkLoss: TestCase {
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
-        let downloadFile = FilenamingObject(fileUUID: fileUUID, fileVersion: 0)
+        let downloadFile = FilenamingWithAppMetaDataVersion(fileUUID: fileUUID, fileVersion: 0, appMetaDataVersion: nil)
     
         apiCallNetworkLoss() { exp in
-            ServerAPI.session.downloadFile(file: downloadFile, appMetaDataVersion: nil, serverMasterVersion: masterVersion + 1) { (result, error) in
+            ServerAPI.session.downloadFile(fileNamingObject: downloadFile, serverMasterVersion: masterVersion + 1) { (result, error) in
                 XCTAssert(error != nil)
                 exp.fulfill()
             }

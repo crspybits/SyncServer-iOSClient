@@ -728,9 +728,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
-            XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
-            XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+            XCTAssert(downloadedContentAttributes.fileUUID == file.fileUUID)
+            XCTAssert(downloadedContentAttributes.mimeType == mimeType)
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
             uploadConflict.resolutionCallback(resolution)
         }
@@ -948,13 +948,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
-            XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
-            XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+            XCTAssert(downloadedContentAttributes.fileUUID == file.fileUUID)
+            XCTAssert(downloadedContentAttributes.mimeType == mimeType)
             
             // Do another upload-- to compensate for deleting both the upload and download.
             do {
-                try SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: downloadedFileAttributes)
+                try SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: downloadedContentAttributes)
             }
             catch {
                 XCTFail()

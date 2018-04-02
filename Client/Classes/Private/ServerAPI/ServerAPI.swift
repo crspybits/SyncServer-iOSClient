@@ -294,7 +294,7 @@ class ServerAPI {
             params[UploadFileRequest.undeleteServerFileKey] = 1
         }
         
-        guard var uploadRequest = UploadFileRequest(json: params) else {
+        guard let uploadRequest = UploadFileRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest);
             return;
         }
@@ -410,14 +410,14 @@ class ServerAPI {
     case serverMasterVersionUpdate(Int64)
     }
     
-    func downloadFile(file: Filenaming, appMetaDataVersion: AppMetaDataVersionInt?, serverMasterVersion:MasterVersionInt!, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
+    func downloadFile(fileNamingObject: FilenamingWithAppMetaDataVersion, serverMasterVersion:MasterVersionInt!, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.downloadFile
         
         var params = [String : Any]()
         params[DownloadFileRequest.masterVersionKey] = serverMasterVersion
-        params[DownloadFileRequest.fileUUIDKey] = file.fileUUID
-        params[DownloadFileRequest.fileVersionKey] = file.fileVersion
-        params[DownloadFileRequest.appMetaDataVersionKey] = appMetaDataVersion
+        params[DownloadFileRequest.fileUUIDKey] = fileNamingObject.fileUUID
+        params[DownloadFileRequest.fileVersionKey] = fileNamingObject.fileVersion
+        params[DownloadFileRequest.appMetaDataVersionKey] = fileNamingObject.appMetaDataVersion
 
         guard let downloadFileRequest = DownloadFileRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest)
@@ -426,7 +426,7 @@ class ServerAPI {
 
         let parameters = downloadFileRequest.urlParameters()!
         let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
-        let file = ServerNetworkingLoadingFile(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        let file = ServerNetworkingLoadingFile(fileUUID: fileNamingObject.fileUUID, fileVersion: fileNamingObject.fileVersion)
         
         download(file: file, fromServerURL: serverURL, method: endpoint.method) { (resultURL, response, statusCode, error) in
         
@@ -455,7 +455,7 @@ class ServerAPI {
                             return
                         }
                         
-                        let appMetaData = AppMetaData(version: appMetaDataVersion, contents: downloadFileResponse.appMetaData)
+                        let appMetaData = AppMetaData(version: fileNamingObject.appMetaDataVersion, contents: downloadFileResponse.appMetaData)
                         
                         let downloadedFile = DownloadedFile(url: resultURL!, fileSizeBytes: fileSizeBytes, appMetaData: appMetaData)
                         completion?(.success(downloadedFile), nil)

@@ -43,8 +43,10 @@ class ServerAPI_DownloadFile: TestCase {
 
         let expectation1 = self.expectation(description: "downloadFile1")
         let expectation2 = self.expectation(description: "downloadFile2")
+        
+        let fileNamingObj1 = FilenamingWithAppMetaDataVersion(fileUUID: file1.fileUUID, fileVersion: file1.fileVersion, appMetaDataVersion: nil)
 
-        ServerAPI.session.downloadFile(file: file1, appMetaDataVersion: nil, serverMasterVersion: masterVersion + 1) { (result, error) in
+        ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj1, serverMasterVersion: masterVersion + 1) { (result, error) in
         
             XCTAssert(error == nil)
             XCTAssert(result != nil)
@@ -59,7 +61,9 @@ class ServerAPI_DownloadFile: TestCase {
             expectation1.fulfill()
         }
         
-        ServerAPI.session.downloadFile(file: file2, appMetaDataVersion: nil, serverMasterVersion: masterVersion + 1) { (result, error) in
+        let fileNamingObj2 = FilenamingWithAppMetaDataVersion(fileUUID: file2.fileUUID, fileVersion: file2.fileVersion, appMetaDataVersion: nil)
+
+        ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj2, serverMasterVersion: masterVersion + 1) { (result, error) in
         
             XCTAssert(error == nil)
             XCTAssert(result != nil)

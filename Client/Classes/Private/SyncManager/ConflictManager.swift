@@ -12,7 +12,7 @@ import SMCoreLib
 class ConflictManager {
     // completion's are called when the client has resolved all conflicts if there are any. If there are no conflicts, the call to the completion is synchronous.
     
-    static func handleAnyFileDownloadConflict(attr:SyncAttributes, url: SMRelativeLocalURL, delegate: SyncServerDelegate, completion:@escaping (_ keepThisOne: SyncAttributes?)->()) {
+    static func handleAnyContentDownloadConflict(attr:SyncAttributes, url: SMRelativeLocalURL?, delegate: SyncServerDelegate, completion:@escaping (_ keepThisOne: SyncAttributes?)->()) {
     
         var resolver: SyncServerConflict<ContentDownloadResolution>?
         
@@ -70,7 +70,7 @@ class ConflictManager {
         
         if let resolver = resolver {
             // See note [1] below re: why I'm not calling this on the main thread.
-            delegate.syncServerMustResolveContentDownloadConflict(downloadedFile: url, downloadedFileAttributes: attr, uploadConflict: resolver)
+            delegate.syncServerMustResolveContentDownloadConflict(downloadedFile: url, downloadedContentAttributes: attr, uploadConflict: resolver)
         }
         else {
             completion(nil)

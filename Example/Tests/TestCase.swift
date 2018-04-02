@@ -83,7 +83,7 @@ class TestCase: XCTestCase {
     var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?
-    var syncServerMustResolveContentDownloadConflict:((_ downloadedFile: SMRelativeLocalURL, _ downloadedFileAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
+    var syncServerMustResolveContentDownloadConflict:((_ downloadedFile: SMRelativeLocalURL?, _ downloadedContentAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
     var syncServerAppMetaDataDownloadComplete: ((SyncAttributes)->())!
 
     override func setUp() {
@@ -534,7 +534,9 @@ class TestCase: XCTestCase {
     func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, appMetaData:AppMetaData? = nil, fileSize:Int64? = nil) {
         let expectation = self.expectation(description: "doneUploads")
 
-        ServerAPI.session.downloadFile(file: file, appMetaDataVersion: appMetaData?.version, serverMasterVersion: masterVersion) { (result, error) in
+        let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: file.fileUUID, fileVersion: file.fileVersion, appMetaDataVersion: appMetaData?.version)
+
+        ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj, serverMasterVersion: masterVersion) { (result, error) in
             
             guard let result = result, error == nil else {
                 XCTFail()
@@ -786,8 +788,8 @@ extension TestCase : SyncServerDelegate {
         shouldDoDeletions(downloadDeletions)
     }
     
-    func syncServerMustResolveContentDownloadConflict(downloadedFile: SMRelativeLocalURL, downloadedFileAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
-        syncServerMustResolveContentDownloadConflict?(downloadedFile, downloadedFileAttributes, uploadConflict)
+    func syncServerMustResolveContentDownloadConflict(downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
+        syncServerMustResolveContentDownloadConflict?(downloadedFile, downloadedContentAttributes, uploadConflict)
     }
     
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict]) {
