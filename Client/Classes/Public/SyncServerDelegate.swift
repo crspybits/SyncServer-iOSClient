@@ -18,6 +18,8 @@ public enum SyncEvent {
     // The attributes report the actual creation and update dates of the file-- as established by the server.
     case singleFileUploadComplete(attr:SyncAttributes)
     
+    case singleAppMetaDataUploadComplete(fileUUID: String)
+
     case singleUploadDeletionComplete(fileUUID:UUIDString)
     case fileUploadsCompleted(numberOfFiles:Int)
     case uploadDeletionsCompleted(numberOfFiles:Int)
@@ -40,21 +42,22 @@ public struct EventDesired: OptionSet {
     public static let willStartUploads = EventDesired(rawValue: 1 << 1)
 
     public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 2)
-    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 3)
-    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 4)
-    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 5)
+    public static let singleAppMetaDataUploadComplete = EventDesired(rawValue: 1 << 3)
+    public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 4)
+    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 5)
+    public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 6)
     
-    public static let syncStarted = EventDesired(rawValue: 1 << 6)
-    public static let syncDone = EventDesired(rawValue: 1 << 7)
+    public static let syncStarted = EventDesired(rawValue: 1 << 7)
+    public static let syncDone = EventDesired(rawValue: 1 << 8)
     
-    public static let syncStopping = EventDesired(rawValue: 1 << 8)
+    public static let syncStopping = EventDesired(rawValue: 1 << 9)
 
-    public static let refreshingCredentials = EventDesired(rawValue: 1 << 9)
+    public static let refreshingCredentials = EventDesired(rawValue: 1 << 10)
 
     public static let defaults:EventDesired =
         [.singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted,
          .uploadDeletionsCompleted]
-    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.syncStopping, EventDesired.refreshingCredentials, EventDesired.willStartDownloads, EventDesired.willStartUploads])
+    public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.syncStopping, EventDesired.refreshingCredentials, EventDesired.willStartDownloads, EventDesired.willStartUploads, EventDesired.singleAppMetaDataUploadComplete])
     
     static func reportEvent(_ event:SyncEvent, mask:EventDesired, delegate:SyncServerDelegate?) {
     
@@ -84,6 +87,9 @@ public struct EventDesired: OptionSet {
             
         case .singleFileUploadComplete:
             eventIsDesired = .singleFileUploadComplete
+            
+        case .singleAppMetaDataUploadComplete:
+            eventIsDesired = .singleAppMetaDataUploadComplete
             
         case .singleUploadDeletionComplete:
             eventIsDesired = .singleUploadDeletionComplete

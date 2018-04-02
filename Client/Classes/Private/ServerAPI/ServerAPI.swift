@@ -656,12 +656,13 @@ class ServerAPI {
     case serverMasterVersionUpdate(Int64)
     }
     
-    func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
+    func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, serverMasterVersion: MasterVersionInt, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
         let endpoint = ServerEndpoints.uploadAppMetaData
         
         let uploadRequest = UploadAppMetaDataRequest()
         uploadRequest.appMetaData = appMetaData
         uploadRequest.fileUUID = fileUUID
+        uploadRequest.masterVersion = serverMasterVersion
         
         let parameters = uploadRequest.urlParameters()!
         let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)

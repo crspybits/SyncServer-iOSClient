@@ -159,7 +159,12 @@ class SyncManager {
             }
             else {
                 Thread.runSync(onMainThread: {
-                    if dft.operation == .file {
+                    var fileOperation: Bool = false
+                    CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                        fileOperation = dft.operation == .file
+                    }
+                    
+                    if fileOperation {
                         self.testingDelegate!.singleFileDownloadComplete(url: url!, attr: attr) {
                             after()
                         }
@@ -287,44 +292,27 @@ class SyncManager {
             return
         }
         
-        let nextResult = Upload.session.next(first: first) { nextCompletion in
+        let nextResult = Upload.session.next(first: first) {[weak self] nextCompletion in
             switch nextCompletion {
-            case .fileUploaded(let attr):
-                EventDesired.reportEvent(.singleFileUploadComplete(attr: attr), mask: self.desiredEvents, delegate: self.delegate)
-                
-                func after() {
-                    // Recursively see if there is a next upload to do.
-                    DispatchQueue.global().async {
-                        self.checkForPendingUploads()
-                    }
-                }
-                
-#if DEBUG
-                if self.testingDelegate == nil {
-                    after()
-                }
-                else {
-                    Thread.runSync(onMainThread: {
-                        self.testingDelegate!.syncServerSingleFileUploadCompleted(next: {
-                            after()
-                        })
-                    })
-                }
-#else
-                after()
-#endif
+            case .fileUploaded(let attr, let uft):
+                self?.contentWasUploaded(attr: attr, uft: uft)
 
+            case .appMetaDataUploaded(uft: let uft):
+                self?.contentWasUploaded(attr: nil, uft: uft)
+                
             case .uploadDeletion(let fileUUID):
-                EventDesired.reportEvent(.singleUploadDeletionComplete(fileUUID: fileUUID), mask: self.desiredEvents, delegate: self.delegate)
-                // Recursively see if there is a next upload to do.
-                self.checkForPendingUploads()
+                if let selfObj = self {
+                    EventDesired.reportEvent(.singleUploadDeletionComplete(fileUUID: fileUUID), mask: selfObj.desiredEvents, delegate: selfObj.delegate)
+                    // Recursively see if there is a next upload to do.
+                    selfObj.checkForPendingUploads()
+                }
                 
             case .masterVersionUpdate:
                 // Things have changed on the server. Check for downloads again. Don't go all the way back to `start` because we know that we don't have queued downloads.
-                self.checkForDownloads()
+                self?.checkForDownloads()
                 
             case .error(let error):
-                self.callback?(error)
+                self?.callback?(error)
             }
         }
         
@@ -342,6 +330,50 @@ class SyncManager {
         case .error(let error):
             callback?(error)
         }
+    }
+    
+    private func contentWasUploaded(attr:SyncAttributes?, uft: UploadFileTracker) {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            switch uft.operation! {
+            case .file:
+                EventDesired.reportEvent(.singleFileUploadComplete(attr: attr!), mask: self.desiredEvents, delegate: self.delegate)
+            case .appMetaData:
+                EventDesired.reportEvent(.singleAppMetaDataUploadComplete(fileUUID: uft.fileUUID), mask: self.desiredEvents, delegate: self.delegate)
+            case .deletion:
+                assert(false)
+            }
+        }
+        
+        func after() {
+            // Recursively see if there is a next upload to do.
+            DispatchQueue.global().async {
+                self.checkForPendingUploads()
+            }
+        }
+
+#if DEBUG
+        if self.testingDelegate == nil {
+            after()
+        }
+        else {
+            Thread.runSync(onMainThread: {
+                var fileUpload: Bool = false
+                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                    if uft.operation == .file {
+                        fileUpload = true
+                    }
+                }
+                
+                if fileUpload {
+                    self.testingDelegate!.syncServerSingleFileUploadCompleted(next: {
+                        after()
+                    })
+                }
+            })
+        }
+#else
+        after()
+#endif
     }
     
     private func doneUploads() {
