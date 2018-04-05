@@ -105,57 +105,15 @@ class SyncManager {
     }
     
     private func downloadCompleted(dft: DownloadFileTracker, url: SMRelativeLocalURL?, attr:SyncAttributes, callback:((SyncServerError?)->())? = nil) {
-        func after() {
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                Directory.session.updateAfterDownloading(downloads: [dft])
-            
-                // 9/16/17; We're doing downloads in an eventually consistent manner. Remove the DownloadFileTracker-- we don't want to repeat this download. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
-                CoreData.sessionNamed(Constants.coreDataName).remove(dft)
-                CoreData.sessionNamed(Constants.coreDataName).saveContext()
-            }
-            
-            // Recursively check for any next download. Using `async` so we don't consume extra space on the stack.
-            DispatchQueue.global().async {
-                self.start(callback)
-            }
-        }
 
-        func normalDelegateAndAfterCalls() {
-            Thread.runSync(onMainThread: {
-                ConflictManager.handleAnyContentDownloadConflict(attr: attr, url: url, delegate: self.delegate!) { ignoreDownload in
-                
-                    if ignoreDownload == nil {
-                        // Not 100% sure we're running on main thread-- its possible that the client didn't call the completion on the main thread.
-                        Thread.runSync(onMainThread: {
-                            switch dft.operation! {
-                            case .file:
-                                self.delegate!.syncServerSingleFileDownloadComplete(url: url!, attr: attr)
-                            case .appMetaData:
-                                self.delegate!.syncServerAppMetaDataDownloadComplete(attr: attr)
-                            case .deletion:
-                                assert(false)
-                            }
-                        })
-                    }
-                    else {
-                        Log.msg("ignoreDownload not nil")
-                    }
-                    
-                    DispatchQueue.global(qos: .default).sync {
-                        after()
-                    }
-                }
-            })
-        }
-
-        if self.delegate == nil {
-            after()
+        if delegate == nil {
+            afterDownloadCompleted(dft: dft, callback: callback)
         }
         else {
 #if DEBUG
             // Assuming that in testing self.delegate will not be nil.
-            if self.testingDelegate == nil {
-                normalDelegateAndAfterCalls()
+            if testingDelegate == nil {
+                normalDelegateAndAfterCalls(dft: dft, url: url, attr:attr, callback:callback)
             }
             else {
                 Thread.runSync(onMainThread: {
@@ -166,14 +124,58 @@ class SyncManager {
                     
                     if fileOperation {
                         self.testingDelegate!.singleFileDownloadComplete(url: url!, attr: attr) {
-                            after()
+                            self.afterDownloadCompleted(dft: dft, callback: callback)
                         }
                     }
                 })
             }
 #else
-            normalDelegateAndAfterCalls()
+            normalDelegateAndAfterCalls(dft: dft, url: url, attr:attr, callback:callback)
 #endif
+        }
+    }
+    
+    func normalDelegateAndAfterCalls(dft: DownloadFileTracker, url: SMRelativeLocalURL?, attr:SyncAttributes, callback:((SyncServerError?)->())? = nil) {
+    
+        Thread.runSync(onMainThread: {[unowned self] in
+            ConflictManager.handleAnyContentDownloadConflict(attr: attr, url: url, delegate: self.delegate!) { ignoreDownload in
+            
+                if ignoreDownload == nil {
+                    // Not 100% sure we're running on main thread-- its possible that the client didn't call the completion on the main thread.
+                    Thread.runSync(onMainThread: {
+                        switch dft.operation! {
+                        case .file:
+                            self.delegate!.syncServerSingleFileDownloadComplete(url: url!, attr: attr)
+                        case .appMetaData:
+                            self.delegate!.syncServerAppMetaDataDownloadComplete(attr: attr)
+                        case .deletion:
+                            assert(false)
+                        }
+                    })
+                }
+                else {
+                    Log.msg("ignoreDownload not nil")
+                }
+                
+                DispatchQueue.global(qos: .default).sync {
+                    self.afterDownloadCompleted(dft: dft, callback: callback)
+                }
+            }
+        })
+    }
+    
+    func afterDownloadCompleted(dft: DownloadFileTracker, callback:((SyncServerError?)->())? = nil) {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            Directory.session.updateAfterDownloading(downloads: [dft])
+        
+            // 9/16/17; We're doing downloads in an eventually consistent manner. Remove the DownloadFileTracker-- we don't want to repeat this download. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
+            CoreData.sessionNamed(Constants.coreDataName).remove(dft)
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+        }
+        
+        // Recursively check for any next download. Using `async` so we don't consume extra space on the stack.
+        DispatchQueue.global().async {
+            self.start(callback)
         }
     }
     

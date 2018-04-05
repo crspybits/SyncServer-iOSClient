@@ -89,7 +89,7 @@ public class SyncServer {
     
     // Enqueue a local immutable file for subsequent upload. Immutable files are assumed to not change (at least until after the upload has completed). This immutable characteristic is not enforced by this class but needs to be enforced by the caller of this class.
     // This operation survives app launches, as long as the call itself completes.
-    // If there is a file with the same uuid, which has been enqueued for upload (file contents or appMetaData) but not yet `sync`'ed, it will be replaced by this upload request.
+    // If there are contents with the same uuid, which has been enqueued for upload (file upload or appMetaData upload) but not yet `sync`'ed, it will be replaced by this upload request. That is, if you want to do both a file upload and an appMetaData upload in the same sync, then set the SyncAttributes with the appMetaData, and use one of the file upload operations.
     // This operation does not access the server, and thus runs quickly and synchronously.
     // When uploading a file for the 2nd or more time ("multi-version upload"):
     // a) the 2nd and following updates must have the same mimeType as the first version of the file.

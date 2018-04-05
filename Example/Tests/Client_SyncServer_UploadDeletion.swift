@@ -253,8 +253,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         // Need to make sure the file is marked as deleted on the server.
         let fileIndex = getFileIndex(expectedFiles:
-            [(fileUUID: attr1.fileUUID, fileSize: nil),
-                (fileUUID: attr2.fileUUID, fileSize: nil)
+            [(fileUUID: attr1.fileUUID!, fileSize: nil),
+                (fileUUID: attr2.fileUUID!, fileSize: nil)
             ])
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
@@ -311,8 +311,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         // Need to make sure the file is marked as deleted on the server.
         let fileIndex = getFileIndex(expectedFiles:
-            [(fileUUID: attr1.fileUUID, fileSize: nil),
-                (fileUUID: attr2.fileUUID, fileSize: nil)
+            [(fileUUID: attr1.fileUUID!, fileSize: nil),
+                (fileUUID: attr2.fileUUID!, fileSize: nil)
             ])
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
