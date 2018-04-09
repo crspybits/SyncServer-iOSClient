@@ -137,13 +137,18 @@ class SyncManager {
     
     func normalDelegateAndAfterCalls(dft: DownloadFileTracker, url: SMRelativeLocalURL?, attr:SyncAttributes, callback:((SyncServerError?)->())? = nil) {
     
+        var operation: FileTracker.Operation!
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            operation = dft.operation
+        }
+        
         Thread.runSync(onMainThread: {[unowned self] in
             ConflictManager.handleAnyContentDownloadConflict(attr: attr, url: url, delegate: self.delegate!) { ignoreDownload in
             
                 if ignoreDownload == nil {
                     // Not 100% sure we're running on main thread-- its possible that the client didn't call the completion on the main thread.
                     Thread.runSync(onMainThread: {
-                        switch dft.operation! {
+                        switch operation! {
                         case .file:
                             self.delegate!.syncServerSingleFileDownloadComplete(url: url!, attr: attr)
                         case .appMetaData:

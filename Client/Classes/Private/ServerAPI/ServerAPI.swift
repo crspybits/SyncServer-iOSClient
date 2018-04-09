@@ -692,13 +692,14 @@ class ServerAPI {
     case serverMasterVersionUpdate(Int64)
     }
 
-    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, completion:((Result<DownloadAppMetaDataResult>)->(Void))?) {
+    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, serverMasterVersion: MasterVersionInt, completion:((Result<DownloadAppMetaDataResult>)->(Void))?) {
     
         let endpoint = ServerEndpoints.downloadAppMetaData
         
         var paramsForRequest:[String:Any] = [:]
         paramsForRequest[DownloadAppMetaDataRequest.fileUUIDKey] = fileUUID
         paramsForRequest[DownloadAppMetaDataRequest.appMetaDataVersionKey] = appMetaDataVersion
+        paramsForRequest[DownloadAppMetaDataRequest.masterVersionKey] = serverMasterVersion
         let downloadAppMetaData = DownloadAppMetaDataRequest(json: paramsForRequest)!
         
         let parameters = downloadAppMetaData.urlParameters()!

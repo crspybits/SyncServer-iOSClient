@@ -24,8 +24,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     @discardableResult
-    func uploadDeletionWorksWhenWaitUntilAfterUpload() -> String? {
-        guard let (_, attr) = uploadSingleFileUsingSync() else {
+    func uploadDeletionWorksWhenWaitUntilAfterUpload() -> (SMRelativeLocalURL, SyncAttributes)? {
+        guard let (url, attr) = uploadSingleFileUsingSync() else {
             XCTFail()
             return nil
         }
@@ -60,7 +60,10 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
 
         // Need to make sure the file is marked as deleted on the server.
-        let fileIndex = getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        guard let fileIndex = getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]) else {
+            XCTFail()
+            return nil
+        }
         
         guard fileIndex.count > 0, fileIndex[0].deleted else {
             XCTFail()
@@ -72,7 +75,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
             XCTAssert(result!.deletedOnServer)
         }
         
-        return attr.fileUUID
+        return (url, attr)
     }
     
     func testThatUploadDeletionWorksWhenWaitUntilAfterUpload() {
@@ -141,7 +144,11 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        let fileIndex = getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        guard let fileIndex = getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]) else {
+            XCTFail()
+            return
+        }
+        
         XCTAssert(fileIndex[0].deleted)
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
@@ -177,12 +184,79 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        let fileIndex = getFileIndex(expectedFiles: [])
+        guard let fileIndex = getFileIndex(expectedFiles: []) else {
+            XCTFail()
+            return
+        }
+        
         XCTAssert(fileIndex.count == 0)
     
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
             XCTAssert(result!.deletedOnServer)
+        }
+    }
+    
+    func testDeletionImmediatelyFollowedByFileUploadFails() {
+        guard let (url, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
+
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        
+        do {
+            try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            XCTFail()
+        } catch {
+            // SyncServerError.fileQueuedForDeletion
+        }
+    }
+    
+    func testDeletionImmediatelyFollowedByAppMetaDataUploadFails() {
+        guard let (_, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
+
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        
+        do {
+            var attr2 = attr
+            attr2.appMetaData = "Foobar"
+            try SyncServer.session.uploadAppMetaData(attr: attr)
+            XCTFail()
+        } catch {
+            // SyncServerError.fileQueuedForDeletion
+        }
+    }
+    
+    func testThatDeletionWithSyncFollowedByFileUploadFails() {
+        guard let (url, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
+            XCTFail()
+            return
+        }
+        
+        do {
+            try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+   func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
+        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
+            XCTFail()
+            return
+        }
+    
+        do {
+            var attr2 = attr
+            attr2.appMetaData = "Foobar"
+            try SyncServer.session.uploadAppMetaData(attr: attr)
+            XCTFail()
+        } catch {
+            // SyncServerError.fileQueuedForDeletion
         }
     }
     
@@ -196,13 +270,13 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
-        guard let uuid = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
+        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
             XCTFail()
             return
         }
         
         do {
-            try SyncServer.session.delete(fileWithUUID: uuid)
+            try SyncServer.session.delete(fileWithUUID: attr.fileUUID)
             XCTFail()
         } catch {
         }
@@ -252,10 +326,14 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        let fileIndex = getFileIndex(expectedFiles:
+        guard let fileIndex = getFileIndex(expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
-            ])
+            ]) else {
+            XCTFail()
+            return
+        }
+        
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
         
@@ -310,10 +388,14 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        let fileIndex = getFileIndex(expectedFiles:
+        guard let fileIndex = getFileIndex(expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
-            ])
+            ]) else {
+            XCTFail()
+            return
+        }
+        
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
         

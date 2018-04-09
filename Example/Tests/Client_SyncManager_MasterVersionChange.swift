@@ -198,10 +198,13 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(expectedFiles: [
+        guard let _ = getFileIndex(expectedFiles: [
             (fileUUID: fileUUID1, fileSize: nil),
             (fileUUID: fileUUID2, fileSize: nil)
-        ])
+        ]) else {
+            XCTFail()
+            return
+        }
         
         var masterVersion:MasterVersionInt!
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {

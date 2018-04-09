@@ -287,7 +287,7 @@ class Client_Downloads: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    func onlyCheck(expectedDownloads:Int?=nil, expectedDownloadDeletions:Int?=nil) {
+    func onlyCheck(expectedDownloads:Int=0, expectedDownloadDeletions:Int=0) {
         let masterVersionFirst = getMasterVersion()
         let expectation1 = self.expectation(description: "onlyCheck")
 
@@ -297,8 +297,8 @@ class Client_Downloads: TestCase {
                 XCTFail("Failed: \(error)")
             
             case .checkResult(downloadSet: let downloadSet, let masterVersion):
-                XCTAssert(downloadSet.downloadFiles.count == expectedDownloads)
-                XCTAssert(downloadSet.downloadDeletions.count == expectedDownloadDeletions)
+                XCTAssert(downloadSet.downloadFiles.count == expectedDownloads, "count: \(downloadSet.downloadFiles.count)")
+                XCTAssert(downloadSet.downloadDeletions.count == expectedDownloadDeletions, "\(downloadSet.downloadDeletions.count)")
                 XCTAssert(downloadSet.downloadAppMetaData.count == 0)
                 XCTAssert(masterVersion == masterVersionFirst)
             }

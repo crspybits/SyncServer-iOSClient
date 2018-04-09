@@ -39,7 +39,7 @@ class Client_SyncServer_FileUpload: TestCase {
         }
         
         let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url, file: file, masterVersion: masterVersion)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
     }
     
     func testThatUploadingASingleImmutableFileWorks() {

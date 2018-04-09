@@ -62,7 +62,11 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
     
-        let fileIndex:[FileInfo] = getFileIndex()
+        guard let fileIndex:[FileInfo] = getFileIndex() else {
+            XCTFail()
+            return
+        }
+        
         let result = fileIndex.filter({$0.fileUUID == fileUUID})
         guard result.count == 1 else {
             XCTFail()
@@ -311,7 +315,11 @@ class ServerAPI_MultiVersionFiles: TestCase {
         onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize2)
         
         // C) Make sure the deleted file was deleted.
-        let fileIndex:[FileInfo] = getFileIndex()
+        guard let fileIndex = getFileIndex() else {
+            XCTFail()
+            return
+        }
+        
         let result = fileIndex.filter({$0.fileUUID == file3.fileUUID})
         guard result.count == 1, result[0].deleted else {
             XCTFail()

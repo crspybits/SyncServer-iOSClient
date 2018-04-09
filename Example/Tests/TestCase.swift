@@ -154,26 +154,34 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo] {
+    func getFileIndex(expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo]? {
         let expectation1 = self.expectation(description: "fileIndex")
         
-        var result: [FileInfo]?
+        var fileInfoResult: [FileInfo]?
         
         ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
             XCTAssert(error == nil)
             XCTAssert(masterVersion! >= 0)
             
-            result = fileIndex
+            fileInfoResult = fileIndex
             
             for (fileUUID, fileSize) in expectedFiles {
                 let result = fileIndex?.filter { file in
                     file.fileUUID == fileUUID
                 }
                 
-                XCTAssert(result!.count == 1, "result!.count= \(result!.count)")
-                
+                guard result!.count == 1 else {
+                    XCTFail("result!.count= \(result!.count)")
+                    fileInfoResult = nil
+                    return
+                }
+            
                 if fileSize != nil {
-                    XCTAssert(result![0].fileSizeBytes == fileSize)
+                    guard result![0].fileSizeBytes == fileSize else {
+                        XCTFail()
+                        fileInfoResult = nil
+                        return
+                    }
                 }
             }
             
@@ -186,7 +194,7 @@ class TestCase: XCTestCase {
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        return result!
+        return fileInfoResult
     }
     
     func getUploads(expectedFiles:[(fileUUID:String, fileSize:Int64?)], callback:((FileInfo)->())? = nil) {
@@ -397,9 +405,70 @@ class TestCase: XCTestCase {
             doneUploads(masterVersion: masterVersion, expectedNumberDeletions: UInt(numberDeletions!))
         }
     }
+
+    @discardableResult
+    func uploadAppMetaData(masterVersion: MasterVersionInt, appMetaData: AppMetaData, fileUUID: String, failureExpected: Bool = false) -> Bool {
+        let exp = self.expectation(description: "exp")
+        var result = true
+        
+        ServerAPI.session.uploadAppMetaData(appMetaData: appMetaData, fileUUID: fileUUID, serverMasterVersion: masterVersion) { serverResult in
+            switch serverResult {
+            case .success(.success):
+                if failureExpected {
+                    XCTFail()
+                    result = false
+                }
+                
+            case .success(.serverMasterVersionUpdate(_)):
+                XCTFail()
+                result = false
+                
+            case .error:
+                if !failureExpected {
+                    XCTFail()
+                    result = false
+                }
+            }
+            
+            exp.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        return result
+    }
+    
+    @discardableResult
+    func downloadAppMetaData(masterVersion: MasterVersionInt, appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, failureExpected: Bool = false) -> String? {
+        let exp = self.expectation(description: "exp")
+        var result:String?
+        
+        ServerAPI.session.downloadAppMetaData(appMetaDataVersion: appMetaDataVersion, fileUUID: fileUUID, serverMasterVersion: masterVersion) { serverResult in
+            switch serverResult {
+            case .success(.appMetaData(let appMetaData)):
+                if failureExpected {
+                    XCTFail()
+                }
+                else {
+                    result = appMetaData
+                }
+                
+            case .success(.serverMasterVersionUpdate(_)):
+                XCTFail()
+                
+            case .error:
+                if !failureExpected {
+                    XCTFail()
+                }
+            }
+            
+            exp.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        return result
+    }
     
     func filesHaveSameContents(url1: URL, url2: URL) -> Bool {
-        
         let fileData1 = try? Data(contentsOf: url1 as URL)
         let fileData2 = try? Data(contentsOf: url2 as URL)
         
@@ -562,7 +631,7 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
-    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (URL, SyncAttributes)? {
+    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (SMRelativeLocalURL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         var originalURL:SMRelativeLocalURL
@@ -630,7 +699,7 @@ class TestCase: XCTestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        return (originalURL as URL, attr)
+        return (originalURL, attr)
     }
     
     func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {        

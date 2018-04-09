@@ -178,12 +178,19 @@ class Client_SyncServer_StopSync: TestCase {
         let shouldSaveDownloadExp = self.expectation(description: "ShouldSaveDownload")
         
         var alreadyStopped = false
-
+        var numberSyncStarted = 0
+        
         syncServerEventOccurred = { event in
             switch event {
             case .syncStarted:
-                syncStartExp.fulfill()
-                SyncServer.session.stopSync()
+                numberSyncStarted += 1
+                if numberSyncStarted == 1 {
+                    syncStartExp.fulfill()
+                    SyncServer.session.stopSync()
+                }
+                else if numberSyncStarted > 2 {
+                    XCTFail()
+                }
                 
             case .syncStopping:
                 syncStoppingExp.fulfill()

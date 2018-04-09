@@ -377,7 +377,7 @@ public class SyncServer {
         var doStart = true
         
         Synchronized.block(self) {
-            // If we're in the process of stopping synchronizatoin, ignore sync attempts.
+            // If we're in the process of stopping synchronization, ignore sync attempts.
             if stoppingSync {
                 doStart = false
                 return

@@ -28,7 +28,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // uploads text files.
     @discardableResult
-    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, fileURL:SMRelativeLocalURL? = nil) -> URL? {
+    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {
         
         guard let (url, attr) = uploadSingleFileUsingSync(fileUUID: fileUUID, fileURL:fileURL) else {
             XCTFail()
@@ -49,7 +49,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
-        onlyDownloadFile(comparisonFileURL: url, file: file, masterVersion: masterVersion)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
         
         return url
     }
@@ -134,7 +134,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Returns the fileUUID
     @discardableResult
-    func uploadVersion(_ maxVersion:FileVersionInt) -> (fileUUID: String, URL)? {
+    func uploadVersion(_ maxVersion:FileVersionInt) -> (fileUUID: String, SMRelativeLocalURL)? {
         let fileUUID = UUID().uuidString
         guard let url = sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0) else {
             XCTFail()
@@ -182,7 +182,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            XCTAssert(FilesMisc.compareFiles(file1: originalURL, file2: url as URL))
+            XCTAssert(FilesMisc.compareFiles(file1: originalURL as URL, file2: url as URL))
             
             XCTAssert(downloadCount <= 2)
             if downloadCount >= 2 {
@@ -859,7 +859,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        guard let (_, _) = uploadFile(fileURL:url, mimeType: attr.mimeType, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
             XCTFail()
             return
         }

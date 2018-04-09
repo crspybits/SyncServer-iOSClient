@@ -155,6 +155,7 @@ class Download {
         var nextToDownload:DownloadFileTracker!
         var numberContentDownloads = 0
         var numberDownloadDeletions = 0
+        var operation:FileTracker.Operation!
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
@@ -192,6 +193,7 @@ class Download {
             
             // Need this inside the `performAndWait` to bridge the gap without an NSManagedObject
             downloadFile = FilenamingWithAppMetaDataVersion(fileUUID: nextToDownload.fileUUID, fileVersion: nextToDownload.fileVersion, appMetaDataVersion: nextToDownload.appMetaDataVersion)
+            operation = nextToDownload.operation
         }
         
         guard nextResult == nil else {
@@ -202,7 +204,7 @@ class Download {
             EventDesired.reportEvent( .willStartDownloads(numberContentDownloads: UInt(numberContentDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
-        switch nextToDownload.operation! {
+        switch operation! {
         case .file:
             doDownloadFile(masterVersion: masterVersion, downloadFile: downloadFile, nextToDownload: nextToDownload, completion:completion)
         
@@ -264,7 +266,7 @@ class Download {
     
         assert(downloadFile.appMetaDataVersion != nil)
 
-        ServerAPI.session.downloadAppMetaData(appMetaDataVersion: downloadFile.appMetaDataVersion!, fileUUID: downloadFile.fileUUID) {[weak self] result in
+        ServerAPI.session.downloadAppMetaData(appMetaDataVersion: downloadFile.appMetaDataVersion!, fileUUID: downloadFile.fileUUID, serverMasterVersion: masterVersion) {[weak self] result in
 
             switch result {
             case .success(.appMetaData(let appMetaData)):
