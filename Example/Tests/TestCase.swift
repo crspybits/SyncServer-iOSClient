@@ -348,7 +348,7 @@ class TestCase: XCTestCase {
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: Double(expectedNumber)*10.0, handler: nil)
+        waitForExpectations(timeout: Double(expectedNumber)*20.0, handler: nil)
     }
     
     func removeAllServerFilesInFileIndex(actualDeletion:Bool=true) {
@@ -420,8 +420,10 @@ class TestCase: XCTestCase {
                 }
                 
             case .success(.serverMasterVersionUpdate(_)):
-                XCTFail()
-                result = false
+                if !failureExpected {
+                    XCTFail()
+                    result = false
+                }
                 
             case .error:
                 if !failureExpected {
@@ -453,7 +455,9 @@ class TestCase: XCTestCase {
                 }
                 
             case .success(.serverMasterVersionUpdate(_)):
-                XCTFail()
+                if !failureExpected {
+                    XCTFail()
+                }
                 
             case .error:
                 if !failureExpected {
@@ -628,7 +632,7 @@ class TestCase: XCTestCase {
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 10.0, handler: nil)
+        waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (SMRelativeLocalURL, SyncAttributes)? {
@@ -714,7 +718,9 @@ class TestCase: XCTestCase {
         }
     }
     
-    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:AppMetaData? = nil) {
+    // returns the fileUUID
+    @discardableResult
+    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:AppMetaData? = nil) -> String? {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload a file.
@@ -724,7 +730,7 @@ class TestCase: XCTestCase {
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
         guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
-            return
+            return nil
         }
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
@@ -767,6 +773,8 @@ class TestCase: XCTestCase {
             let dfts = DownloadFileTracker.fetchAll()
             XCTAssert(dfts.count == 0)
         }
+        
+        return fileUUID
     }
     
     func uploadDeletion(fileToDelete:ServerAPI.FileToDelete, masterVersion:MasterVersionInt) {

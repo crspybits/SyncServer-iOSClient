@@ -257,4 +257,36 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
     }
+    
+    func testAppMetaDataUploadWithBadMasterVersionFails() {
+        let masterVersion = getMasterVersion()
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        // Don't increment the master version
+        
+        let appMetaData = AppMetaData(version: 0, contents: "Foobar")
+        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, failureExpected: true)
+    }
+    
+    func testAppMetaDataDownloadWithBadMasterVersionFails() {
+        let masterVersion = getMasterVersion()
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+
+        let appMetaData = AppMetaData(version: 0, contents: "Foobar")
+        uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData)
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        // Don't increment the master version
+        
+        downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, failureExpected: true)
+    }
 }

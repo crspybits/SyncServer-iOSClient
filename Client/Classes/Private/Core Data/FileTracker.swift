@@ -27,11 +27,11 @@ public class FileTracker: NSManagedObject, Filenaming, FileUUID {
     
     public var fileVersion:Int32! {
         get {
-            return fileVersionInternal
+            return fileVersionInternal as? Int32
         }
         
         set {
-            fileVersionInternal = newValue
+            fileVersionInternal = newValue as NSNumber?
         }
     }
     

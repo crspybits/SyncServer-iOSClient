@@ -769,6 +769,184 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
+    enum UploadType {
+        case file
+        case appMetaData
+    }
+    
+    func appMetaDataConflict(uploadType: UploadType = .file, numberAppMetaDataUploads: Int, numberFileUploads: Int = 0, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
+    
+        guard let (_, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
+        let fileUUID = attr.fileUUID!
+
+        let numberSyncDoneExpected = numberAppMetaDataUploads + (uploadDeletion ? 1 : 0)
+        var actualNumberSyncDone = 0
+        let numberAppMetaDataUploadsExpected = numberAppMetaDataUploads
+        var actualNumberUploads = 0
+        
+        var conflictTypeExpected:
+            SyncServerConflict<ContentDownloadResolution>.ClientOperation
+        if numberAppMetaDataUploads > 0 && uploadDeletion {
+            conflictTypeExpected = .both
+        }
+        else if numberAppMetaDataUploads > 0 {
+            conflictTypeExpected = .contentUpload
+        }
+        else {
+            conflictTypeExpected = .uploadDeletion
+        }
+    
+        let mimeType:MimeType = .text
+        let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
+        
+        // 1) Upload a file OR appMetaData, not using the sync system-- this is the download that will conflict with the following upload.
+        let masterVersion = getMasterVersion()
+        
+        switch uploadType {
+        case .file:
+            guard let _ = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
+                XCTFail()
+                return
+            }
+            
+        case .appMetaData:
+            let appMetaData = AppMetaData(version: 0, contents: "Foobar")
+            guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID) else {
+                XCTFail()
+                return
+            }
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+
+        // 2) Setup our callbacks & expectations
+        let done = self.expectation(description: "done")
+        var fileUploadExp:XCTestExpectation?
+        var uploadDeletionExp:XCTestExpectation?
+        var saveDownloadsExp:XCTestExpectation?
+        
+        var uploadResolution:ContentDownloadResolution.UploadResolution?
+
+        switch resolution {
+        case .acceptContentDownload:
+            saveDownloadsExp = self.expectation(description: "saveDownloadsExp")
+            
+        case .rejectContentDownload(let upRes):
+            uploadResolution = upRes
+            
+            if upRes.keepContentUploads {
+                fileUploadExp = self.expectation(description: "fileUploadExp")
+            }
+            
+            if upRes.keepUploadDeletions {
+                uploadDeletionExp = self.expectation(description: "uploadDeletionExp")
+            }
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.delegate = self
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                actualNumberSyncDone += 1
+                if actualNumberSyncDone == numberSyncDoneExpected {
+                    done.fulfill()
+                }
+                
+            case .fileUploadsCompleted(let num):
+                Log.msg("uploadResolution: \(String(describing: uploadResolution))")
+                XCTAssert(num == 1)
+                
+                actualNumberUploads += 1
+                if actualNumberUploads < numberAppMetaDataUploadsExpected {
+                    break
+                }
+                
+                if let uploadResolution = uploadResolution, uploadResolution.keepContentUploads {
+                    guard let fileUploadExp = fileUploadExp else {
+                        XCTFail()
+                        return
+                    }
+                    fileUploadExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
+                
+            case .uploadDeletionsCompleted(let numberDeletions):
+                if let uploadResolution = uploadResolution, uploadResolution.keepUploadDeletions {
+                    XCTAssert(uploadDeletion)
+                    XCTAssert(numberDeletions == 1)
+                    guard let uploadDeletionExp = uploadDeletionExp else {
+                        XCTFail()
+                        return
+                    }
+                    uploadDeletionExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+            XCTAssert(downloadedContentAttributes.fileUUID == fileUUID)
+            XCTAssert(downloadedContentAttributes.mimeType == mimeType)
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
+            uploadConflict.resolutionCallback(resolution)
+        }
+        
+        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
+            switch resolution {
+            case .acceptContentDownload:
+                XCTAssert(downloadedFileAttributes.fileUUID == fileUUID)
+                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+                
+                guard let saveDownloadsExp = saveDownloadsExp else {
+                    XCTFail()
+                    return
+                }
+                saveDownloadsExp.fulfill()
+            case .rejectContentDownload:
+                // Shouldn't be trying to save downloads if we're rejecting content downloads.
+                XCTFail()
+            }
+        }
+
+        // 3) Queue up uploads and/or upload deletions. Note that these will kick off immediately, but will cause a file index request which shouldn't finish before all of these are queued up. In theory a race condition, but not in practice.
+        
+        if numberAppMetaDataUploads > 0 {
+            for index in 1...numberAppMetaDataUploads {
+                var attr = SyncAttributes(fileUUID: fileUUID, mimeType: mimeType)
+                attr.appMetaData = "foobar\(index)"
+                try! SyncServer.session.uploadAppMetaData(attr: attr)
+                SyncServer.session.sync()
+            }
+        }
+        
+        if numberFileUploads > 0 {
+            for _ in 1...numberFileUploads {
+                let attr = SyncAttributes(fileUUID: fileUUID, mimeType: mimeType)
+                try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
+                SyncServer.session.sync()
+            }
+        }
+        
+        if uploadDeletion {
+            try! SyncServer.session.delete(fileWithUUID: fileUUID)
+            SyncServer.session.sync()
+        }
+        
+        waitForExpectations(timeout: 60.0, handler: nil)
+    }
+    
     func testFileDownloadConflict_Accept_FU1_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
@@ -822,7 +1000,64 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
+    
+    func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+    }
 
+    func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
+        appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
+    }
+
+    func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
+    }
+
+    func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD0() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
+    }
+    
+    func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD0() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+    }
+    
+    func testAppMetaDataDownloadConflict_Reject_FU2_Keep_UD0() {
+        appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+    }
+
+    func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
+    }
+
+    func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
+    }
+    
+    func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
+        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+    }
+    
+    // TO-TEST
+    func testAppMetaData_Upload_DownloadConflict_Accept_FU1_UD0() {
+        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+    }
+    
+    // TO-TEST
+    func testAppMetaData_Upload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
+        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+    }
+    
+    // TO-TEST
+    // What happens now if you upload contents for a file, but have an app meta data download occur? i.e., in terms of conflicts?
+    func testAppMetaData_FileUpload_DownloadConflict_Accept_FU1_UD0() {
+        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+    }
+    
+    // TO-TEST
+    func testAppMetaData_FileUpload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
+        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+    }
+    
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
     func testLocalDeletionDownloadedAgainBecauseUndeleted() {
         // 1) Upload the file.
@@ -1013,5 +1248,71 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         SyncServer.session.sync()
         
         waitForExpectations(timeout: 10.0, handler: nil)
+    }
+    
+    // TO-TEST
+    // When a new version of a file is downloaded, do we get its new appMetaData?
+    func testDownloadNewFileVersionGetAppMetaData() {
+        // 1) Upload first version
+        let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        
+        // The meta data in attr1 is explicitly supposed to be nil.
+        let appMetaData1 = "123themetadata"
+        
+        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData1) else {
+            XCTFail()
+            return
+        }
+        
+        // 2) Upload second version, using API so it's like another app did it.
+        let masterVersion = getMasterVersion()
+        let fileVersion:FileVersionInt = 1
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let appMetaData2 = AppMetaData(version: 1, contents: "OtherAppMetaData")
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: fileVersion) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        // 3) Initiate the download of new version, using sync.
+        SyncServer.session.eventsDesired = [.syncDone]
+        let expectSyncDone = self.expectation(description: "test1")
+        let expectDownload = self.expectation(description: "test2")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectSyncDone.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        shouldSaveDownload = { url, attr in
+            XCTAssert(attr.appMetaData == appMetaData2.contents)
+            expectDownload.fulfill()
+        }
+        
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        
+        // 4) Make sure the directory has the same appMetaData
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
+                entry.fileUUID == fileUUID1
+            }
+            
+            guard directoryEntries.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(directoryEntries[0].appMetaData == appMetaData2.contents)
+            XCTAssert(directoryEntries[0].appMetaDataVersion == appMetaData2.version)
+        }
     }
 }

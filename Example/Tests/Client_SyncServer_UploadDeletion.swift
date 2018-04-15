@@ -244,7 +244,73 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
     }
     
-   func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
+    // Delete, sync, upload in immediate succession -- of the same file should fail.
+    func testThatDeletionWithSyncImmediatelyFollowedByFileUploadFails() {
+        guard let (url, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let expectation1 = self.expectation(description: "test1")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        SyncServer.session.sync()
+        
+        do {
+            try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            XCTFail()
+        } catch {
+        }
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    // Delete, sync, delete in immediate succession -- second delete of the same file should fail.
+    func testThatDeletionWithSyncImmediatelyFollowedByDeleteFails() {
+        guard let (_, attr) = uploadSingleFileUsingSync() else {
+            XCTFail()
+            return
+        }
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        
+        let expectation1 = self.expectation(description: "test1")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+        SyncServer.session.sync()
+        
+        do {
+            try SyncServer.session.delete(fileWithUUID: attr.fileUUID)
+            XCTFail()
+        } catch {
+        }
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
         guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload() else {
             XCTFail()
             return

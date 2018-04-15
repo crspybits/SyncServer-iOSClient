@@ -218,8 +218,7 @@ public class SyncServer {
             newUft.uploadCopy = false
             newUft.operation = .appMetaData
             
-            // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
-            // Similarly, the appMetaData version will be determined immediately before the upload.
+            // The appMetaData version will be determined immediately before the upload. The file version is not used in this case.
             
             errorToThrow = self?.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
         }
@@ -235,11 +234,7 @@ public class SyncServer {
         
         Synchronized.block(self) {
             do {
-                let queuedForDeletion = try Upload.pendingSync().uploadFileTrackers.filter
-                    {$0.fileUUID == attr.fileUUID && $0.operation.isDeletion }
-                if queuedForDeletion.count > 0 {
-                    throw SyncServerError.fileQueuedForDeletion
-                }
+                try failIfPendingDeletion(fileUUID: attr.fileUUID)
                 
                 let result = try Upload.pendingSync().uploadFileTrackers.filter
                     {$0.fileUUID == attr.fileUUID}
@@ -315,11 +310,7 @@ public class SyncServer {
             throw SyncServerError.fileAlreadyDeleted
         }
 
-        // Check to see if there is a pending upload deletion with this UUID.
-        let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid && $0.operation.isDeletion }
-        if pendingUploadDeletions.count > 0 {
-            throw SyncServerError.fileQueuedForDeletion
-        }
+        try failIfPendingDeletion(fileUUID: uuid)
         
         var errorToThrow:Error?
 
@@ -364,6 +355,14 @@ public class SyncServer {
         
         guard errorToThrow == nil else {
             throw errorToThrow!
+        }
+    }
+    
+    // Check to see if there is a pending upload deletion with this UUID.
+    private func failIfPendingDeletion(fileUUID: String) throws {
+        let pendingUploadDeletions = UploadFileTracker.fetchAll().filter {$0.fileUUID == fileUUID && $0.operation.isDeletion }
+        if pendingUploadDeletions.count > 0 {
+            throw SyncServerError.fileQueuedForDeletion
         }
     }
     
