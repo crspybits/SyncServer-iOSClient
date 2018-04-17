@@ -415,19 +415,18 @@ class SyncManager {
                                 assert(false)
                                 return
                             }
+
+                            // 1/27/18; [1]. It's safe to update the local directory entry version(s) -- we've done the upload *and* we've done the DoneUploads too.
                             
-                            switch uft.operation! {
-                            case .file:
-                                // 1/27/18; [1]. It's safe to update the local directory entry with the new file version-- we've done the file upload *and* we've done the DoneUploads too.
-                                // Only do this for file uploads-- not appMetaData uploads-- which don't deal with file versions.
+                            // Only if we're updating a file do we need to update our local directory file version. appMetaData uploads don't deal with file versions.
+                            if uft.operation! == .file {
                                 uploadedEntry.fileVersion = uft.fileVersion
-                                
-                            case .appMetaData:
+                            }
+                            
+                            // We may need to update the appMetaData and version for either a file upload (which can also update the appMetaData) or (definitely) for an appMetaData upload.
+                             if let _ = uft.appMetaData {
                                 uploadedEntry.appMetaData = uft.appMetaData
                                 uploadedEntry.appMetaDataVersion = uft.appMetaDataVersion
-                                
-                            case .deletion:
-                                break
                             }
                             
                             do {

@@ -769,12 +769,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    enum UploadType {
+    enum DownloadType {
         case file
         case appMetaData
     }
     
-    func appMetaDataConflict(uploadType: UploadType = .file, numberAppMetaDataUploads: Int, numberFileUploads: Int = 0, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
+    func appMetaDataConflict(downloadType: DownloadType = .file, numberAppMetaDataUploads: Int, numberFileUploads: Int = 0, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
     
         guard let (_, attr) = uploadSingleFileUsingSync() else {
             XCTFail()
@@ -782,17 +782,17 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         let fileUUID = attr.fileUUID!
 
-        let numberSyncDoneExpected = numberAppMetaDataUploads + (uploadDeletion ? 1 : 0)
+        let numberSyncDoneExpected = numberFileUploads + numberAppMetaDataUploads + (uploadDeletion ? 1 : 0)
         var actualNumberSyncDone = 0
         let numberAppMetaDataUploadsExpected = numberAppMetaDataUploads
         var actualNumberUploads = 0
         
         var conflictTypeExpected:
             SyncServerConflict<ContentDownloadResolution>.ClientOperation
-        if numberAppMetaDataUploads > 0 && uploadDeletion {
+        if (numberAppMetaDataUploads > 0 || numberFileUploads > 0) && uploadDeletion {
             conflictTypeExpected = .both
         }
-        else if numberAppMetaDataUploads > 0 {
+        else if numberAppMetaDataUploads > 0 || numberFileUploads > 0 {
             conflictTypeExpected = .contentUpload
         }
         else {
@@ -804,8 +804,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         // 1) Upload a file OR appMetaData, not using the sync system-- this is the download that will conflict with the following upload.
         let masterVersion = getMasterVersion()
-        
-        switch uploadType {
+        let appMetaData = AppMetaData(version: 0, contents: "Foobar")
+
+        switch downloadType {
         case .file:
             guard let _ = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
                 XCTFail()
@@ -813,7 +814,6 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
             
         case .appMetaData:
-            let appMetaData = AppMetaData(version: 0, contents: "Foobar")
             guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID) else {
                 XCTFail()
                 return
@@ -827,13 +827,20 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         var fileUploadExp:XCTestExpectation?
         var uploadDeletionExp:XCTestExpectation?
         var saveDownloadsExp:XCTestExpectation?
+        var saveDownloadAppMetaDataExp:XCTestExpectation?
         
         var uploadResolution:ContentDownloadResolution.UploadResolution?
 
         switch resolution {
         case .acceptContentDownload:
-            saveDownloadsExp = self.expectation(description: "saveDownloadsExp")
-            
+            switch downloadType {
+            case .file:
+                saveDownloadsExp = self.expectation(description: "saveDownloadsExp")
+
+            case .appMetaData:
+                saveDownloadAppMetaDataExp = self.expectation(description: "saveDownloadAppMetaDataExp")
+            }
+
         case .rejectContentDownload(let upRes):
             uploadResolution = upRes
             
@@ -845,7 +852,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 uploadDeletionExp = self.expectation(description: "uploadDeletionExp")
             }
         }
-
+        
         SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
         
@@ -899,10 +906,16 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
             XCTAssert(downloadedContentAttributes.fileUUID == fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
-            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(uploadConflict.conflictType)")
             uploadConflict.resolutionCallback(resolution)
         }
         
+        syncServerAppMetaDataDownloadComplete = { attr in
+            XCTAssert(attr.fileUUID == fileUUID)
+            XCTAssert(attr.appMetaData == appMetaData.contents)
+            saveDownloadAppMetaDataExp!.fulfill()
+        }
+
         shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
             switch resolution {
             case .acceptContentDownload:
@@ -1037,25 +1050,21 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
-    // TO-TEST
     func testAppMetaData_Upload_DownloadConflict_Accept_FU1_UD0() {
-        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
-    // TO-TEST
     func testAppMetaData_Upload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
-    // TO-TEST
     // What happens now if you upload contents for a file, but have an app meta data download occur? i.e., in terms of conflicts?
     func testAppMetaData_FileUpload_DownloadConflict_Accept_FU1_UD0() {
-        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
-    // TO-TEST
     func testAppMetaData_FileUpload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        appMetaDataConflict(uploadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
@@ -1226,8 +1235,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         SyncServer.session.eventsDesired = [.syncDone, .singleFileUploadComplete]
-        let expectSyncDone = self.expectation(description: "test1")
-        let expectSingleUploadComplete = self.expectation(description: "test2")
+        let expectSyncDone = self.expectation(description: "expectSyncDone")
+        let expectSingleUploadComplete = self.expectation(description: "expectSingleUploadComplete")
         
         syncServerEventOccurred = {event in
             switch event {
@@ -1250,7 +1259,6 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
-    // TO-TEST
     // When a new version of a file is downloaded, do we get its new appMetaData?
     func testDownloadNewFileVersionGetAppMetaData() {
         // 1) Upload first version
