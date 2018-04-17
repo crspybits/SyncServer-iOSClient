@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 14.0.1 (4/16/18)
+	* Add migration code for appMetaData versioning.
+	
 Version 14.0.0 (4/16/18)
 	* Added versioning to appMetaData:
 		- Included use of two new server endpoints.

@@ -19,12 +19,12 @@ class Migrations {
     func run() {
         if !Migrations.migration1.boolValue {
             Migrations.migration1.boolValue = true
-            migration1()
+            appMetaDataVersionMigration()
         }
     }
     
     // 4/16/18
-    private func migration1() {
+    private func appMetaDataVersionMigration() {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dirEntries = DirectoryEntry.fetchAll()
             dirEntries.forEach { dirEntry in
