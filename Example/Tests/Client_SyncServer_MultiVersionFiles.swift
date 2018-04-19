@@ -352,7 +352,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .contentUpload)
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.file))
+
             uploadConflict.resolutionCallback(.acceptDownloadDeletion)
         }
         
@@ -438,7 +440,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .contentUpload)
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.file))
+            
             uploadConflict.resolutionCallback(
                 .rejectDownloadDeletion(.keepContentUpload))
         }
@@ -524,7 +528,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(deletion.fileUUID == fileUUID)
             
             let uploadConflict = conflict.uploadConflict
-            XCTAssert(uploadConflict.conflictType == .contentUpload)
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.file))
+            
             uploadConflict.resolutionCallback(
                 .rejectDownloadDeletion(.removeContentUpload))
         }
@@ -629,13 +635,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let numberUploadsExpected = numberFileUploads
         var actualNumberUploads = 0
         
-        var conflictTypeExpected:
-            SyncServerConflict<ContentDownloadResolution>.ClientOperation
+        var conflictTypeExpected:ConflictingClientOperation
         if numberFileUploads > 0 && uploadDeletion {
             conflictTypeExpected = .both
         }
         else if numberFileUploads > 0 {
-            conflictTypeExpected = .contentUpload
+            conflictTypeExpected = .contentUpload(.file)
         }
         else {
             conflictTypeExpected = .uploadDeletion
@@ -728,10 +733,16 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+        syncServerMustResolveContentDownloadConflict = { (content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+            guard case .file = content else {
+                XCTFail()
+                return
+            }
             XCTAssert(downloadedContentAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
-            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.file))
+            
             uploadConflict.resolutionCallback(resolution)
         }
         
@@ -787,13 +798,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let numberAppMetaDataUploadsExpected = numberAppMetaDataUploads
         var actualNumberUploads = 0
         
-        var conflictTypeExpected:
-            SyncServerConflict<ContentDownloadResolution>.ClientOperation
+        var conflictTypeExpected:ConflictingClientOperation
         if (numberAppMetaDataUploads > 0 || numberFileUploads > 0) && uploadDeletion {
             conflictTypeExpected = .both
         }
         else if numberAppMetaDataUploads > 0 || numberFileUploads > 0 {
-            conflictTypeExpected = .contentUpload
+            conflictTypeExpected = .contentUpload(.file) // really ignoring enum param
         }
         else {
             conflictTypeExpected = .uploadDeletion
@@ -903,9 +913,25 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+        syncServerMustResolveContentDownloadConflict = { (content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+        
+            switch downloadType {
+            case .file:
+                guard case .file = content else {
+                    XCTFail()
+                    return
+                }
+                
+            case .appMetaData:
+                guard case .appMetaData = content else {
+                    XCTFail()
+                    return
+                }
+            }
+            
             XCTAssert(downloadedContentAttributes.fileUUID == fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
+            
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(uploadConflict.conflictType)")
             uploadConflict.resolutionCallback(resolution)
         }
@@ -960,18 +986,22 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
+    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
-    
+
+    // TO-TEST
     func testFileDownloadConflict_Accept_FU2_UD0() {
         fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
-    
+
+    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD1() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
-    
+
+    // TO-TEST
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
     }
@@ -1014,14 +1044,17 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
+    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
+    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
+    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
@@ -1152,7 +1185,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         var actualNumberSyncDone = 0
         
         let conflictTypeExpected:
-            SyncServerConflict<ContentDownloadResolution>.ClientOperation = .contentUpload
+            ConflictingClientOperation = .contentUpload(.file)
     
         let mimeType:MimeType = .text
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
@@ -1192,7 +1225,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerMustResolveContentDownloadConflict = { (downloadedFile: SMRelativeLocalURL?, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+        syncServerMustResolveContentDownloadConflict = { (content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) in
+        
+            guard case .file = content else {
+                XCTFail()
+                return
+            }
+            
             XCTAssert(downloadedContentAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
             
