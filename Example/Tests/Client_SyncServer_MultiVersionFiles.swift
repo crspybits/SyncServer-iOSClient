@@ -741,7 +741,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(downloadedContentAttributes.fileUUID == file.fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
             
-            XCTAssert(uploadConflict.conflictType == .contentUpload(.file))
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
             
             uploadConflict.resolutionCallback(resolution)
         }
@@ -803,7 +803,15 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             conflictTypeExpected = .both
         }
         else if numberAppMetaDataUploads > 0 || numberFileUploads > 0 {
-            conflictTypeExpected = .contentUpload(.file) // really ignoring enum param
+            if numberAppMetaDataUploads > 0 && numberFileUploads > 0 {
+                conflictTypeExpected = .contentUpload(.both)
+            }
+            else if numberAppMetaDataUploads > 0 {
+                conflictTypeExpected = .contentUpload(.appMetaData)
+            }
+            else {
+                conflictTypeExpected = .contentUpload(.file)
+            }
         }
         else {
             conflictTypeExpected = .uploadDeletion
