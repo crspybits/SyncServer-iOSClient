@@ -85,6 +85,27 @@ public enum ConflictingClientOperation: Equatable {
     case uploadDeletion
     case contentUpload(ContentType)
     case both // there are both upload deletions and content uploads conflicting.
+
+    public static func == (lhs: ConflictingClientOperation, rhs: ConflictingClientOperation) -> Bool {
+        switch lhs {
+        case .uploadDeletion:
+            if case .uploadDeletion = rhs {
+                return true
+            }
+
+        case .contentUpload(let contentTypeLHS):
+            if case .contentUpload(let contentTypeRHS) = rhs, contentTypeLHS == contentTypeRHS {
+                return true
+            }
+            
+        case .both:
+            if case .both = rhs {
+                return true
+            }
+        }
+        
+        return false
+    }
 }
 
 // When you receive a conflict in a callback method, you must resolve the conflict by calling resolveConflict.
