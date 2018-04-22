@@ -105,12 +105,13 @@ class Download {
                             }
                             
                             dft.appMetaDataVersion = file.appMetaDataVersion
+                            dft.fileGroupUUID = file.fileGroupUUID
                             
                             if file.creationDate != nil {
                                 dft.creationDate = file.creationDate! as NSDate
                                 dft.updateDate = file.updateDate! as NSDate
                             }
-                        }
+                        } // end for
                         
                         completionResult = .downloadsAvailable(
                             numberOfContentDownloads:downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count,
@@ -148,6 +149,7 @@ class Download {
     }
     
     // Starts download of next file or appMetaData, if there is one. There should be no files/appMetaData downloading already. Only if .started is the NextResult will the completion handler be called. With a masterVersionUpdate response for NextCompletion, the MasterVersion Core Data object is updated by this method, and all the DownloadFileTracker objects have been reset.
+    // WORKING: Changing this to download the next in the fileGroupUUID if there is one.
     func next(first: Bool = false, completion:((NextCompletion)->())?) -> NextResult {
         var masterVersion:MasterVersionInt!
         var nextResult:NextResult?

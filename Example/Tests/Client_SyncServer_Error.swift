@@ -83,10 +83,16 @@ class Client_SyncServer_Error: TestCase {
             }
             
             var downloadCount = 0
-            shouldSaveDownload = { url, attr in
-                downloadCount += 1
-                XCTAssert(downloadCount == 1)
-                shouldSaveDownloadsExp.fulfill()
+            
+            syncServerContentGroupDownloadComplete = { group in
+                if group.count == 1, case .file = group[0].type {
+                    downloadCount += 1
+                    XCTAssert(downloadCount == 1)
+                    shouldSaveDownloadsExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
             }
             
             SyncServer.session.sync()
@@ -241,9 +247,13 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            // 9/16/17; Since we are now doing downloads incrementally (and deleting the DownloadFileTracker's after each one), we'll just get a single download here.
-            shouldSaveDownload = { url, attr in
-                shouldSaveDownloadsExp.fulfill()
+            syncServerContentGroupDownloadComplete = { group in
+                if group.count == 1, case .file = group[0].type {
+                    shouldSaveDownloadsExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
             }
             
             SyncServer.session.sync()

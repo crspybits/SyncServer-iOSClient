@@ -210,9 +210,14 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            XCTAssert(alreadyStopped)
-            shouldSaveDownloadExp.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                XCTAssert(alreadyStopped)
+                shouldSaveDownloadExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
 
         SyncServer.session.sync()
@@ -269,13 +274,18 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            if alreadyStopped {
-                shouldSaveDownloadExp2.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                if alreadyStopped {
+                    shouldSaveDownloadExp2.fulfill()
+                }
+                else {
+                    shouldSaveDownloadExp1.fulfill()
+                    SyncServer.session.stopSync()
+                }
             }
             else {
-                shouldSaveDownloadExp1.fulfill()
-                SyncServer.session.stopSync()
+                XCTFail()
             }
         }
 
@@ -421,10 +431,16 @@ class Client_SyncServer_StopSync: TestCase {
         // 2) Do the first stop sync
         let shouldSaveDownloadExp1 = self.expectation(description: "ShouldSaveDownload1")
     
-        shouldSaveDownload = { url, attr in
-            SyncServer.session.stopSync()
-            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
-            shouldSaveDownloadExp1.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                SyncServer.session.stopSync()
+                XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
+                shouldSaveDownloadExp1.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
 
         SyncServer.session.sync()
@@ -455,9 +471,14 @@ class Client_SyncServer_StopSync: TestCase {
         shouldDoDeletions = { attrs in
             XCTAssert(false)
         }
-        
-        shouldSaveDownload = { url, attr in
-            XCTAssert(false)
+    
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                XCTAssert(false)
+            }
+            else {
+                XCTFail()
+            }
         }
     
         SyncServer.session.sync()

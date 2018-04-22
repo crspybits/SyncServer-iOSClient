@@ -57,7 +57,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             XCTAssert(masterVersion! >= 0)
             
             let mimeType:MimeType = .text
-            let file = ServerAPI.File(localURL: url, fileUUID: fileUUID, mimeType: mimeType, deviceUUID: self.deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+            let file = ServerAPI.File(localURL: url, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: mimeType, deviceUUID: self.deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
             
             ServerAPI.session.uploadFile(file: file, serverMasterVersion: masterVersion!) { uploadFileResult, error in
                 XCTAssert(error == nil)
@@ -142,10 +142,15 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         if !withDeletion {
             var downloadCount = 0
             
-            shouldSaveDownload = { url, attr in
-                downloadCount += 1
-                XCTAssert(downloadCount == 1)
-                shouldSaveDownloadsExp!.fulfill()
+            syncServerContentGroupDownloadComplete = { group in
+                if group.count == 1, case .file = group[0].type {
+                    downloadCount += 1
+                    XCTAssert(downloadCount == 1)
+                    shouldSaveDownloadsExp!.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
             }
         }
 
@@ -211,10 +216,10 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
@@ -340,7 +345,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
@@ -421,8 +426,13 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            shouldSaveDownloadsExp.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                shouldSaveDownloadsExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
     
         let previousSyncSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
@@ -512,15 +522,21 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         var downloadCount = 0
 
         // This captures the second two downloads.
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            
-            // After a master version change, what happens to DownloadFileTracker(s) that were around before the change? They get deleted. And the server is again checked for downloads.
-            
-            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                downloadCount += 1
+                
+                // After a master version change, what happens to DownloadFileTracker(s) that were around before the change? They get deleted. And the server is again checked for downloads.
+                
+                XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
 
-            if downloadCount >= 2 {
-                shouldSaveDownloadsExp.fulfill()
+                if downloadCount >= 2 {
+                    shouldSaveDownloadsExp.fulfill()
+                }
+            }
+            else {
+                XCTFail()
             }
         }
     
@@ -610,9 +626,15 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
         }
         
-        shouldSaveDownload = { url, attr in
-            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
-            shouldSaveDownloadsExp!.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
+                shouldSaveDownloadsExp!.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
     
         let previousSyncSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted

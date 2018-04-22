@@ -165,9 +165,15 @@ class Client_SyncServer_AppMetaData: TestCase {
         SyncServer.session.eventsDesired = [.syncDone]
         
         // Download-- expect appMetaData download only. This uses the new download appMetaData endpoint.
-        syncServerAppMetaDataDownloadComplete = { attr in
-            XCTAssert(appMetaData.contents == attr.appMetaData)
-            expAppMetaDataDownload.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .appMetaData = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(appMetaData.contents == attr.appMetaData)
+                expAppMetaDataDownload.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         syncServerEventOccurred = {event in

@@ -162,11 +162,7 @@ extension ViewController : GenericSignInDelegate {
 }
 
 extension ViewController : SyncServerDelegate {
-    func syncServerAppMetaDataDownloadComplete(attr: SyncAttributes) {
-    }
-    
-    func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
-        assert(false)
+    func syncServerContentGroupDownloadComplete(group: [DownloadContent]) {
     }
     
     func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {

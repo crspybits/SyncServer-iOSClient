@@ -147,13 +147,19 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount == 1)
-            
-            XCTAssert(attr.fileUUID == file2.fileUUID)
-            XCTAssert(!calledShouldSaveDownloads)
-            calledShouldSaveDownloads = true
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                
+                XCTAssert(attr.fileUUID == file2.fileUUID)
+                XCTAssert(!calledShouldSaveDownloads)
+                calledShouldSaveDownloads = true
+            }
+            else {
+                XCTFail()
+            }
         }
         
         let expectation2 = self.expectation(description: "start")

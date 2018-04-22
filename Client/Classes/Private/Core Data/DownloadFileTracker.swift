@@ -11,7 +11,7 @@ import CoreData
 import SMCoreLib
 
 @objc(DownloadFileTracker)
-class DownloadFileTracker: FileTracker, AllOperations {
+public class DownloadFileTracker: FileTracker, AllOperations {
     typealias COREDATAOBJECT = DownloadFileTracker
     
     enum Status : String {
@@ -30,11 +30,11 @@ class DownloadFileTracker: FileTracker, AllOperations {
         }
     }
     
-    class func entityName() -> String {
+    public class func entityName() -> String {
         return "DownloadFileTracker"
     }
     
-    class func newObject() -> NSManagedObject {
+    public class func newObject() -> NSManagedObject {
         let dft = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! DownloadFileTracker
         dft.status = .notStarted
         dft.addAge()

@@ -161,9 +161,11 @@ class SyncManager {
                     Thread.runSync(onMainThread: {
                         switch operation! {
                         case .file:
-                            self.delegate!.syncServerSingleFileDownloadComplete(url: url!, attr: attr)
+                            let content = DownloadContent(type: .file(url!), attr: attr)
+                            self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
                         case .appMetaData:
-                            self.delegate!.syncServerAppMetaDataDownloadComplete(attr: attr)
+                            let content = DownloadContent(type: .appMetaData, attr: attr)
+                            self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
                         case .deletion:
                             assert(false)
                         }

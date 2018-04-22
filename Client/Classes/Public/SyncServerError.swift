@@ -20,6 +20,7 @@ public enum SyncServerError: Error {
     case badMimeType
     case downloadedFileVersionNotGreaterThanCurrent
     case fileAlreadyDeleted
+    case fileGroupUUIDChanged
     case fileQueuedForDeletion
     case deletingUnknownFile
     case syncIsOperating

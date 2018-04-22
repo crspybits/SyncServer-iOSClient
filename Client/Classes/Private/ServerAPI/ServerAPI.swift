@@ -266,6 +266,7 @@ class ServerAPI {
     struct File : Filenaming {
         let localURL:URL!
         let fileUUID:String!
+        let fileGroupUUID:String?
         let mimeType:MimeType!
         let deviceUUID:String!
         let appMetaData:AppMetaData?
@@ -289,6 +290,10 @@ class ServerAPI {
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion
         ]
+        
+        if file.fileVersion == 0 {
+            params[UploadFileRequest.fileGroupUUIDKey] = file.fileGroupUUID
+        }
         
         if undelete {
             params[UploadFileRequest.undeleteServerFileKey] = 1

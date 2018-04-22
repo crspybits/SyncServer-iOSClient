@@ -95,6 +95,7 @@ public class SyncServer {
     // When uploading a file for the 2nd or more time ("multi-version upload"):
     // a) the 2nd and following updates must have the same mimeType as the first version of the file.
     // b) If the attr.appMetaData is given as nil, and an earlier version had non-nil appMetaData, then the nil appMetaData is ignored-- i.e., the existing app meta data is not set to nil.
+    // You can only set the fileGroupUUID (in the SyncAttributes) when the file is first uploaded.
     // Warning: If you indicate that the mime type is "text/plain", and you are using Google Drive and the text contains unusual characters, you may run into problems-- e.g., downloading the files may fail.
     public func uploadImmutable(localFile:SMRelativeLocalURL, withAttributes attr: SyncAttributes) throws {
         try upload(fileURL: localFile, withAttributes: attr)
@@ -119,6 +120,7 @@ public class SyncServer {
                 entry = (DirectoryEntry.newObject() as! DirectoryEntry)
                 entry!.fileUUID = attr.fileUUID
                 entry!.mimeType = attr.mimeType.rawValue
+                entry!.fileGroupUUID = attr.fileGroupUUID
             }
             else {
                 guard let entryMimeTypeString = entry!.mimeType,
@@ -136,6 +138,13 @@ public class SyncServer {
                     errorToThrow = SyncServerError.fileAlreadyDeleted
                     return
                 }
+                
+                if let fileGroupUUID = attr.fileGroupUUID {
+                    guard entry!.fileGroupUUID == fileGroupUUID else {
+                        errorToThrow = SyncServerError.fileGroupUUIDChanged
+                        return
+                    }
+                }
             }
             
             let newUft = UploadFileTracker.newObject() as! UploadFileTracker
@@ -144,6 +153,7 @@ public class SyncServer {
             newUft.mimeType = attr.mimeType.rawValue
             newUft.uploadCopy = copy
             newUft.operation = .file
+            newUft.fileGroupUUID = attr.fileGroupUUID
             
             if copy {
                 // Make a copy of the file

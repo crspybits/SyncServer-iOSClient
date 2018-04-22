@@ -2,7 +2,7 @@
 //  UploadFileTracker+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 4/1/18.
+//  Created by Christopher G Prince on 4/21/18.
 //
 //
 

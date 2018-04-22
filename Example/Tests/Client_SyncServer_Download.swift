@@ -63,11 +63,16 @@ class Client_SyncServer_Download: TestCase {
         
         Log.msg("Before assignment to shouldSaveDownload")
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount <= 2)
-            if downloadCount >= 2 {
-                expectation.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadCount += 1
+                XCTAssert(downloadCount <= 2)
+                if downloadCount >= 2 {
+                    expectation.fulfill()
+                }
+            }
+            else {
+                XCTFail()
             }
         }
         

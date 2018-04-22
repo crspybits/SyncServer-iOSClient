@@ -48,7 +48,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == expectedVersion)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
         
         return url
@@ -122,7 +122,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == version)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
         
         // Expecting last file contents uploaded.
         let url = urls[urls.count - 1]
@@ -175,18 +175,24 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            guard let originalURL = urls[attr.fileUUID] else {
-                XCTFail()
-                return
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                downloadCount += 1
+                guard let originalURL = urls[attr.fileUUID] else {
+                    XCTFail()
+                    return
+                }
+                
+                XCTAssert(FilesMisc.compareFiles(file1: originalURL as URL, file2: url as URL))
+                
+                XCTAssert(downloadCount <= 2)
+                if downloadCount >= 2 {
+                    shouldSaveExp.fulfill()
+                }
             }
-            
-            XCTAssert(FilesMisc.compareFiles(file1: originalURL as URL, file2: url as URL))
-            
-            XCTAssert(downloadCount <= 2)
-            if downloadCount >= 2 {
-                shouldSaveExp.fulfill()
+            else {
+                XCTFail()
             }
         }
         
@@ -746,16 +752,22 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             uploadConflict.resolutionCallback(resolution)
         }
         
-        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
-            if case .acceptContentDownload = resolution {
-                XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
-                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
-                
-                guard let saveDownloadsExp = saveDownloadsExp else {
-                    XCTFail()
-                    return
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                if case .acceptContentDownload = resolution {
+                    let downloadedFileAttributes = group[0].attr
+                    XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
+                    XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+                    
+                    guard let saveDownloadsExp = saveDownloadsExp else {
+                        XCTFail()
+                        return
+                    }
+                    saveDownloadsExp.fulfill()
                 }
-                saveDownloadsExp.fulfill()
+                else {
+                    XCTFail()
+                }
             }
             else {
                 XCTFail()
@@ -943,26 +955,33 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(uploadConflict.conflictType)")
             uploadConflict.resolutionCallback(resolution)
         }
-        
-        syncServerAppMetaDataDownloadComplete = { attr in
-            XCTAssert(attr.fileUUID == fileUUID)
-            XCTAssert(attr.appMetaData == appMetaData.contents)
-            saveDownloadAppMetaDataExp!.fulfill()
-        }
 
-        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
-            switch resolution {
-            case .acceptContentDownload:
-                XCTAssert(downloadedFileAttributes.fileUUID == fileUUID)
-                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
-                
-                guard let saveDownloadsExp = saveDownloadsExp else {
-                    XCTFail()
-                    return
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1 {
+                let attr = group[0].attr
+                switch group[0].type {
+                case .appMetaData:
+                    XCTAssert(attr.fileUUID == fileUUID)
+                    XCTAssert(attr.appMetaData == appMetaData.contents)
+                    saveDownloadAppMetaDataExp!.fulfill()
+                case .file:
+                    switch resolution {
+                    case .acceptContentDownload:
+                        XCTAssert(attr.fileUUID == fileUUID)
+                        XCTAssert(attr.mimeType == mimeType)
+                        
+                        guard let saveDownloadsExp = saveDownloadsExp else {
+                            XCTFail()
+                            return
+                        }
+                        saveDownloadsExp.fulfill()
+                    case .rejectContentDownload:
+                        // Shouldn't be trying to save downloads if we're rejecting content downloads.
+                        XCTFail()
+                    }
                 }
-                saveDownloadsExp.fulfill()
-            case .rejectContentDownload:
-                // Shouldn't be trying to save downloads if we're rejecting content downloads.
+            }
+            else {
                 XCTFail()
             }
         }
@@ -1167,8 +1186,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            downloadedFileExp.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadedFileExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.sync()
@@ -1346,9 +1370,15 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            XCTAssert(attr.appMetaData == appMetaData2.contents)
-            expectDownload.fulfill()
+        syncServerContentGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(attr.appMetaData == appMetaData2.contents)
+                expectDownload.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.sync()

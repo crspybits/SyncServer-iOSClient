@@ -143,6 +143,8 @@ class Directory {
                     if entry.deletedOnServer {
                         entry.deletedOnServer = false
                     }
+                    
+                    // Don't update the fileGroupUUID-- this never changes after v0 of the file.
                 }
                 
                 if entry.mimeType != dft.mimeType {
@@ -164,6 +166,7 @@ class Directory {
                 newEntry.mimeType = dft.mimeType
                 newEntry.appMetaData = dft.appMetaData
                 newEntry.appMetaDataVersion = dft.appMetaDataVersion
+                newEntry.fileGroupUUID = dft.fileGroupUUID
             }
         }
     }
