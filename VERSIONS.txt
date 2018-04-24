@@ -1,7 +1,10 @@
 SyncServer-iOSClient
 
+Version 14.2.0 (4/23/18)
+	* Added code to do some "garbage collection" cleanup + handle a migration issue.
+	
 Version 14.1.0 (4/18/18)
-	* Improving cliient interface for conflict resolution: With respect to appMetaData.
+	* Improving client interface for conflict resolution: With respect to appMetaData.
 	
 Version 14.0.1 (4/16/18)
 	* Add migration code for appMetaData versioning.
