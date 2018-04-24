@@ -512,7 +512,7 @@ class SyncManager {
             }
         }
     }
-    
+
     // 4/22/18; I ran into the need for this during a crash Dany was having. For some reason there were 10 uft's on his app that were marked as uploaded. But for some reason had never been deleted. I'm calling this from places where there should not be uft's in this state-- so they should be removed. This is along the lines of garbage collection. Not sure why it's needed...
     // Not marking this as `private` so I can add a test case.
     static func cleanupUploads() {
