@@ -159,15 +159,22 @@ class SyncManager {
                 if ignoreDownload == nil {
                     // Not 100% sure we're running on main thread-- its possible that the client didn't call the completion on the main thread.
                     Thread.runSync(onMainThread: {
-                        switch operation! {
-                        case .file:
-                            let content = DownloadContent(type: .file(url!), attr: attr)
-                            self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
-                        case .appMetaData:
-                            let content = DownloadContent(type: .appMetaData, attr: attr)
-                            self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
-                        case .deletion:
-                            assert(false)
+                        // If there are no more downloadable files in the file group, then call the delegate method. And mark that group as downloaded.
+                        let dcg = dft.group!
+                        let notStarted = dcg.dfts.filter {$0.status == .notStarted }
+                        if notStarted.count == 0 {
+                            
+                        
+                            switch operation! {
+                            case .file:
+                                let content = DownloadContent(type: .file(url!), attr: attr)
+                                self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
+                            case .appMetaData:
+                                let content = DownloadContent(type: .appMetaData, attr: attr)
+                                self.delegate!.syncServerContentGroupDownloadComplete(group: [content])
+                            case .deletion:
+                                assert(false)
+                            }
                         }
                     })
                 }
@@ -342,6 +349,7 @@ class SyncManager {
             break
             
         case .noUploads:
+            SyncManager.cleanupUploads()
             callback?(nil)
             
         case .allUploadsCompleted:
@@ -498,8 +506,27 @@ class SyncManager {
                     }
                 }
                 
+                SyncManager.cleanupUploads()
+                
                 self.callback?(errorResult)
             }
+        }
+    }
+    
+    // 4/22/18; I ran into the need for this during a crash Dany was having. For some reason there were 10 uft's on his app that were marked as uploaded. But for some reason had never been deleted. I'm calling this from places where there should not be uft's in this state-- so they should be removed. This is along the lines of garbage collection. Not sure why it's needed...
+    // Not marking this as `private` so I can add a test case.
+    static func cleanupUploads() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let uploadedUfts = UploadFileTracker.fetchAll().filter { $0.status == .uploaded }
+            uploadedUfts.forEach { uft in
+                do {
+                    try uft.remove()
+                } catch (let error) {
+                    Log.error("Error removing uft: \(error)")
+                }
+            }
+            
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
         }
     }
 }

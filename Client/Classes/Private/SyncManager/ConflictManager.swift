@@ -23,12 +23,14 @@ class ConflictManager {
             
             // Do we have a pending upload deletion that conflicts with the file download? In this case there could be at most a single upload deletion. It's an error for the client to try to queue up more than one deletion (with sync's between them).
             let conflictingUploadDeletions = pendingUploads.filter {
-                return $0.operation.isDeletion && $0.fileUUID == attr.fileUUID
+                // 4/22/18; The optional chaining here is to deal with a problem with data migrations. It should only be temporarily necessary.
+                return ($0.operation?.isDeletion ?? false) && $0.fileUUID == attr.fileUUID
             }
 
             // Do we have pending content upload(s) that conflict with the content download? In this case there could be more than one upload with the same uuid. For example, if the client does a file upload of uuid X, syncs, then another upload of X, and then sync.
             let conflictingContentUploads = pendingUploads.filter {
-                $0.operation.isContents && $0.fileUUID == attr.fileUUID
+                // 4/22/18; As above.
+                ($0.operation?.isContents ?? false) && $0.fileUUID == attr.fileUUID
             }
 
             var conflictType:ConflictingClientOperation?

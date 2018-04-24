@@ -279,4 +279,82 @@ class CoreDataTests: TestCase {
             XCTAssert(all.count == 0)
         }
     }
+    
+    func testAddToNewFileGroup() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
+            let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
+            let fileGroupUUID = UUID().uuidString
+            DownloadContentGroup.addDownloadFileTracker(dft, to: fileGroupUUID)
+            let dcgs = DownloadContentGroup.fetchAll()
+            guard dcgs.count == 1, let downloads = dcgs[0].downloads else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(dcgs[0].fileGroupUUID == fileGroupUUID)
+            XCTAssert(downloads.count == 1)
+            XCTAssert(dcgs[0].dfts.count == 1)
+        }
+    }
+    
+    func testAddToExistingFileGroup() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
+            let fileGroupUUID = UUID().uuidString
+
+            let dft1 = DownloadFileTracker.newObject() as! DownloadFileTracker
+            DownloadContentGroup.addDownloadFileTracker(dft1, to: fileGroupUUID)
+            
+            let dft2 = DownloadFileTracker.newObject() as! DownloadFileTracker
+            DownloadContentGroup.addDownloadFileTracker(dft2, to: fileGroupUUID)
+            
+            let dcgs = DownloadContentGroup.fetchAll()
+            
+            
+            guard dcgs.count == 1, let downloads = dcgs[0].downloads else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(downloads.count == 2)
+            XCTAssert(dcgs[0].fileGroupUUID == fileGroupUUID)
+        }
+    }
+    
+    func testFileGroupFudgeCase() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
+            DownloadContentGroup.addDownloadFileTracker(dft, to: nil)
+            
+            let dcgs = DownloadContentGroup.fetchAll()
+
+            guard dcgs.count == 1, let downloads = dcgs[0].downloads else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(downloads.count == 1)
+            XCTAssert(dcgs[0].fileGroupUUID == nil)
+        }
+    }
+    
+    func testCleanupUploads() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let uft1 = UploadFileTracker.newObject() as! UploadFileTracker
+            uft1.status = .uploaded
+            
+            let uft2 = UploadFileTracker.newObject() as! UploadFileTracker
+            uft2.status = .uploaded
+            
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+        }
+        
+        SyncManager.cleanupUploads()
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let ufts = UploadFileTracker.fetchAll().filter {$0.status == .uploaded}
+            XCTAssert(ufts.count == 0)
+        }
+    }
 }

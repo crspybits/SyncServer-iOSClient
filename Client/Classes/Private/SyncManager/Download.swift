@@ -107,6 +107,8 @@ class Download {
                             dft.appMetaDataVersion = file.appMetaDataVersion
                             dft.fileGroupUUID = file.fileGroupUUID
                             
+                            DownloadContentGroup.addDownloadFileTracker(dft, to: file.fileGroupUUID)
+                            
                             if file.creationDate != nil {
                                 dft.creationDate = file.creationDate! as NSDate
                                 dft.updateDate = file.updateDate! as NSDate
@@ -183,8 +185,45 @@ class Download {
             }
             
             masterVersion = Singleton.get().masterVersion
+            
+            // Now we know there is at least one `notStarted` download. Need to get next download in terms of DownloadContentGroup's.
+            // What we need here is either: 1) the DownloadContentGroup we're currently downloading, or 2) some random DownloadContentGroup if we're not currently downloading one.
+            let dcgs = DownloadContentGroup.fetchAll()
+            let downloadingGroups = dcgs.filter { dcg in dcg.status == .downloading }
+            
+            if downloadingGroups.count > 0 {
+                guard downloadingGroups.count == 1 else {
+                    nextResult = .error(.generic("More than one downloading file group!"))
+                    return
+                }
+                
+                let downloadable = downloadingGroups[0].dfts.filter { dft in
+                    dft.status == .notStarted
+                }
+                
+                // This should be greater than 0, or we should have called the delegate method at the end of the last download.
+                guard downloadable.count > 0 else {
+                    nextResult = .error(.generic("No downloadable tracker in current group!"))
+                    return
+                }
+                
+                nextToDownload = downloadable[0]
+            }
+            else {
+                let notStartedGroups = dcgs.filter { dcg in dcg.status == .notStarted }
+                let downloadable = notStartedGroups[0].dfts.filter { dft in
+                    dft.status == .notStarted
+                }
+                
+                guard downloadable.count > 0 else {
+                    nextResult = .error(.generic("No downloadable tracker in first group!"))
+                    return
+                }
+                
+                nextToDownload = downloadable[0]
+                notStartedGroups[0].status = .downloading
+            }
 
-            nextToDownload = notStarted[0]
             nextToDownload.status = .downloading
             
             do {
@@ -238,8 +277,8 @@ class Download {
                     // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
                     nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
                     nextToDownload.appMetaDataVersion = downloadedFile.appMetaData?.version
-                
-                    // 9/16/17; Not really crucial since we'll be deleting this DownloadFileTracker quickly. But, useful for testing.
+                    
+                    // Useful in the context of file groups-- so we can tell if the file group has more downloadable files.
                     nextToDownload.status = .downloaded
                     
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()

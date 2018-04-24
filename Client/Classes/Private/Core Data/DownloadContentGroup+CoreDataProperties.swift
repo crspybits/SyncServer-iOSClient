@@ -17,6 +17,7 @@ extension DownloadContentGroup {
     }
 
     @NSManaged public var fileGroupUUID: String?
+    @NSManaged public var statusRaw: String?
     @NSManaged public var downloads: NSSet?
 
 }

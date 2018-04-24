@@ -81,6 +81,15 @@ public class SyncServer {
         
         // SyncServerUser sets up the delegate for the ServerAPI. Need to set it up early in the launch sequence.
         SyncServerUser.session.appLaunchSetup(cloudFolderName: cloudFolderName)
+        
+        // Debugging
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let pendingUploads = UploadFileTracker.fetchAll()
+            Log.msg("Upload file tracker count: \(pendingUploads.count)")
+            pendingUploads.forEach { uft in
+                Log.msg("Upload file tracker status: \(uft.status)")
+            }
+        }
     }
     
     // For dealing with background uploading/downloading.
@@ -480,6 +489,7 @@ public class SyncServer {
             UploadQueues.removeAll()
             Singleton.removeAll()
             NetworkCached.removeAll()
+            DownloadContentGroup.removeAll()
 
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -551,7 +561,7 @@ public class SyncServer {
                 
                 let clientMissingAndDeleted = clientMissing.subtracting(clientMissingNotDeleted)
                 
-                // Elements in directory that are missing in client
+                // Elements in directory that are missing in client. At least some of these could be files that were deleted on the server before they were ever actually processed by the client.
                 let directoryMissing = directory.subtracting(intersection)
                 
                 Log.msg("clientMissingAndDeleted: \(clientMissingAndDeleted)")
@@ -627,6 +637,13 @@ public class SyncServer {
             ufts.forEach(){ uft in
                 if uft.status == .uploading {
                     uft.status = .notStarted
+                }
+            }
+            
+            let dcgs = DownloadContentGroup.fetchAll()
+            dcgs.forEach { dcg in
+                if dcg.status == .downloading {
+                    dcg.status = .notStarted
                 }
             }
 
