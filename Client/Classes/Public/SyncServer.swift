@@ -139,6 +139,7 @@ public class SyncServer {
                 }
                 
                 if attr.mimeType != entryMimeType {
+                    Log.error("attr.mimeType: \(String(describing: attr.mimeType)); entryMimeType: \(entryMimeType); attr.fileUUID: \(String(describing: attr.fileUUID))")
                     errorToThrow = SyncServerError.mimeTypeOfFileChanged
                     return
                 }
@@ -210,6 +211,7 @@ public class SyncServer {
         var errorToThrow:Error?
 
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {[weak self] in
+            // In part, this ensures you can't do an appMetaData upload as v0 of a file.
             guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 errorToThrow = SyncServerError.couldNotFindFileUUID(attr.fileUUID)
                 return
@@ -222,6 +224,7 @@ public class SyncServer {
             }
             
             if mimeType != entryMimeType {
+                Log.error("mimeType: \(mimeType); entryMimeType: \(entryMimeType); attr.fileUUID: \(String(describing: attr.fileUUID))")
                 errorToThrow = SyncServerError.mimeTypeOfFileChanged
                 return
             }
@@ -229,6 +232,13 @@ public class SyncServer {
             if entry.deletedOnServer {
                 errorToThrow = SyncServerError.fileAlreadyDeleted
                 return
+            }
+            
+            if let fileGroupUUID = attr.fileGroupUUID {
+                guard entry.fileGroupUUID == fileGroupUUID else {
+                    errorToThrow = SyncServerError.fileGroupUUIDChanged
+                    return
+                }
             }
             
             let newUft = UploadFileTracker.newObject() as! UploadFileTracker

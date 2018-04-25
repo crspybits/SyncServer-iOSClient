@@ -62,4 +62,8 @@ public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations
         
         group.addToDownloads(dft)
     }
+    
+    func remove()  {        
+        CoreData.sessionNamed(Constants.coreDataName).remove(self)
+    }
 }

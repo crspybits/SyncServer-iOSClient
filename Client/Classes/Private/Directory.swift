@@ -147,7 +147,9 @@ class Directory {
                     // Don't update the fileGroupUUID-- this never changes after v0 of the file.
                 }
                 
+                // For appMetaData downloads, does the dft have a mimeType??
                 if entry.mimeType != dft.mimeType {
+                    Log.error("entry.mimeType: \(String(describing: entry.mimeType)); dft.mimeType: \(String(describing: dft.mimeType)); entry.fileUUID: \(String(describing: entry.fileUUID))")
                     Thread.runSync(onMainThread: {[unowned self] in
                         self.delegate.syncServerErrorOccurred(error: .mimeTypeOfFileChanged)
                     })

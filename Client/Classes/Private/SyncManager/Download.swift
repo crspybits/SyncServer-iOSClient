@@ -201,7 +201,7 @@ class Download {
                     dft.status == .notStarted
                 }
                 
-                // This should be greater than 0, or we should have called the delegate method at the end of the last download.
+                // This should be greater than 0, or we should have called the delegate method at the end of the last download (and removed the DownloadContentGroup).
                 guard downloadable.count > 0 else {
                     nextResult = .error(.generic("No downloadable tracker in current group!"))
                     return

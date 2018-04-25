@@ -1,9 +1,10 @@
 SyncServer-iOSClient
 
 Version 15.0.0
-	* Added fileGroupUUID
+	* Added fileGroupUUID & file group support.
 		This is a breaking change in terms of delegate callbacks-- the download delegate callback now deals with file groups.
 		https://github.com/crspybits/SyncServerII/issues/59
+		https://github.com/crspybits/SyncServer-iOSClient/issues/29
 		
 Version 14.2.0 (4/23/18)
 	* Added code to do some "garbage collection" cleanup + handle a migration issue.

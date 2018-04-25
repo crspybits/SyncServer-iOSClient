@@ -40,4 +40,8 @@ public class DownloadFileTracker: FileTracker, AllOperations {
         dft.addAge()
         return dft
     }
+    
+    func remove()  {
+        CoreData.sessionNamed(Constants.coreDataName).remove(self)
+    }
 }
