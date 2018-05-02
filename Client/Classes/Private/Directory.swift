@@ -123,6 +123,7 @@ class Directory {
     }
     
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
+    // This for file and appMetaData downloads (not download deletions).
     func updateAfterDownloading(downloads:[DownloadFileTracker]) {
         downloads.forEach { dft in
             if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: dft.fileUUID) {

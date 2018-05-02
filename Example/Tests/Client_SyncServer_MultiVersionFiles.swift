@@ -175,7 +175,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
                 downloadCount += 1
@@ -305,9 +305,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { deletions in
-            XCTAssert(deletions.count == 1)
-            XCTAssert(deletions[0].fileUUID == fileUUID)
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(group[0].attr.fileUUID == fileUUID)
             deletionsExp.fulfill()
         }
         
@@ -374,14 +378,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
-            guard downloadDeletions.count == 1 else {
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
                 XCTFail()
                 return
             }
             
-            let downloadDeletion = downloadDeletions[0]
-            XCTAssert(downloadDeletion.fileUUID == fileUUID)
+            XCTAssert(group[0].attr.fileUUID == fileUUID)
             downloadDeletionCallback.fulfill()
         }
         
@@ -472,7 +475,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
+        syncServerFileGroupDownloadComplete = { group in
             XCTFail()
         }
         
@@ -554,7 +557,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
+        syncServerFileGroupDownloadComplete = { group in
             XCTFail()
         }
         
@@ -597,7 +600,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTFail()
         }
         
-        shouldDoDeletions = { deletions in
+        syncServerFileGroupDownloadComplete = { group in
             XCTFail()
         }
         
@@ -612,10 +615,6 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             default:
                 XCTFail()
             }
-        }
-        
-        shouldDoDeletions = { downloadDeletions in
-            XCTFail()
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
@@ -752,7 +751,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             uploadConflict.resolutionCallback(resolution)
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 if case .acceptContentDownload = resolution {
                     let downloadedFileAttributes = group[0].attr
@@ -956,10 +955,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             uploadConflict.resolutionCallback(resolution)
         }
 
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1 {
                 let attr = group[0].attr
                 switch group[0].type {
+                case .deletion:
+                    XCTFail()
                 case .appMetaData:
                     XCTAssert(attr.fileUUID == fileUUID)
                     XCTAssert(attr.appMetaData == appMetaData.contents)
@@ -1186,7 +1187,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 downloadedFileExp.fulfill()
             }
@@ -1370,7 +1371,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 let attr = group[0].attr
                 XCTAssert(attr.appMetaData == appMetaData2.contents)

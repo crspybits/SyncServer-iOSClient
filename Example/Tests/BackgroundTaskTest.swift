@@ -65,7 +65,7 @@ class BackgroundTaskTest: TestCase {
         
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
@@ -111,7 +111,7 @@ class BackgroundTaskTest: TestCase {
         let done = self.expectation(description: "done")
         let saveDownload = self.expectation(description: "saveDownload")
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 saveDownload.fulfill()
             }

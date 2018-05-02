@@ -40,9 +40,15 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         var calledShouldDoDeletions = false
         
-        shouldDoDeletions = { (downloadDeletions:[SyncAttributes]) in
-            XCTAssert(downloadDeletions.count == 1)
-            XCTAssert(downloadDeletions[0].fileUUID == file.fileUUID)
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
+            let attr = group[0].attr
+            
+            XCTAssert(attr.fileUUID == file.fileUUID)
             XCTAssert(!calledShouldDoDeletions)
             calledShouldDoDeletions = true
         }
@@ -89,24 +95,32 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         deviceUUID = currDeviceUUID
 
-        var calledShouldDoDeletions = false
-        
-        shouldDoDeletions = { (downloadDeletions:[SyncAttributes]) in
-            XCTAssert(downloadDeletions.count == 2)
-            
-            let result1 = downloadDeletions.filter {$0.fileUUID == file1.fileUUID}
-            XCTAssert(result1.count == 1)
+        var numberDeletions = 0
+        var firstDeletion = false
+        var secondDeletion = false
+        let expectation2 = self.expectation(description: "start")
 
-            let result2 = downloadDeletions.filter {$0.fileUUID == file2.fileUUID}
-            XCTAssert(result2.count == 1)
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
             
-            calledShouldDoDeletions = true
+            numberDeletions += 1
+            
+            let result1 = group.filter {$0.attr.fileUUID == file1.fileUUID}
+            if result1.count == 1 {
+                firstDeletion = true
+            }
+
+            let result2 = group.filter {$0.attr.fileUUID == file2.fileUUID}
+            if result2.count == 1 {
+                secondDeletion = true
+            }
         }
         
-        let expectation2 = self.expectation(description: "start")
-        
         SyncManager.session.start { (error) in
-            XCTAssert(calledShouldDoDeletions)
+            XCTAssert(numberDeletions == 2 && firstDeletion && secondDeletion)
             expectation2.fulfill()
         }
         
@@ -139,25 +153,30 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         var calledShouldDoDeletions = false
         var calledShouldSaveDownloads = false
         
-        shouldDoDeletions = { (downloadDeletions:[SyncAttributes]) in
-            XCTAssert(downloadDeletions.count == 1)
-            XCTAssert(downloadDeletions[0].fileUUID == file1.fileUUID)
-            calledShouldDoDeletions = true
-        }
-        
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
-            if group.count == 1, case .file = group[0].type {
-                let attr = group[0].attr
-                downloadCount += 1
-                XCTAssert(downloadCount == 1)
-                
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            downloadCount += 1
+            XCTAssert(downloadCount <= 2)
+            let attr = group[0].attr
+            
+            switch group[0].type {
+            case .file:
                 XCTAssert(attr.fileUUID == file2.fileUUID)
                 XCTAssert(!calledShouldSaveDownloads)
                 calledShouldSaveDownloads = true
-            }
-            else {
+                
+            case .deletion:
+                XCTAssert(attr.fileUUID == file1.fileUUID)
+                XCTAssert(!calledShouldDoDeletions)
+                calledShouldDoDeletions = true
+                
+            case .appMetaData:
                 XCTFail()
             }
         }
@@ -180,7 +199,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         var calledShouldDoDeletions = false
         
-        shouldDoDeletions = { (downloadDeletions:[SyncAttributes]) in            
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
             calledShouldDoDeletions = true
         }
         
@@ -203,7 +227,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         var calledShouldDoDeletions = false
         
-        shouldDoDeletions = { (downloadDeletions:[SyncAttributes]) in            
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
             calledShouldDoDeletions = true
         }
         

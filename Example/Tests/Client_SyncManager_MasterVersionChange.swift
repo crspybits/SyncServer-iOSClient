@@ -84,6 +84,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
     }
     
+#if false
     // Demonstrate that we can "recover" from a master version change during upload. This "recovery" is really just the client side work necessary to deal with our lazy synchronization process.
     private func masterVersionChangeDuringUpload(withDeletion:Bool = false) {
         // How do we instantiate the "during" part of this? What I want to do is something like this:
@@ -142,7 +143,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         if !withDeletion {
             var downloadCount = 0
             
-            syncServerContentGroupDownloadComplete = { group in
+            syncServerFileGroupDownloadComplete = { group in
                 if group.count == 1, case .file = group[0].type {
                     downloadCount += 1
                     XCTAssert(downloadCount == 1)
@@ -222,7 +223,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
-    
+
     func testMasterVersionChangeDuringUpload() {
         masterVersionChangeDuringUpload()
     }
@@ -231,7 +232,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     func testMasterVersionChangeDuringUploadWithDeletion() {
         masterVersionChangeDuringUpload(withDeletion:true)
     }
-    
+
     // First, using .sync(), upload a file. Then proceed as above, but the intervening "other" client does a deletion. So, this will cause a download deletion to interrupt the upload.
     func testMasterVersionChangeBecauseOfKnownFileDeletion() {
         let fileUUID1 = UUID().uuidString
@@ -294,10 +295,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        let previousShouldDoDeletions = shouldDoDeletions
-        shouldDoDeletions = {deletions in
-            XCTAssert(deletions.count == 1)
-            self.shouldDoDeletions = previousShouldDoDeletions
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
             shouldDoDeletionsExp.fulfill()
         }
     
@@ -348,7 +351,9 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
-    
+#endif
+
+#if false
     // Test getting a master version update on UploadDeletion
     func testMasterVersionUpdateOnUploadDeletion() {
         /* Algorithm:
@@ -426,7 +431,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 shouldSaveDownloadsExp.fulfill()
             }
@@ -464,7 +469,9 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
-    
+#endif
+
+#if false
     //  9/18/17; This is also a test of the new incremental download functionality. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
     func testMasterVersionChangeByUploadDuringDownload() {
         // Algorithm:
@@ -522,7 +529,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         var downloadCount = 0
 
         // This captures the second two downloads.
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
                 downloadCount += 1
@@ -565,12 +572,14 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
-    
+#endif
+
     enum FileToDelete {
         case alreadyDownloadedFile
         case notYetDownloadedFile
     }
     
+#if false
     //  9/18/17; This is also a test of the new incremental download functionality. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
     func masterVersionChangeByDeletionDuringDownload(deleteFile: FileToDelete) {
         // Algorithm:
@@ -626,7 +635,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
                 XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
@@ -667,7 +676,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
-    
+
     func testMasterVersionChangeByDeletionDuringDownloadOfAlreadyDownloadedFile() {
         masterVersionChangeByDeletionDuringDownload(deleteFile: .alreadyDownloadedFile)
     }
@@ -675,4 +684,5 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     func testMasterVersionChangeByDeletionDuringDownloadOfNotYetDownloadedFile() {
         masterVersionChangeByDeletionDuringDownload(deleteFile: .notYetDownloadedFile)
     }
+#endif
 }

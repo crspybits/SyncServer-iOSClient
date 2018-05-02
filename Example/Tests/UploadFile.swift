@@ -113,4 +113,30 @@ class ServerAPI_UploadFile: TestCase {
             XCTFail()
         }
     }
+
+    // TO-TEST
+    // Upload a file with groupUUID, make sure you get it with a file index.
+    func testUploadWithFileGroupUUID() {
+        let masterVersion = getMasterVersion()
+        let fileGroupUUID = UUID().uuidString
+
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let fileIndex = getFileIndex() else {
+            XCTFail()
+            return
+        }
+        
+        let result = fileIndex.filter {$0.fileUUID == file.fileUUID}
+        guard result.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssert(result[0].fileGroupUUID == fileGroupUUID)
+    }
 }

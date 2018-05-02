@@ -9,6 +9,7 @@
 import Foundation
 import CoreData
 import SMCoreLib
+import SyncServer_Shared
 
 @objc(DownloadFileTracker)
 public class DownloadFileTracker: FileTracker, AllOperations {
@@ -28,6 +29,14 @@ public class DownloadFileTracker: FileTracker, AllOperations {
         set {
             statusRaw = newValue.rawValue
         }
+    }
+    
+    var attr: SyncAttributes {
+        let mimeType = MimeType(rawValue: self.mimeType!)!
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: mimeType, creationDate: creationDate! as Date, updateDate: updateDate! as Date)
+        attr.appMetaData = appMetaData
+        attr.fileGroupUUID = fileGroupUUID
+        return attr
     }
     
     public class func entityName() -> String {

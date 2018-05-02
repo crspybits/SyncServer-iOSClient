@@ -10,8 +10,50 @@ import SyncServer_Shared
 import SMCoreLib
 
 class ConflictManager {
-    // completion's are called when the client has resolved all conflicts if there are any. If there are no conflicts, the call to the completion is synchronous.
+    static func handleAnyContentDownloadConflicts(dfts:[DownloadFileTracker], delegate: SyncServerDelegate, completion:@escaping ()->()) {
     
+        // Are there more dft's to check for conflicts?
+        if dfts.count == 0 {
+            completion()
+        }
+        else {
+            let dft = dfts[0]
+            var possiblyConflictingContent: ServerContentType = .appMetaData
+            var attr: SyncAttributes!
+            
+            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                if let url = dft.localURL {
+                    if dft.appMetaData == nil {
+                        possiblyConflictingContent = .file(url)
+                    }
+                    else {
+                        possiblyConflictingContent = .both(downloadURL: url)
+                    }
+                }
+                
+                attr = dft.attr
+            }
+            
+            Thread.runSync(onMainThread: {
+                ConflictManager.handleAnyContentDownloadConflict(attr: attr, content: possiblyConflictingContent, delegate: delegate) { ignoreDownload in
+                    
+                    if let _ = ignoreDownload {
+                        // Ignoring the download-- remove the dft.
+                        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                            dft.remove()
+                            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+                        }
+                    }
+                    
+                    DispatchQueue.global().async {
+                        handleAnyContentDownloadConflicts(dfts:dfts.tail(), delegate: delegate, completion:completion)
+                    }
+                }
+            })
+        }
+    }
+    
+    // completion's are called when the client has resolved all conflicts if there are any. If there are no conflicts, the call to the completion is synchronous.
     static func handleAnyContentDownloadConflict(attr:SyncAttributes, content: ServerContentType, delegate: SyncServerDelegate, completion:@escaping (_ keepThisOne: SyncAttributes?)->()) {
     
         var resolver: SyncServerConflict<ContentDownloadResolution>?
@@ -113,9 +155,51 @@ class ConflictManager {
         }
     }
     
-    // In the completion, `keepTheseOnes` gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
+    static func handleAnyDownloadDeletionConflicts(dfts:[DownloadFileTracker], delegate: SyncServerDelegate, completion:@escaping ()->()) {
+        
+        if dfts.count == 0 {
+            completion()
+            return
+        }
+        
+        var deletionAttrs:[SyncAttributes]!
+
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            deletionAttrs = dfts.map {$0.attr}
+            Log.msg("Deletions: count: \(dfts.count)")
+        }
+
+        ConflictManager.handleAnyDownloadDeletionConflicts(
+            downloadDeletionAttrs: deletionAttrs, delegate: delegate) { ignoreDownloadDeletions, havePendingUploadDeletions in
+            
+            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                (havePendingUploadDeletions + ignoreDownloadDeletions).forEach { attr in
+                    let dft = dfts.filter {$0.fileUUID == attr.fileUUID}[0]
+                    dft.remove()
+                }
+                
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            }
+
+            let deleteFromLocalDirectory = deletionAttrs.filter({ deletion in
+                let ignore = ignoreDownloadDeletions.filter({$0.fileUUID == deletion.fileUUID})
+                return ignore.count == 0
+            })
+            
+            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                Directory.session.updateAfterDownloadDeletingFiles(deletions: deleteFromLocalDirectory)
+            }
+                
+            // I'd like to wrap up by switching to the original thread we were on prior to switching to the main thread. Not quite sure how to do that. Do this instead.
+            DispatchQueue.global().async {
+                completion()
+            }
+        }
+    }
+    
+    // In the completion, `clientSaysKeepTheseOnes` gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
     static func handleAnyDownloadDeletionConflicts(downloadDeletionAttrs:[SyncAttributes], delegate: SyncServerDelegate,
-        completion:@escaping (_ keepTheseOnes: [SyncAttributes], _ havePendingUploadDeletions: [SyncAttributes])->()) {
+        completion:@escaping (_ clientSaysKeepTheseOnes: [SyncAttributes], _ havePendingUploadDeletions: [SyncAttributes])->()) {
     
         var remainingDownloadDeletionAttrs = downloadDeletionAttrs
         

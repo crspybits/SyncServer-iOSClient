@@ -106,7 +106,7 @@ class Download {
                             
                             dft.appMetaDataVersion = file.appMetaDataVersion
                             dft.fileGroupUUID = file.fileGroupUUID
-                            
+
                             DownloadContentGroup.addDownloadFileTracker(dft, to: file.fileGroupUUID)
                             
                             if file.creationDate != nil {
@@ -139,19 +139,19 @@ class Download {
     enum NextResult {
     case started
     case noDownloadsOrDeletions
+    case currentGroupCompleted(DownloadContentGroup)
     case allDownloadsCompleted
     case error(SyncServerError)
     }
     
     enum NextCompletion {
-    case fileDownloaded(url:SMRelativeLocalURL, attr:SyncAttributes, dft: DownloadFileTracker)
-    case appMetaDataDownloaded(attr:SyncAttributes, dft: DownloadFileTracker)
+    case fileDownloaded(dft: DownloadFileTracker)
+    case appMetaDataDownloaded(dft: DownloadFileTracker)
     case masterVersionUpdate
     case error(SyncServerError)
     }
     
     // Starts download of next file or appMetaData, if there is one. There should be no files/appMetaData downloading already. Only if .started is the NextResult will the completion handler be called. With a masterVersionUpdate response for NextCompletion, the MasterVersion Core Data object is updated by this method, and all the DownloadFileTracker objects have been reset.
-    // WORKING: Changing this to download the next in the fileGroupUUID if there is one.
     func next(first: Bool = false, completion:((NextCompletion)->())?) -> NextResult {
         var masterVersion:MasterVersionInt!
         var nextResult:NextResult?
@@ -161,6 +161,7 @@ class Download {
         var numberDownloadDeletions = 0
         var operation:FileTracker.Operation!
         
+        // Get statistics & report event if needed.
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let dfts = DownloadFileTracker.fetchAll()
             guard dfts.count != 0 else {
@@ -177,64 +178,6 @@ class Download {
                 nextResult = .error(.alreadyDownloadingAFile)
                 return
             }
-            
-            let notStarted = dfts.filter {$0.status == .notStarted && $0.operation.isContents}
-            guard notStarted.count != 0 else {
-                nextResult = .allDownloadsCompleted
-                return
-            }
-            
-            masterVersion = Singleton.get().masterVersion
-            
-            // Now we know there is at least one `notStarted` download. Need to get next download in terms of DownloadContentGroup's.
-            // What we need here is either: 1) the DownloadContentGroup we're currently downloading, or 2) some random DownloadContentGroup if we're not currently downloading one.
-            let dcgs = DownloadContentGroup.fetchAll()
-            let downloadingGroups = dcgs.filter { dcg in dcg.status == .downloading }
-            
-            if downloadingGroups.count > 0 {
-                guard downloadingGroups.count == 1 else {
-                    nextResult = .error(.generic("More than one downloading file group!"))
-                    return
-                }
-                
-                let downloadable = downloadingGroups[0].dfts.filter { dft in
-                    dft.status == .notStarted
-                }
-                
-                // This should be greater than 0, or we should have called the delegate method at the end of the last download (and removed the DownloadContentGroup).
-                guard downloadable.count > 0 else {
-                    nextResult = .error(.generic("No downloadable tracker in current group!"))
-                    return
-                }
-                
-                nextToDownload = downloadable[0]
-            }
-            else {
-                let notStartedGroups = dcgs.filter { dcg in dcg.status == .notStarted }
-                let downloadable = notStartedGroups[0].dfts.filter { dft in
-                    dft.status == .notStarted
-                }
-                
-                guard downloadable.count > 0 else {
-                    nextResult = .error(.generic("No downloadable tracker in first group!"))
-                    return
-                }
-                
-                nextToDownload = downloadable[0]
-                notStartedGroups[0].status = .downloading
-            }
-
-            nextToDownload.status = .downloading
-            
-            do {
-                try CoreData.sessionNamed(Constants.coreDataName).context.save()
-            } catch (let error) {
-                nextResult = .error(.coreDataError(error))
-            }
-            
-            // Need this inside the `performAndWait` to bridge the gap without an NSManagedObject
-            downloadFile = FilenamingWithAppMetaDataVersion(fileUUID: nextToDownload.fileUUID, fileVersion: nextToDownload.fileVersion, appMetaDataVersion: nextToDownload.appMetaDataVersion)
-            operation = nextToDownload.operation
         }
         
         guard nextResult == nil else {
@@ -245,6 +188,66 @@ class Download {
             EventDesired.reportEvent( .willStartDownloads(numberContentDownloads: UInt(numberContentDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
         
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            // Process current downloading DownloadContentGroup or get next if there is not one downloading.
+            let dcgs = DownloadContentGroup.fetchAll()
+            let downloadingGroups = dcgs.filter { dcg in dcg.status == .downloading }
+            
+            var currentGroup:DownloadContentGroup!
+            
+            if downloadingGroups.count > 0 {
+                guard downloadingGroups.count == 1 else {
+                    nextResult = .error(.generic("More than one downloading file group!"))
+                    return
+                }
+                
+                currentGroup = downloadingGroups[0]
+            }
+            else {
+                let notStartedGroups = dcgs.filter { dcg in dcg.status == .notStarted }
+
+                guard notStartedGroups.count > 0 else {
+                    // No groups currently being downloaded, and no groups that are not started. That means all groups are downloaded.
+                    nextResult = .allDownloadsCompleted
+                    return
+                }
+                
+                let nextGroup = notStartedGroups[0]
+                nextGroup.status = .downloading
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
+                
+                currentGroup = nextGroup
+            }
+            
+            // See if current group has any non-deletion operations
+            let nonDeletion = currentGroup.dfts.filter {$0.operation != .deletion}
+            if nonDeletion.count == 0 {
+                nextResult = .currentGroupCompleted(currentGroup)
+                return
+            }
+        
+            // Get next non-deletion (file download or appMetaData download) dft.
+            nextToDownload = nonDeletion[0]
+            
+            nextToDownload.status = .downloading
+            
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let error) {
+                nextResult = .error(.coreDataError(error))
+            }
+            
+            masterVersion = Singleton.get().masterVersion
+            
+            // Need this inside the `performAndWait` to bridge the gap without an NSManagedObject
+            downloadFile = FilenamingWithAppMetaDataVersion(fileUUID: nextToDownload.fileUUID, fileVersion: nextToDownload.fileVersion, appMetaDataVersion: nextToDownload.appMetaDataVersion)
+            operation = nextToDownload.operation
+        }
+        
+        guard nextResult == nil else {
+            return nextResult!
+        }
+        
         switch operation! {
         case .file:
             doDownloadFile(masterVersion: masterVersion, downloadFile: downloadFile, nextToDownload: nextToDownload, completion:completion)
@@ -253,6 +256,7 @@ class Download {
             doAppMetaDataDownload(masterVersion: masterVersion, downloadFile: downloadFile, nextToDownload: nextToDownload, completion:completion)
             
         case .deletion:
+            // Should not get here because we're checking for deletions above.
             assert(false, "Bad puppy!")
         }
         
@@ -281,18 +285,16 @@ class Download {
                     // Useful in the context of file groups-- so we can tell if the file group has more downloadable files.
                     nextToDownload.status = .downloaded
                     
+                    nextToDownload.localURL = downloadedFile.url
+                    nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
+                    
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()
                     
                     // TODO: Not using downloadedFile.fileSizeBytes. Why?
-                    let mimeType = MimeType(rawValue: nextToDownload.mimeType!)!
-                    var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: mimeType, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
-                    attr.appMetaData = downloadedFile.appMetaData?.contents
-                    attr.creationDate = nextToDownload.creationDate as Date?
-                    attr.updateDate = nextToDownload.updateDate as Date?
                     
                     // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
                     
-                    nextCompletionResult = .fileDownloaded(url:downloadedFile.url, attr:attr, dft: nextToDownload)
+                    nextCompletionResult = .fileDownloaded(dft: nextToDownload)
                 }
         
                 completion?(nextCompletionResult)
@@ -317,15 +319,9 @@ class Download {
                     nextToDownload.status = .downloaded
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()
                     
-                    let mimeType = MimeType(rawValue: nextToDownload.mimeType!)!
-                    var attr = SyncAttributes(fileUUID: nextToDownload.fileUUID, mimeType: mimeType, creationDate: nextToDownload.creationDate! as Date, updateDate: nextToDownload.updateDate! as Date)
-                    attr.appMetaData = appMetaData
-                    attr.creationDate = nextToDownload.creationDate as Date?
-                    attr.updateDate = nextToDownload.updateDate as Date?
-                    
                     // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
                     
-                    nextCompletionResult = .appMetaDataDownloaded(attr:attr, dft: nextToDownload)
+                    nextCompletionResult = .appMetaDataDownloaded(dft: nextToDownload)
                 }
         
                 completion?(nextCompletionResult)
@@ -352,12 +348,12 @@ class Download {
     }
     
     private func doMasterVersionUpdate(masterVersionUpdate: MasterVersionInt, completion:((NextCompletion)->())?) {
-        // 9/18/17; We're doing downloads in an eventually consistent manner. See http://www.spasticmuffin.biz/blog/2017/09/15/making-downloads-more-flexible-in-the-syncserver/
         // The following will remove any outstanding DownloadFileTrackers. If we've already downloaded a file-- those dft's will have been removed already. This is part of our eventually consistent operation. It is possible that some of the already downloaded files may need to be deleted (or updated, when we get to multiple file versions).
         
         var nextCompletionResult:NextCompletion!
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             DownloadFileTracker.removeAll()
+            DownloadContentGroup.removeAll()
             Singleton.get().masterVersion = masterVersionUpdate
             
             do {

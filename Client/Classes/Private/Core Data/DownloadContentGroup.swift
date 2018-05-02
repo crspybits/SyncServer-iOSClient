@@ -10,6 +10,8 @@ import Foundation
 import CoreData
 import SMCoreLib
 
+// Groups of download operations-- including appMetaData, file version contents, and deletions. I'm including deletions because it seems reasonable that a file group could have files added and/or deleted, and we'd want to encompass both adding and deleting in the file group unit.
+
 @objc(DownloadContentGroup)
 public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations {
     typealias COREDATAOBJECT = DownloadContentGroup
@@ -61,6 +63,14 @@ public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations
         }
         
         group.addToDownloads(dft)
+    }
+    
+    // Consider dft's "completed" if they are downloaded or if they are deletions. (Deletions don't require an actual download-- only client action).
+    func allDftsCompleted() -> Bool {
+        let completed = self.dfts.filter {
+            $0.status == .downloaded || $0.operation == .deletion
+        }
+        return completed.count == self.dfts.count
     }
     
     func remove()  {        

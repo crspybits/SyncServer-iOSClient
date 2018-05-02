@@ -42,7 +42,7 @@ class Performance: TestCase {
         
         var downloadCount = 0
 
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 downloadCount += 1
                 XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
@@ -188,7 +188,7 @@ class Performance: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 downloadCount += 1
                 XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")

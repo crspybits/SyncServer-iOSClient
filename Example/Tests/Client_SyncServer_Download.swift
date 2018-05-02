@@ -63,7 +63,7 @@ class Client_SyncServer_Download: TestCase {
         
         Log.msg("Before assignment to shouldSaveDownload")
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 downloadCount += 1
                 XCTAssert(downloadCount <= 2)

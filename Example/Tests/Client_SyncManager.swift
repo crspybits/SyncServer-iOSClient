@@ -53,7 +53,7 @@ class Client_SyncManager: TestCase {
 
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
                 singleFileDownloaded?()
@@ -77,7 +77,7 @@ class Client_SyncManager: TestCase {
         }
         
         SyncManager.session.start { (error) in
-            XCTAssert(error == nil)
+            XCTAssert(error == nil, "\(String(describing: error))")
             
             XCTAssert(downloadCount == 2)
             
@@ -97,7 +97,7 @@ class Client_SyncManager: TestCase {
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 30.0, handler: nil)
+        waitForExpectations(timeout: 60.0, handler: nil)
     }
     
     func uploadTwoFiles() -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {

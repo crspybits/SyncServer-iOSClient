@@ -147,15 +147,17 @@ public struct ServerVersion {
     }
 }
 
-public struct DownloadContent {
-    public enum ContentType {
+public struct DownloadOperation {
+    public enum OperationType {
         case appMetaData
     
         // May also include an appMetaData update. In the context, see the SyncAttributes.
         case file(SMRelativeLocalURL)
+        
+        case deletion
     }
     
-    let type: ContentType
+    let type: OperationType
     let attr: SyncAttributes
 }
 
@@ -166,12 +168,14 @@ public protocol SyncServerDelegate : class {
     // The `syncServerSingleFileDownloadComplete` will be called after, if you allow the download to continue. i.e., if you use acceptContentDownload of ContentDownloadResolution.
     func syncServerMustResolveContentDownloadConflict(_ downloadContent: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>)
     
-    /* Called at the end of a single download, on non-error conditions.
-    For a file download, the client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be copied and/or moved to a more permanent location. Client should replace their existing data with that from the given file.
+    /* Called at the end of a group download, on non-error conditions.
+    For file downloads, the client owns the file referenced by the url after this call completes. This file is temporary in the sense that it will not be backed up to iCloud, could be removed when the device or app is restarted, and should be copied and/or moved to a more permanent location. Client should replace their existing data with that from the given file.
     This method doesn't get called for a particular download if (a) there is a conflict and (b) the client resolves that conflict by using .rejectContentDownload
-    The ContentType is .appMetaData if the app meta data on the server was updated without a corresponding file content change.
+    The operation is appMetaData if the app meta data on the server was updated without a corresponding file content change.
+    For deletion operations, clients should delete the files referenced by the SyncAttributes's (i.e., the UUID's).
+    For files you upload without file groups, this callback always has a single element in the array passed.
     */
-    func syncServerContentGroupDownloadComplete(group: [DownloadContent])
+    func syncServerFileGroupDownloadComplete(group: [DownloadOperation])
 
     // The client has to decide how to resolve the download-deletion conflicts. The resolveConflict method of each SyncServerConflict must be called.
     // Conflicts will not include UploadDeletion.
@@ -179,12 +183,7 @@ public protocol SyncServerDelegate : class {
     typealias DownloadDeletionConflict = (downloadDeletion: SyncAttributes, uploadConflict: SyncServerConflict<DownloadDeletionResolution>)
     
     // The number of elements in this array reflects the number of conflicts in the download deletions. E.g., if there is only a single download deletion, there can be at most one conflict.
-    // `syncServerShouldDoDeletions` will be called after this if you allow the deletion(s) to continue.
     func syncServerMustResolveDownloadDeletionConflicts(conflicts:[DownloadDeletionConflict])
-    
-    // Called when deletions have been received from the server. I.e., these files have been deleted on the server. This is received/called in an atomic manner: This reflects a snapshot state of file deletions on the server. Clients should delete the files referenced by the SyncAttributes's (i.e., the UUID's).
-    // This may be called sometime after the deletions have been received from the server. E.g., on a recovery step after the app launches and not after recent server interaction.
-    func syncServerShouldDoDeletions(downloadDeletions:[SyncAttributes])
     
     func syncServerErrorOccurred(error:SyncServerError)
 
@@ -192,13 +191,4 @@ public protocol SyncServerDelegate : class {
     func syncServerEventOccurred(event:SyncEvent)
 }
 
-#if DEBUG
-public protocol SyncServerTestingDelegate : class {
-    // You *must* call `next` before returning.
-    func syncServerSingleFileUploadCompleted(next: @escaping ()->())
-    
-     // You *must* call `next` before returning. If this delegate is given in testing, then `SyncServerDelegate` is not used for the corresponding method (without `next`).
-     func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->())
-}
-#endif
 

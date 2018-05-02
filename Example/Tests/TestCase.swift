@@ -73,7 +73,6 @@ class TestCase: XCTestCase {
     var testLockSyncCalled:Bool = false
     
     var syncServerEventOccurred: (SyncEvent) -> () = {event in }
-    var shouldDoDeletions: (_ downloadDeletions: [SyncAttributes]) -> () = { downloadDeletions in }
     var syncServerErrorOccurred: (SyncServerError) -> () = { error in
         Log.error("syncServerErrorOccurred: \(error)")
     }
@@ -84,7 +83,7 @@ class TestCase: XCTestCase {
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?
     var syncServerMustResolveContentDownloadConflict:((_ content: ServerContentType, _ downloadedContentAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
 
-    var syncServerContentGroupDownloadComplete: (([DownloadContent])->())!
+    var syncServerFileGroupDownloadComplete: (([DownloadOperation])->())!
 
     override func setUp() {
         super.setUp()
@@ -228,7 +227,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -245,7 +244,7 @@ class TestCase: XCTestCase {
             finalDeviceUUID = theDeviceUUID!
         }
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -500,7 +499,7 @@ class TestCase: XCTestCase {
         let expectedFiles = [file]
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
@@ -745,7 +744,7 @@ class TestCase: XCTestCase {
         
         var downloadCount = 0
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 let attr = group[0].attr
                 downloadCount += 1
@@ -864,12 +863,8 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
-    func syncServerContentGroupDownloadComplete(group: [DownloadContent]) {
-        syncServerContentGroupDownloadComplete?(group)
-    }
-    
-    func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {
-        shouldDoDeletions(downloadDeletions)
+    func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
+        syncServerFileGroupDownloadComplete?(group)
     }
     
     func syncServerMustResolveContentDownloadConflict(_ content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
@@ -889,6 +884,7 @@ extension TestCase : SyncServerDelegate {
     }
 }
 
+#if false
 extension TestCase : SyncServerTestingDelegate {
     func syncServerSingleFileUploadCompleted(next: @escaping ()->()) {
         if syncServerSingleFileUploadCompleted == nil {
@@ -908,3 +904,4 @@ extension TestCase : SyncServerTestingDelegate {
         }
      }
 }
+#endif

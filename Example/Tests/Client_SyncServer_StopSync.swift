@@ -210,7 +210,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 XCTAssert(alreadyStopped)
                 shouldSaveDownloadExp.fulfill()
@@ -274,7 +274,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file = group[0].type {
                 if alreadyStopped {
                     shouldSaveDownloadExp2.fulfill()
@@ -431,7 +431,7 @@ class Client_SyncServer_StopSync: TestCase {
         // 2) Do the first stop sync
         let shouldSaveDownloadExp1 = self.expectation(description: "ShouldSaveDownload1")
     
-        syncServerContentGroupDownloadComplete = { group in
+        syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
                 SyncServer.session.stopSync()
@@ -468,17 +468,8 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
     
-        shouldDoDeletions = { attrs in
-            XCTAssert(false)
-        }
-    
-        syncServerContentGroupDownloadComplete = { group in
-            if group.count == 1, case .file = group[0].type {
-                XCTAssert(false)
-            }
-            else {
-                XCTFail()
-            }
+        syncServerFileGroupDownloadComplete = { group in
+            XCTFail()
         }
     
         SyncServer.session.sync()
