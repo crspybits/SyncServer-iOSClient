@@ -1410,7 +1410,6 @@
 		81E3CC0093688FC6713630372E2D800E /* BFURL_Internal.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = BFURL_Internal.h; path = Bolts/iOS/Internal/BFURL_Internal.h; sourceTree = "<group>"; };
 		8231A80A9483A700D09A86A9540ACAE0 /* FBSDKError.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKError.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/FBSDKError.m; sourceTree = "<group>"; };
 		82C092DAFEA9EB13604358C908E8860D /* SMUIMessages.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SMUIMessages.m; sourceTree = "<group>"; };
-		8305DF0A208B2E58003314AD /* Client8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client8.xcdatamodel; sourceTree = "<group>"; };
 		831C829F209C02A60055BD27 /* CoreData+Extras.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CoreData+Extras.swift"; sourceTree = "<group>"; };
 		83EACE6F2085A17D00C40AA3 /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migrations.swift; sourceTree = "<group>"; };
 		83EF9BB2D8F096FBE0FF5513184308A6 /* FBSDKLogo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKLogo.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/UI/FBSDKLogo.m; sourceTree = "<group>"; };
@@ -6641,7 +6640,6 @@
 		843A374A3FB5C771AE35E38DDBAFC920 /* Client.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				8305DF0A208B2E58003314AD /* Client8.xcdatamodel */,
 				1F4396BE213C6FEB9FE7E1F350A29762 /* Client.xcdatamodel */,
 				559EB8CFD8B7812048EB00CB66D47EA1 /* Client2.xcdatamodel */,
 				B12949027DD73BBFBCDB5F45C1BA68A1 /* Client3.xcdatamodel */,
@@ -6650,7 +6648,7 @@
 				7954E32425BBB86DBD12D54B7208E772 /* Client6.xcdatamodel */,
 				C9667AD25C7C0899FEF0E2DB452634F0 /* Client7.xcdatamodel */,
 			);
-			currentVersion = 8305DF0A208B2E58003314AD /* Client8.xcdatamodel */;
+			currentVersion = C9667AD25C7C0899FEF0E2DB452634F0 /* Client7.xcdatamodel */;
 			path = Client.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
