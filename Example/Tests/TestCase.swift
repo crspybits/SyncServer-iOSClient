@@ -109,7 +109,7 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
-    func assertThereIsNoMetaData() {
+    func assertThereIsNoTrackingMetaData() {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
             XCTAssert(UploadQueue.fetchAll().count == 0)
@@ -120,6 +120,14 @@ class TestCase: XCTestCase {
             XCTAssert(Upload.getHeadSyncQueue() == nil)
             XCTAssert(DownloadFileTracker.fetchAll().count == 0)
             XCTAssert(UploadFileTracker.fetchAll().count == 0)
+            XCTAssert(NetworkCached.fetchAll().count == 0)
+        }
+    }
+    
+    func assertThereIsNoMetaData() {
+        assertThereIsNoTrackingMetaData()
+        
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             XCTAssert(DirectoryEntry.fetchAll().count == 0)
         }
     }

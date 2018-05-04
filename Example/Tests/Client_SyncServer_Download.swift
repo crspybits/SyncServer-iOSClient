@@ -109,7 +109,7 @@ class Client_SyncServer_Download: TestCase {
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, appMetaData: appMetaData)
         
         do {
-            try SyncServer.session.reset()
+            try SyncServer.session.reset(type: .all)
         } catch (let error) {
             XCTFail("\(error)")
         }

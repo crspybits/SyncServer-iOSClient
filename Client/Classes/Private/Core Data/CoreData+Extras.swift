@@ -73,6 +73,21 @@ extension AllOperations {
         }
     }
     
+    static func printAll() {
+        do {
+            let entries = try CoreData.sessionNamed(Constants.coreDataName).fetchAllObjects(withEntityName: self.entityName())
+            
+            Log.msg("Core Data Entity: \(self.entityName()) has \(entries.count) objects.")
+
+            for entry in entries {
+                Log.msg("\(String(describing: entry))")
+            }
+        } catch (let error) {
+            Log.error("Error: \(error)")
+            assert(false)
+        }
+    }
+    
     func save() {
         CoreData.sessionNamed(Constants.coreDataName).saveContext()
     }

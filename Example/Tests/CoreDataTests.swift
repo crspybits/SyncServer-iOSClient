@@ -116,14 +116,33 @@ class CoreDataTests: TestCase {
         }
     }
     
+    func testThatTrackingResetWorks() {
+        do {
+            try SyncServer.session.reset(type: .tracking)
+        } catch (let error) {
+            XCTFail("\(error)")
+        }
+        
+        assertThereIsNoTrackingMetaData()
+    }
+    
     func testThatPlainResetWorks() {
         do {
-            try SyncServer.session.reset()
+            try SyncServer.session.reset(type: .all)
         } catch (let error) {
             XCTFail("\(error)")
         }
         
         assertThereIsNoMetaData()
+    }
+    
+    func testLogAllTracking() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let uuid = UUID().uuidString
+        let attr = SyncAttributes(fileUUID: uuid, mimeType: .text)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        
+        SyncServer.session.logAllTracking()
     }
     
     func testThatResetWorksWithObjectsInMetaData() {
@@ -139,7 +158,7 @@ class CoreDataTests: TestCase {
         }
         
         do {
-            try SyncServer.session.reset()
+            try SyncServer.session.reset(type: .all)
         } catch (let error) {
             XCTFail("\(error)")
         }
