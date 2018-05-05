@@ -6658,7 +6658,7 @@
 				832D7F90209CBAE80096368E /* Client.xcdatamodel */,
 				832D7F91209CBAE80096368E /* Client5.xcdatamodel */,
 			);
-			currentVersion = 832D7F8A209CBAE80096368E /* Client7.xcdatamodel */;
+			currentVersion = 832D7F8C209CBAE80096368E /* Client8.xcdatamodel */;
 			path = Client.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
