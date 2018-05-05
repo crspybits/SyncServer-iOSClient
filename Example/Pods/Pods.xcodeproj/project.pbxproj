@@ -364,9 +364,9 @@
 		8269774510F4332C80352BAC14E368C9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56595986A6DCD213A6B482DDD91D3EFA /* Foundation.framework */; };
 		83138049E955D6ECAD9611F4AC734407 /* BFWebViewAppLinkResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = E7B5DA723F4C9B9B417B8E6CABCD663C /* BFWebViewAppLinkResolver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		831C82A0209C02A60055BD27 /* CoreData+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C829F209C02A60055BD27 /* CoreData+Extras.swift */; };
-		831C82B0209C09810055BD27 /* Client.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 831C82A7209C09810055BD27 /* Client.xcdatamodeld */; };
 		831C82B3209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C82B1209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift */; };
 		831C82B4209C09D50055BD27 /* DownloadContentGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C82B2209C09D50055BD27 /* DownloadContentGroup.swift */; };
+		832D7F92209CBAE80096368E /* Client.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 832D7F89209CBAE80096368E /* Client.xcdatamodeld */; };
 		834218BAC6E7A05A77290D3A1DBCE543 /* Paper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E8A5C5A99C156DCC64B32AC2E895F4 /* Paper.swift */; };
 		83AE544FFEB8216890F9B4F6E7301B88 /* ServerAPI+Retries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293FE04025E9FE685E7BE27EF4626079 /* ServerAPI+Retries.swift */; };
 		83EACE702085A17D00C40AA3 /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83EACE6F2085A17D00C40AA3 /* Migrations.swift */; };
@@ -1408,16 +1408,16 @@
 		8231A80A9483A700D09A86A9540ACAE0 /* FBSDKError.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKError.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/FBSDKError.m; sourceTree = "<group>"; };
 		82C092DAFEA9EB13604358C908E8860D /* SMUIMessages.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SMUIMessages.m; sourceTree = "<group>"; };
 		831C829F209C02A60055BD27 /* CoreData+Extras.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CoreData+Extras.swift"; sourceTree = "<group>"; };
-		831C82A8209C09810055BD27 /* Client7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client7.xcdatamodel; sourceTree = "<group>"; };
-		831C82A9209C09810055BD27 /* Client2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client2.xcdatamodel; sourceTree = "<group>"; };
-		831C82AA209C09810055BD27 /* Client8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client8.xcdatamodel; sourceTree = "<group>"; };
-		831C82AB209C09810055BD27 /* Client4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client4.xcdatamodel; sourceTree = "<group>"; };
-		831C82AC209C09810055BD27 /* Client3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client3.xcdatamodel; sourceTree = "<group>"; };
-		831C82AD209C09810055BD27 /* Client6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client6.xcdatamodel; sourceTree = "<group>"; };
-		831C82AE209C09810055BD27 /* Client.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client.xcdatamodel; sourceTree = "<group>"; };
-		831C82AF209C09810055BD27 /* Client5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client5.xcdatamodel; sourceTree = "<group>"; };
 		831C82B1209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DownloadContentGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		831C82B2209C09D50055BD27 /* DownloadContentGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadContentGroup.swift; sourceTree = "<group>"; };
+		832D7F8A209CBAE80096368E /* Client7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client7.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8B209CBAE80096368E /* Client2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client2.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8C209CBAE80096368E /* Client8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client8.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8D209CBAE80096368E /* Client4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client4.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8E209CBAE80096368E /* Client3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client3.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8F209CBAE80096368E /* Client6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client6.xcdatamodel; sourceTree = "<group>"; };
+		832D7F90209CBAE80096368E /* Client.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client.xcdatamodel; sourceTree = "<group>"; };
+		832D7F91209CBAE80096368E /* Client5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client5.xcdatamodel; sourceTree = "<group>"; };
 		83EACE6F2085A17D00C40AA3 /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migrations.swift; sourceTree = "<group>"; };
 		83EF9BB2D8F096FBE0FF5513184308A6 /* FBSDKLogo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKLogo.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/UI/FBSDKLogo.m; sourceTree = "<group>"; };
 		844982F08DBE3FD8E8EDA2AD98FA2223 /* DBChunkInputStream.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = DBChunkInputStream.h; path = Source/SwiftyDropbox/Shared/Handwritten/DBChunkInputStream.h; sourceTree = "<group>"; };
@@ -2087,7 +2087,7 @@
 			isa = PBXGroup;
 			children = (
 				73A7735C1A7BFFE6B2BD646E6B8AD15E /* Assets.xcassets */,
-				831C82A7209C09810055BD27 /* Client.xcdatamodeld */,
+				832D7F89209CBAE80096368E /* Client.xcdatamodeld */,
 			);
 			name = Assets;
 			path = Client/Assets;
@@ -4654,11 +4654,11 @@
 				18626687D2CEAE37A6798E94B54CD582 /* SignInManager.swift in Sources */,
 				30B77892DF455727C56A8D1E59C8C1A3 /* SignInStart.swift in Sources */,
 				CE070B233B40D5742591E2EBFAF3E072 /* Singleton+CoreDataProperties.swift in Sources */,
-				831C82B0209C09810055BD27 /* Client.xcdatamodeld in Sources */,
 				DB354E82C8D4368E1B43F996485B93B8 /* Singleton.swift in Sources */,
 				61B46FF815A3B7FAC980426F6A738525 /* SyncManager.swift in Sources */,
 				E9E5E6C8C43632075AD717DFF15A40B6 /* SyncServer-dummy.m in Sources */,
 				39ECB61344A276014F1F099732D8128F /* SyncServer.swift in Sources */,
+				832D7F92209CBAE80096368E /* Client.xcdatamodeld in Sources */,
 				C11D014EA7E28B8453E5120C140C02C6 /* SyncServerConflict.swift in Sources */,
 				A17004DC283F918DD11A6DAA4BDCCE40 /* SyncServerDelegate.swift in Sources */,
 				E789B0704495643765E599C830D7C64D /* SyncServerError.swift in Sources */,
@@ -6646,21 +6646,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		831C82A7209C09810055BD27 /* Client.xcdatamodeld */ = {
+		832D7F89209CBAE80096368E /* Client.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				831C82A8209C09810055BD27 /* Client7.xcdatamodel */,
-				831C82A9209C09810055BD27 /* Client2.xcdatamodel */,
-				831C82AA209C09810055BD27 /* Client8.xcdatamodel */,
-				831C82AB209C09810055BD27 /* Client4.xcdatamodel */,
-				831C82AC209C09810055BD27 /* Client3.xcdatamodel */,
-				831C82AD209C09810055BD27 /* Client6.xcdatamodel */,
-				831C82AE209C09810055BD27 /* Client.xcdatamodel */,
-				831C82AF209C09810055BD27 /* Client5.xcdatamodel */,
+				832D7F8A209CBAE80096368E /* Client7.xcdatamodel */,
+				832D7F8B209CBAE80096368E /* Client2.xcdatamodel */,
+				832D7F8C209CBAE80096368E /* Client8.xcdatamodel */,
+				832D7F8D209CBAE80096368E /* Client4.xcdatamodel */,
+				832D7F8E209CBAE80096368E /* Client3.xcdatamodel */,
+				832D7F8F209CBAE80096368E /* Client6.xcdatamodel */,
+				832D7F90209CBAE80096368E /* Client.xcdatamodel */,
+				832D7F91209CBAE80096368E /* Client5.xcdatamodel */,
 			);
-			currentVersion = 831C82AA209C09810055BD27 /* Client8.xcdatamodel */;
-			name = Client.xcdatamodeld;
-			path = ../../../../../Client.xcdatamodeld;
+			currentVersion = 832D7F8A209CBAE80096368E /* Client7.xcdatamodel */;
+			path = Client.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

@@ -163,7 +163,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let urls = [fileUUID1: url1,
             fileUUID2: url2]
         do {
-            try SyncServer.session.reset()
+            try SyncServer.session.reset(type: .all)
         } catch (let error) {
             XCTFail("\(error)")
             return
