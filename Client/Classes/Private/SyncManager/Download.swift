@@ -141,7 +141,7 @@ class Download {
     case noDownloadsOrDeletions
     case currentGroupCompleted(DownloadContentGroup)
     case allDownloadsCompleted
-    case error(SyncServerError)
+    case error(Error)
     }
     
     enum NextCompletion {
@@ -175,7 +175,7 @@ class Download {
             let alreadyDownloading = dfts.filter {$0.status == .downloading}
             guard alreadyDownloading.count == 0 else {
                 Log.error("Already downloading a file!")
-                nextResult = .error(.alreadyDownloadingAFile)
+                nextResult = .error(SyncServerError.alreadyDownloadingAFile)
                 return
             }
         }
@@ -187,37 +187,24 @@ class Download {
         if first {
             EventDesired.reportEvent( .willStartDownloads(numberContentDownloads: UInt(numberContentDownloads), numberDownloadDeletions: UInt(numberDownloadDeletions)), mask: desiredEvents, delegate: delegate)
         }
-        
+
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-            // Process current downloading DownloadContentGroup or get next if there is not one downloading.
-            let dcgs = DownloadContentGroup.fetchAll()
-            let downloadingGroups = dcgs.filter { dcg in dcg.status == .downloading }
-            
             var currentGroup:DownloadContentGroup!
             
-            if downloadingGroups.count > 0 {
-                guard downloadingGroups.count == 1 else {
-                    nextResult = .error(.generic("More than one downloading file group!"))
-                    return
-                }
-                
-                currentGroup = downloadingGroups[0]
+            do {
+                currentGroup = try DownloadContentGroup.getNextToDownload()
+            } catch (let error) {
+                nextResult = .error(error)
+                return
             }
-            else {
-                let notStartedGroups = dcgs.filter { dcg in dcg.status == .notStarted }
-
-                guard notStartedGroups.count > 0 else {
-                    // No groups currently being downloaded, and no groups that are not started. That means all groups are downloaded.
-                    nextResult = .allDownloadsCompleted
-                    return
-                }
-                
-                let nextGroup = notStartedGroups[0]
-                nextGroup.status = .downloading
-                CoreData.sessionNamed(Constants.coreDataName).saveContext()
-                
-                currentGroup = nextGroup
+            
+            if currentGroup == nil {
+                nextResult = .allDownloadsCompleted
+                return
             }
+            
+            currentGroup.status = .downloading
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
             
             // See if current group has any non-deletion operations
             let nonDeletion = currentGroup.dfts.filter {$0.operation != .deletion}
@@ -234,7 +221,7 @@ class Download {
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch (let error) {
-                nextResult = .error(.coreDataError(error))
+                nextResult = .error(SyncServerError.coreDataError(error))
             }
             
             masterVersion = Singleton.get().masterVersion

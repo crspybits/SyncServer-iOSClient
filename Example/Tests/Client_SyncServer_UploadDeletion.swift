@@ -72,7 +72,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
 
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
         
         return (url, attr)
@@ -153,7 +153,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
     }
 
@@ -193,7 +193,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
     }
     
@@ -405,9 +405,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
-            XCTAssert(result1!.deletedOnServer)
+            XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
-            XCTAssert(result2!.deletedOnServer)
+            XCTAssert(result2!.deletedLocally)
         }
     }
     
@@ -467,9 +467,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
-            XCTAssert(result1!.deletedOnServer)
+            XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
-            XCTAssert(result2!.deletedOnServer)
+            XCTAssert(result2!.deletedLocally)
         }
     }
     

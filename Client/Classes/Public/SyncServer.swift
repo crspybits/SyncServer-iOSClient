@@ -144,7 +144,7 @@ public class SyncServer {
                     return
                 }
                 
-                if entry!.deletedOnServer {
+                if entry!.deletedLocally {
                     errorToThrow = SyncServerError.fileAlreadyDeleted
                     return
                 }
@@ -229,7 +229,7 @@ public class SyncServer {
                 return
             }
             
-            if entry.deletedOnServer {
+            if entry.deletedLocally {
                 errorToThrow = SyncServerError.fileAlreadyDeleted
                 return
             }
@@ -336,7 +336,7 @@ public class SyncServer {
             throw SyncServerError.deletingUnknownFile
         }
 
-        guard !entry.deletedOnServer else {
+        guard !entry.deletedLocally else {
             throw SyncServerError.fileAlreadyDeleted
         }
 
@@ -362,8 +362,8 @@ public class SyncServer {
                 if entry.fileVersion == nil {
                     let results = UploadFileTracker.fetchAll().filter {$0.fileUUID == uuid}
                     if results.count == 0 {
-                        // This is a slight mis-representation of terms. The file never actually made it to the server.
-                        entry.deletedOnServer = true
+                        // Note that this file never actually made it to the server.
+                        entry.deletedLocally = true
                         return
                     }
                 }
@@ -567,7 +567,7 @@ public class SyncServer {
                         let directoryEntries = try CoreData.sessionNamed(Constants.coreDataName).fetchAllObjects(withEntityName: DirectoryEntry.entityName()) as? [DirectoryEntry]
                         if directoryEntries != nil {
                             for entry in directoryEntries! {
-                                if !entry.deletedOnServer {
+                                if !entry.deletedLocally {
                                     directory.insert(entry.fileUUID!)
                                 }
                             }
@@ -590,7 +590,7 @@ public class SyncServer {
                 // Check to see if these are deleted from the directory
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                     for missing in clientMissing {
-                        if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: missing), !entry.deletedOnServer {
+                        if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: missing), !entry.deletedLocally {
                             clientMissingNotDeleted.insert(missing)
                         }
                     }

@@ -126,6 +126,8 @@ class ServerAPI_UploadFile: TestCase {
             return
         }
         
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
         guard let fileIndex = getFileIndex() else {
             XCTFail()
             return

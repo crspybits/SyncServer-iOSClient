@@ -88,7 +88,7 @@ class Directory {
                 if serverFile.deleted! {
                     // The file is unknown to the client, plus it's deleted on the server. No need to inform the client, but for consistency I'm going to create an entry in the directory.
                     let entry = DirectoryEntry.newObject() as! DirectoryEntry
-                    entry.deletedOnServer = true
+                    entry.deletedLocally = true
                     entry.fileUUID = serverFile.fileUUID
                     entry.fileVersion = serverFile.fileVersion
                     try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -140,9 +140,9 @@ class Directory {
                 if dft.operation == .file {
                     entry.fileVersion = dft.fileVersion
                     
-                    // 1/25/18; Deal with undeletion.
-                    if entry.deletedOnServer {
-                        entry.deletedOnServer = false
+                    // 1/25/18; Deal with undeletion. The logic is: We did a download of a file that was already deleted. This must mean undeletion.
+                    if entry.deletedLocally {
+                        entry.deletedLocally = false
                     }
                     
                     // Don't update the fileGroupUUID-- this never changes after v0 of the file.
@@ -175,7 +175,7 @@ class Directory {
     }
     
     // Does not do `CoreData.sessionNamed(Constants.coreDataName).performAndWait`
-    func updateAfterDownloadDeletingFiles(deletions:[SyncAttributes]) {
+    func updateAfterDownloadDeletingFiles(deletions:[SyncAttributes], pendingUploadUndeletions: [SyncAttributes]) {
         deletions.forEach { attr in
             // Have already dealt with case where we didn't know about this file locally and were download deleting it.
             guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
@@ -183,6 +183,16 @@ class Directory {
                 return
             }
             
+            entry.deletedLocally = true
+        }
+        
+        // This is a special case-- a conflict between a download deletion (server has file deleted) and an upload undeletion. So that FileIndex server calls don't attempt to do further download deletions, we need to have the file marked as deleted on the server-- but not deletedLocally.
+        pendingUploadUndeletions.forEach { attr in
+            guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
+                assert(false)
+                return
+            }
+
             entry.deletedOnServer = true
         }
     }

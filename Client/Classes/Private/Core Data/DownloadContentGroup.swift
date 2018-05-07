@@ -73,6 +73,34 @@ public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations
         return completed.count == self.dfts.count
     }
     
+    // Get current downloading DownloadContentGroup or get next if there is not one downloading. Does not do a `performAndWait`.
+    static func getNextToDownload() throws -> DownloadContentGroup? {
+        var result:DownloadContentGroup?
+        
+        let dcgs = DownloadContentGroup.fetchAll()
+        let downloadingGroups = dcgs.filter { dcg in dcg.status == .downloading }
+    
+        if downloadingGroups.count > 0 {
+            guard downloadingGroups.count == 1 else {
+                throw SyncServerError.generic("More than one downloading file group!")
+            }
+            
+            result = downloadingGroups[0]
+        }
+        else {
+            let notStartedGroups = dcgs.filter { dcg in dcg.status == .notStarted }
+            
+            guard notStartedGroups.count > 0 else {
+                // No groups currently being downloaded, and no groups that are not started. That means all groups are downloaded.
+                return nil
+            }
+            
+            result = notStartedGroups[0]
+        }
+        
+        return result
+    }
+    
     func remove()  {        
         CoreData.sessionNamed(Constants.coreDataName).remove(self)
     }

@@ -100,7 +100,7 @@ class SyncManager {
             checkForDownloads()
 
         case .error(let error):
-            callback?(error)
+            callback?(SyncServerError.otherError(error))
             
         case .started:
             // Don't do anything. `next` completion will invoke callback.
@@ -137,6 +137,8 @@ class SyncManager {
         var fileDownloads:[DownloadFileTracker]!
         var downloadDeletions:[DownloadFileTracker]!
         
+        Log.msg("Completed DownloadContentGroup: Checking for conflicts")
+        
         // Deal with any content download conflicts and any download deletion conflicts.
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             fileDownloads = dcg.dfts.filter {$0.operation.isContents}
@@ -171,12 +173,7 @@ class SyncManager {
                     })
                 }
                 
-                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    let contentDfts = dcg.dfts.filter {$0.operation.isContents}
-                    if contentDfts.count > 0 {
-                        Directory.session.updateAfterDownloading(downloads: contentDfts)
-                    }
-                    
+                CoreData.sessionNamed(Constants.coreDataName).performAndWait() {                    
                     // Remove the DownloadContentGroup and related dft's -- We're finished their downloading.
                     dcg.dfts.forEach { dft in
                         dft.remove()
@@ -341,6 +338,11 @@ class SyncManager {
                                 uploadedEntry.appMetaDataVersion = uft.appMetaDataVersion
                             }
                             
+                            // Deal with conflict case in updateAfterDownloadDeletingFiles where we had marked directory entry as `deletedOnServer`.
+                            if uft.uploadUndeletion && uploadedEntry.deletedOnServer {
+                                uploadedEntry.deletedOnServer = false
+                            }
+                            
                             do {
                                 try uft.remove()
                             } catch {
@@ -366,7 +368,7 @@ class SyncManager {
                                 return
                             }
 
-                            uploadedEntry.deletedOnServer = true
+                            uploadedEntry.deletedLocally = true
                             do {
                                 try uft.remove()
                             } catch {

@@ -268,7 +268,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            XCTAssert(file.deletedOnServer)
+            XCTAssert(file.deletedLocally)
             XCTAssert(file.fileVersion == fileVersion)
         }
     }
@@ -499,6 +499,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2)
     }
     
+    // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
@@ -523,7 +524,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let done = self.expectation(description: "done")
         
-        // 4) Reject the download deletion- and keep the upload.
+        var expectSyncServerFileGroupDownloadComplete = false
+        
+        // 4) Reject the download deletion- and remove the upload.
         syncServerMustResolveDownloadDeletionConflicts = { conflicts in
             guard conflicts.count == 1 else {
                 XCTFail()
@@ -542,6 +545,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             
             uploadConflict.resolutionCallback(
                 .rejectDownloadDeletion(.removeContentUpload))
+                
+            XCTAssert(!expectSyncServerFileGroupDownloadComplete)
+            expectSyncServerFileGroupDownloadComplete = true
         }
         
         syncServerEventOccurred = { event in
@@ -558,7 +564,18 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         syncServerFileGroupDownloadComplete = { group in
-            XCTFail()
+            XCTAssert(expectSyncServerFileGroupDownloadComplete)
+            
+            guard group.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            let content = group[0]
+            guard case .deletion = content.type else {
+                XCTFail()
+                return
+            }
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
@@ -629,7 +646,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
 
-            XCTAssert(file.deletedOnServer)
+            XCTAssert(file.deletedLocally)
         }
     }
     
@@ -1206,7 +1223,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            XCTAssert(!result.deletedOnServer)
+            XCTAssert(!result.deletedLocally)
         }
     }
     

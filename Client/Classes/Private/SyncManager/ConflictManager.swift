@@ -37,6 +37,11 @@ class ConflictManager {
             Thread.runSync(onMainThread: {
                 ConflictManager.handleAnyContentDownloadConflict(attr: attr, content: possiblyConflictingContent, delegate: delegate) { ignoreDownload in
                     
+                    // Update the directory whether or not we're ignoring this download -- we need the updated version of the file and/or appMetaData.
+                    CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                        Directory.session.updateAfterDownloading(downloads: [dft])
+                    }
+                    
                     if let _ = ignoreDownload {
                         // Ignoring the download-- remove the dft.
                         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
@@ -170,24 +175,22 @@ class ConflictManager {
         }
 
         ConflictManager.handleAnyDownloadDeletionConflicts(
-            downloadDeletionAttrs: deletionAttrs, delegate: delegate) { ignoreDownloadDeletions, havePendingUploadDeletions in
-            
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                (havePendingUploadDeletions + ignoreDownloadDeletions).forEach { attr in
-                    let dft = dfts.filter {$0.fileUUID == attr.fileUUID}[0]
-                    dft.remove()
-                }
+            downloadDeletionAttrs: deletionAttrs, delegate: delegate) { ignoreDownloadDeletions, havePendingUploadDeletions, uploadUndeletions in
                 
-                CoreData.sessionNamed(Constants.coreDataName).saveContext()
-            }
-
             let deleteFromLocalDirectory = deletionAttrs.filter({ deletion in
                 let ignore = ignoreDownloadDeletions.filter({$0.fileUUID == deletion.fileUUID})
                 return ignore.count == 0
             })
             
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                Directory.session.updateAfterDownloadDeletingFiles(deletions: deleteFromLocalDirectory)
+                Directory.session.updateAfterDownloadDeletingFiles(deletions: deleteFromLocalDirectory, pendingUploadUndeletions: uploadUndeletions)
+
+                (havePendingUploadDeletions + ignoreDownloadDeletions).forEach { attr in
+                    let dft = dfts.filter {$0.fileUUID == attr.fileUUID}[0]
+                    dft.remove()
+                }
+                
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
             }
                 
             // I'd like to wrap up by switching to the original thread we were on prior to switching to the main thread. Not quite sure how to do that. Do this instead.
@@ -199,7 +202,7 @@ class ConflictManager {
     
     // In the completion, `clientSaysKeepTheseOnes` gives attr's for the files the client doesn't wish to have deleted by the given download deletions.
     static func handleAnyDownloadDeletionConflicts(downloadDeletionAttrs:[SyncAttributes], delegate: SyncServerDelegate,
-        completion:@escaping (_ clientSaysKeepTheseOnes: [SyncAttributes], _ havePendingUploadDeletions: [SyncAttributes])->()) {
+        completion:@escaping (_ clientSaysKeepTheseOnes: [SyncAttributes], _ havePendingUploadDeletions: [SyncAttributes], _ uploadUndeletions: [SyncAttributes])->()) {
     
         var remainingDownloadDeletionAttrs = downloadDeletionAttrs
         
@@ -241,6 +244,7 @@ class ConflictManager {
                 var numberConflicts = conflictingContentUploads.count
                 
                 var deletionsToIgnore = [SyncAttributes]()
+                var uploadUndeletions = [SyncAttributes]()
                 
                 conflictingContentUploads.forEach { (conflictUft, attr) in
                     let conflictingContent =                 conflictContentTypeFor(conflictingContentUploads: [conflictUft])
@@ -259,6 +263,7 @@ class ConflictManager {
                             case .keepContentUpload:
                                 // Need to mark the uft as an upload undeletion.
                                 markUftAsUploadUndeletion(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID)
+                                uploadUndeletions += [attr]
                                 
                             case .removeContentUpload:
                                 removeConflictingUpload(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID, delegate: delegate)
@@ -268,7 +273,7 @@ class ConflictManager {
                         numberConflicts -= 1
                         
                         if numberConflicts == 0 {
-                            completion(deletionsToIgnore, havePendingUploadDeletions)
+                            completion(deletionsToIgnore, havePendingUploadDeletions, uploadUndeletions)
                         }
                     })
                     
@@ -282,7 +287,7 @@ class ConflictManager {
             delegate.syncServerMustResolveDownloadDeletionConflicts(conflicts: conflicts)
         }
         else {
-            completion([], havePendingUploadDeletions)
+            completion([], havePendingUploadDeletions, [])
         }
     }
     
