@@ -300,8 +300,8 @@ class ServerAPI {
         }
         
         guard let uploadRequest = UploadFileRequest(json: params) else {
-            completion?(nil, .couldNotCreateRequest);
-            return;
+            completion?(nil, .couldNotCreateRequest)
+            return
         }
         
         uploadRequest.appMetaData = file.appMetaData

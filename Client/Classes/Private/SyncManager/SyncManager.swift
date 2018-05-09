@@ -263,15 +263,22 @@ class SyncManager {
     }
     
     private func contentWasUploaded(attr:SyncAttributes?, uft: UploadFileTracker) {
+        var operation: FileTracker.Operation!
+        var fileUUID:String!
+        
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-            switch uft.operation! {
-            case .file:
-                EventDesired.reportEvent(.singleFileUploadComplete(attr: attr!), mask: self.desiredEvents, delegate: self.delegate)
-            case .appMetaData:
-                EventDesired.reportEvent(.singleAppMetaDataUploadComplete(fileUUID: uft.fileUUID), mask: self.desiredEvents, delegate: self.delegate)
-            case .deletion:
-                assert(false)
-            }
+            operation = uft.operation
+            fileUUID = uft.fileUUID
+        }
+        
+        switch operation! {
+        case .file:
+            EventDesired.reportEvent(.singleFileUploadComplete(attr: attr!), mask: self.desiredEvents, delegate: self.delegate)
+            
+        case .appMetaData:
+            EventDesired.reportEvent(.singleAppMetaDataUploadComplete(fileUUID: fileUUID), mask: self.desiredEvents, delegate: self.delegate)
+        case .deletion:
+            assert(false)
         }
         
         // Recursively see if there is a next upload to do.

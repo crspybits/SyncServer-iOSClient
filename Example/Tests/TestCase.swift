@@ -77,7 +77,6 @@ class TestCase: XCTestCase {
         Log.error("syncServerErrorOccurred: \(error)")
     }
     
-    var syncServerSingleFileUploadCompleted:((_ next: @escaping ()->())->())?
     var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
     
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?

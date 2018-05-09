@@ -335,7 +335,7 @@ class Download {
     }
     
     private func doMasterVersionUpdate(masterVersionUpdate: MasterVersionInt, completion:((NextCompletion)->())?) {
-        // The following will remove any outstanding DownloadFileTrackers. If we've already downloaded a file-- those dft's will have been removed already. This is part of our eventually consistent operation. It is possible that some of the already downloaded files may need to be deleted (or updated, when we get to multiple file versions).
+        // The following will remove any outstanding DownloadFileTrackers. If we've already downloaded a file group-- those dft's will have been removed already.
         
         var nextCompletionResult:NextCompletion!
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
