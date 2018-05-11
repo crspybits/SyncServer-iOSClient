@@ -114,7 +114,6 @@ class ServerAPI_UploadFile: TestCase {
         }
     }
 
-    // TO-TEST
     // Upload a file with groupUUID, make sure you get it with a file index.
     func testUploadWithFileGroupUUID() {
         let masterVersion = getMasterVersion()

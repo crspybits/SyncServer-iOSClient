@@ -1031,22 +1031,18 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU2_UD0() {
         fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD1() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
     }
@@ -1089,17 +1085,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }

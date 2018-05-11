@@ -206,8 +206,8 @@ class Download {
             currentGroup.status = .downloading
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
             
-            // See if current group has any non-deletion operations
-            let nonDeletion = currentGroup.dfts.filter {$0.operation != .deletion}
+            // See if current group has any non-deletion operations that need downloading
+            let nonDeletion = currentGroup.dfts.filter {$0.operation.isContents && $0.status == .notStarted }
             if nonDeletion.count == 0 {
                 nextResult = .currentGroupCompleted(currentGroup)
                 return

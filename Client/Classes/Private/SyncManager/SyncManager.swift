@@ -134,18 +134,18 @@ class SyncManager {
     }
     
     private func completeGroup(dcg:DownloadContentGroup) {
-        var fileDownloads:[DownloadFileTracker]!
+        var contentDownloads:[DownloadFileTracker]!
         var downloadDeletions:[DownloadFileTracker]!
         
         Log.msg("Completed DownloadContentGroup: Checking for conflicts")
         
         // Deal with any content download conflicts and any download deletion conflicts.
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-            fileDownloads = dcg.dfts.filter {$0.operation.isContents}
+            contentDownloads = dcg.dfts.filter {$0.operation.isContents}
             downloadDeletions = dcg.dfts.filter {$0.operation.isDeletion}
         }
         
-        ConflictManager.handleAnyContentDownloadConflicts(dfts: fileDownloads, delegate: self.delegate) {
+        ConflictManager.handleAnyContentDownloadConflicts(dfts: contentDownloads, delegate: self.delegate) {
             
             ConflictManager.handleAnyDownloadDeletionConflicts(dfts: downloadDeletions, delegate: self.delegate) {
 

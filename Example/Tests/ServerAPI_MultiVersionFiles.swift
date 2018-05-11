@@ -27,65 +27,6 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         uploadFileVersion(version, fileURL: fileURL, mimeType: .text)
     }
-    
-    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType) {
-        var masterVersion = getMasterVersion()
-        var fileVersion:FileVersionInt = 0
-        let fileUUID = UUID().uuidString
-    
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
-            XCTFail()
-            return
-        }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
-    
-        var resultFileSize:Int64?
-        var resultFile:ServerAPI.File?
-        
-        while fileVersion < version {
-            masterVersion += 1
-            fileVersion += 1
-        
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
-                XCTFail()
-                return
-            }
-            
-            resultFileSize = fileSize
-            resultFile = file
-            
-            doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
-        }
-        
-        guard let file = resultFile, let fileSize = resultFileSize else {
-            XCTFail()
-            return
-        }
-    
-        guard let fileIndex:[FileInfo] = getFileIndex() else {
-            XCTFail()
-            return
-        }
-        
-        let result = fileIndex.filter({$0.fileUUID == fileUUID})
-        guard result.count == 1 else {
-            XCTFail()
-            return
-        }
-
-        XCTAssert(result[0].fileVersion == fileVersion)
-        XCTAssert(result[0].deviceUUID == file.deviceUUID)
-        
-        if let resultMimeTypeString = result[0].mimeType {
-            let resultMimeType = MimeType(rawValue: resultMimeTypeString)
-            XCTAssert(resultMimeType == file.mimeType)
-        }
-        else {
-            XCTFail()
-        }
-        
-        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
-    }
 
     // Uploading version 1 of file with nil app meta data doesn't reset app meta data.
     func testAppMetaDataNotChangedWithNilValue() {

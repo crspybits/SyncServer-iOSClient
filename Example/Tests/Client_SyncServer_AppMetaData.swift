@@ -370,7 +370,6 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     
-    // TO-TEST
     // Error case: Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0FileWithAppMetaUploadFails() {
         let fileUUID = UUID().uuidString
