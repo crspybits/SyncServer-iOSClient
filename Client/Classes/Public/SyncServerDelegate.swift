@@ -157,8 +157,8 @@ public struct DownloadOperation {
         case deletion
     }
     
-    let type: OperationType
-    let attr: SyncAttributes
+    public let type: OperationType
+    public let attr: SyncAttributes
 }
 
 // Except as noted, these delegate methods are called on the main thread.

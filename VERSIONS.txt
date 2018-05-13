@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 15.0.1 (5/13/18)
+	* Fixed issue with public qualifier on DownloadOperation member in delegate method.
+	
 Version 15.0.0 (5/13/18)
 	* Added fileGroupUUID & file group support.
 		This is a breaking change in terms of delegate callbacks-- the download delegate callback now deals with file groups.
