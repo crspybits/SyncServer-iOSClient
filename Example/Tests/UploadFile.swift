@@ -79,7 +79,7 @@ class ServerAPI_UploadFile: TestCase {
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: .text, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, mimeType: .text, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
         
         var uploadResult:ServerAPI.UploadFileResult?
         
@@ -112,5 +112,32 @@ class ServerAPI_UploadFile: TestCase {
         else {
             XCTFail()
         }
+    }
+
+    // Upload a file with groupUUID, make sure you get it with a file index.
+    func testUploadWithFileGroupUUID() {
+        let masterVersion = getMasterVersion()
+        let fileGroupUUID = UUID().uuidString
+
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        guard let fileIndex = getFileIndex() else {
+            XCTFail()
+            return
+        }
+        
+        let result = fileIndex.filter {$0.fileUUID == file.fileUUID}
+        guard result.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssert(result[0].fileGroupUUID == fileGroupUUID)
     }
 }

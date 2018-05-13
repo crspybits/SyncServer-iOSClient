@@ -65,10 +65,15 @@ class BackgroundTaskTest: TestCase {
         
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount == 1)
-            expectation.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.eventsDesired = [.syncDone, .willStartDownloads]
@@ -106,8 +111,13 @@ class BackgroundTaskTest: TestCase {
         let done = self.expectation(description: "done")
         let saveDownload = self.expectation(description: "saveDownload")
         
-        shouldSaveDownload = { url, attr in
-            saveDownload.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                saveDownload.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         syncServerErrorOccurred = { error in
@@ -171,7 +181,7 @@ class BackgroundTaskTest: TestCase {
     
     // Search through the console log output for "Using cached upload result".
     func testRestartUpload() {
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
 
         let done = self.expectation(description: "done")
@@ -186,7 +196,7 @@ class BackgroundTaskTest: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 uploaded.fulfill()
             
             default:

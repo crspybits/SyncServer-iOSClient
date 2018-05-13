@@ -17,7 +17,6 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     var facebookSignInButton: TappableButton!
     var dropboxSignInButton:TappableButton!
     var syncServerEventOccurred: ((_ : SyncEvent)->())?
-    var syncServerSingleFileUploadCompleted: (()->())?
     @IBOutlet weak var testingOutcome: UILabel!
     
     static fileprivate var sharingInvitationUUID:SMPersistItemString = SMPersistItemString(name: "ViewController.sharingInvitationUUID", initialStringValue: "", persistType: .userDefaults)
@@ -47,6 +46,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     
     // So far, this needs to be run manually, after you've signed in. Also-- you may need to delete the current FileIndex contents in the database, and delete the app.
     @IBAction func testCredentialsRefreshAction(_ sender: Any) {
+#if false
         self.testingOutcome.text = nil
         self.testingOutcome.setNeedsDisplay()
 
@@ -96,6 +96,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
         let attr = SyncAttributes(fileUUID: uuid, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         SyncServer.session.sync()
+#endif
     }
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
@@ -161,16 +162,8 @@ extension ViewController : GenericSignInDelegate {
     }
 }
 
-extension ViewController : SyncServerDelegate {
-    func syncServerAppMetaDataDownloadComplete(attr: SyncAttributes) {
-    }
-    
-    func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
-        assert(false)
-    }
-    
-    func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {
-        assert(false)
+extension ViewController : SyncServerDelegate {    
+    func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
     }
     
     func syncServerMustResolveContentDownloadConflict(_ content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
@@ -196,14 +189,4 @@ extension ViewController : SyncServerDelegate {
     }
 }
 
-extension ViewController : SyncServerTestingDelegate {
-    func syncServerSingleFileUploadCompleted(next: @escaping ()->()) {
-        syncServerSingleFileUploadCompleted?()
-        next()
-    }
-
-    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->()) {
-        assert(false)
-    }
-}
 

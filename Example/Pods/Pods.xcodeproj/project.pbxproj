@@ -206,7 +206,6 @@
 		45DE83285855B2A88D2FEEE423E6FB69 /* NSString+Extras.h in Headers */ = {isa = PBXBuildFile; fileRef = D56D26D93F25ECAF1C8B8820B6D4E0C2 /* NSString+Extras.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4615AF6E02FFC7637ED754F82CB2A375 /* FBSDKColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E9AEF90D15FF1A64EE7BE5544511108 /* FBSDKColor.h */; settings = {ATTRIBUTES = (Project, ); }; };
 		468A777F552BD0567796A5A05F2B6748 /* FBSDKWebDialogView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3755C499D18D47DD21E28291CDE2ADBE /* FBSDKWebDialogView.m */; };
-		46AFFA611FB109602D0A72F79C557938 /* Client.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 843A374A3FB5C771AE35E38DDBAFC920 /* Client.xcdatamodeld */; };
 		480429D16B1D56FAFEB6EE2A90E60C0D /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C9BDEA06CFD135F560E44A2823071D3 /* UIImage+Resize.m */; };
 		485BD0189666612BE5B4B21B0A38C8C5 /* FBSDKAppLinkResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 13AA0D1D0DEBB0AD209078E53B4A0BA2 /* FBSDKAppLinkResolver.m */; };
 		4887726A8D9350A839503B7756E71029 /* NSArray+Extras.h in Headers */ = {isa = PBXBuildFile; fileRef = 7A9D9CFCB9EA9DFD7DB7247650F45BD6 /* NSArray+Extras.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -365,6 +364,9 @@
 		8269774510F4332C80352BAC14E368C9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56595986A6DCD213A6B482DDD91D3EFA /* Foundation.framework */; };
 		83138049E955D6ECAD9611F4AC734407 /* BFWebViewAppLinkResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = E7B5DA723F4C9B9B417B8E6CABCD663C /* BFWebViewAppLinkResolver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		831C82A0209C02A60055BD27 /* CoreData+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C829F209C02A60055BD27 /* CoreData+Extras.swift */; };
+		831C82B3209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C82B1209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift */; };
+		831C82B4209C09D50055BD27 /* DownloadContentGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831C82B2209C09D50055BD27 /* DownloadContentGroup.swift */; };
+		832D7F92209CBAE80096368E /* Client.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 832D7F89209CBAE80096368E /* Client.xcdatamodeld */; };
 		834218BAC6E7A05A77290D3A1DBCE543 /* Paper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E8A5C5A99C156DCC64B32AC2E895F4 /* Paper.swift */; };
 		83AE544FFEB8216890F9B4F6E7301B88 /* ServerAPI+Retries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293FE04025E9FE685E7BE27EF4626079 /* ServerAPI+Retries.swift */; };
 		83EACE702085A17D00C40AA3 /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83EACE6F2085A17D00C40AA3 /* Migrations.swift */; };
@@ -1068,7 +1070,6 @@
 		15FB4DC77DF614ED4FD3C5A324816E68 /* FBSDKLoginTooltipView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKLoginTooltipView.h; path = FBSDKLoginKit/FBSDKLoginKit/FBSDKLoginTooltipView.h; sourceTree = "<group>"; };
 		1626F5F48734E0EF7631F7140CA138BE /* CLPlacemark+Extras.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "CLPlacemark+Extras.m"; sourceTree = "<group>"; };
 		16B7B7EA7FD8DE7E82D8E898F881B9FA /* FBSDKLoginUtility.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKLoginUtility.h; path = FBSDKLoginKit/FBSDKLoginKit/Internal/FBSDKLoginUtility.h; sourceTree = "<group>"; };
-		17026E74BA0503AFC35D8AEDBB11E939 /* Client4.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client4.xcdatamodel; sourceTree = "<group>"; };
 		17424BB83A487F1CA363DE93F782A597 /* SMDebug.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SMDebug.swift; sourceTree = "<group>"; };
 		17429D24BE1F127295CFDF2EB5E88AFD /* FBSDKGraphRequest+Internal.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "FBSDKGraphRequest+Internal.h"; path = "FBSDKCoreKit/FBSDKCoreKit/Internal/Network/FBSDKGraphRequest+Internal.h"; sourceTree = "<group>"; };
 		175A9145C488456E95F47905488634DD /* FBSDKLoginKit.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = FBSDKLoginKit.modulemap; sourceTree = "<group>"; };
@@ -1094,7 +1095,6 @@
 		1E08BDD8D09952CDBE98B9D88F636AD4 /* ServerConstants.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerConstants.swift; path = Sources/SyncServerShared/ServerConstants.swift; sourceTree = "<group>"; };
 		1E82BB85641D6F48F04BB3CA2FAA45B6 /* Alamofire-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Alamofire-umbrella.h"; sourceTree = "<group>"; };
 		1F1607E4886F6B8F72F5FFA79DE6A68F /* AddUser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddUser.swift; sourceTree = "<group>"; };
-		1F4396BE213C6FEB9FE7E1F350A29762 /* Client.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client.xcdatamodel; sourceTree = "<group>"; };
 		1F4888FD65DA2BB6798542DE733D77E9 /* GTMDebugSelectorValidation.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = GTMDebugSelectorValidation.h; path = DebugUtils/GTMDebugSelectorValidation.h; sourceTree = "<group>"; };
 		1F58D858BB78D82297B3A8F8E4469170 /* FBSDKLoginManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKLoginManager.m; path = FBSDKLoginKit/FBSDKLoginKit/FBSDKLoginManager.m; sourceTree = "<group>"; };
 		1FAFF292EDF61338D7A7DF3897843D05 /* Pods-SyncServer_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-SyncServer_Example.debug.xcconfig"; sourceTree = "<group>"; };
@@ -1251,7 +1251,6 @@
 		5487E05A8739FFA57FA12201B3A557FF /* FBSDKSystemAccountStoreAdapter.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKSystemAccountStoreAdapter.h; path = FBSDKCoreKit/FBSDKCoreKit/Internal/FBSDKSystemAccountStoreAdapter.h; sourceTree = "<group>"; };
 		54ACF9BB2AF9E37288BED8230F9A2891 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5546A2CE3AC2F1FD39834EA319BC15CD /* Reachability.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Reachability.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		559EB8CFD8B7812048EB00CB66D47EA1 /* Client2.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client2.xcdatamodel; sourceTree = "<group>"; };
 		55EAFB3A751E43793751ADB6AC99D707 /* Gloss.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Gloss.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		560ED4157939BCF6E4E476A3531878F6 /* NSArray+Globbing.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "NSArray+Globbing.h"; sourceTree = "<group>"; };
 		56108CBADE147DEA8AA8A8DFBFE74B12 /* _FBSDKLoginRecoveryAttempter.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = _FBSDKLoginRecoveryAttempter.m; path = FBSDKLoginKit/FBSDKLoginKit/Internal/_FBSDKLoginRecoveryAttempter.m; sourceTree = "<group>"; };
@@ -1284,7 +1283,6 @@
 		5EC04CAD230020B598EA460E9022F82B /* FBSDKLoginManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKLoginManager.h; path = FBSDKLoginKit/FBSDKLoginKit/FBSDKLoginManager.h; sourceTree = "<group>"; };
 		5EF52DAC2009C3C6E70F7EDFEA22C90D /* Validation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Validation.swift; path = Source/Validation.swift; sourceTree = "<group>"; };
 		5F2F00E2428EBDEDFCE86CFCFC2A91C4 /* Reachability.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		5F9DD4D1C6EE6EABBB660B4A63C7C1FF /* Client5.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client5.xcdatamodel; sourceTree = "<group>"; };
 		5FB8EF116CC20ECBC7298B3E88F693F6 /* SDKApplicationDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SDKApplicationDelegate.swift; path = Sources/Core/Common/SDKApplicationDelegate.swift; sourceTree = "<group>"; };
 		5FC22ED6391630BB78975DC7C1F4CEC0 /* LoginResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginResult.swift; path = Sources/Login/LoginResult.swift; sourceTree = "<group>"; };
 		5FE2D0971880FBB056EEBC4B123AA9F5 /* Log.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
@@ -1378,7 +1376,6 @@
 		787B4407708AA1B52A88AA9E0D1BDB5A /* FBSDKCoreKit.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = FBSDKCoreKit.modulemap; sourceTree = "<group>"; };
 		78AFFDF7A4435657FFD8D1BCF2077DCC /* FacebookLogin.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = FacebookLogin.modulemap; sourceTree = "<group>"; };
 		79422F1FCF91827CB72C7CEC96F01558 /* GTMOAuth2-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "GTMOAuth2-prefix.pch"; sourceTree = "<group>"; };
-		7954E32425BBB86DBD12D54B7208E772 /* Client6.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client6.xcdatamodel; sourceTree = "<group>"; };
 		79BEC76CF6FD1C9C25E258925E3F4099 /* SharingInvitation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharingInvitation.swift; sourceTree = "<group>"; };
 		79D6D48226C10F8D69FAC446680484CF /* FBSDKImageDownloader.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKImageDownloader.h; path = FBSDKCoreKit/FBSDKCoreKit/Internal/FBSDKImageDownloader.h; sourceTree = "<group>"; };
 		7A7465BC792ABB1BCDAB258258A619DB /* Reachability.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = Reachability.modulemap; sourceTree = "<group>"; };
@@ -1411,6 +1408,16 @@
 		8231A80A9483A700D09A86A9540ACAE0 /* FBSDKError.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKError.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/FBSDKError.m; sourceTree = "<group>"; };
 		82C092DAFEA9EB13604358C908E8860D /* SMUIMessages.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SMUIMessages.m; sourceTree = "<group>"; };
 		831C829F209C02A60055BD27 /* CoreData+Extras.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CoreData+Extras.swift"; sourceTree = "<group>"; };
+		831C82B1209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DownloadContentGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		831C82B2209C09D50055BD27 /* DownloadContentGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadContentGroup.swift; sourceTree = "<group>"; };
+		832D7F8A209CBAE80096368E /* Client7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client7.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8B209CBAE80096368E /* Client2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client2.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8C209CBAE80096368E /* Client8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client8.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8D209CBAE80096368E /* Client4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client4.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8E209CBAE80096368E /* Client3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client3.xcdatamodel; sourceTree = "<group>"; };
+		832D7F8F209CBAE80096368E /* Client6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client6.xcdatamodel; sourceTree = "<group>"; };
+		832D7F90209CBAE80096368E /* Client.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client.xcdatamodel; sourceTree = "<group>"; };
+		832D7F91209CBAE80096368E /* Client5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client5.xcdatamodel; sourceTree = "<group>"; };
 		83EACE6F2085A17D00C40AA3 /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migrations.swift; sourceTree = "<group>"; };
 		83EF9BB2D8F096FBE0FF5513184308A6 /* FBSDKLogo.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKLogo.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/UI/FBSDKLogo.m; sourceTree = "<group>"; };
 		844982F08DBE3FD8E8EDA2AD98FA2223 /* DBChunkInputStream.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = DBChunkInputStream.h; path = Source/SwiftyDropbox/Shared/Handwritten/DBChunkInputStream.h; sourceTree = "<group>"; };
@@ -1544,7 +1551,6 @@
 		B042ECC122CDD4151482D1919964E5A0 /* FacebookSignIn.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FacebookSignIn.swift; sourceTree = "<group>"; };
 		B07790264DBABC45B51047114EFC039D /* FacebookSDKStrings.bundle */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "wrapper.plug-in"; path = FacebookSDKStrings.bundle; sourceTree = "<group>"; };
 		B0BDE7CC85AC0E15E31ACD79FB0FDC6F /* SPASLog.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SPASLog.h; sourceTree = "<group>"; };
-		B12949027DD73BBFBCDB5F45C1BA68A1 /* Client3.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client3.xcdatamodel; sourceTree = "<group>"; };
 		B15C6DAF7C66B78C61DB3EC2B79277D8 /* GTMSessionFetcherService.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = GTMSessionFetcherService.h; path = Source/GTMSessionFetcherService.h; sourceTree = "<group>"; };
 		B1EFF188C6E1C8954C83D2C354315EAE /* GetUploads.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GetUploads.swift; sourceTree = "<group>"; };
 		B269F925D2194AAF6E745F75945EC36D /* UploadAppMetaData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadAppMetaData.swift; sourceTree = "<group>"; };
@@ -1604,7 +1610,6 @@
 		C8A4CCCDBEFA530681879E22CE6C28FB /* String+Extras.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "String+Extras.swift"; sourceTree = "<group>"; };
 		C8AF2BFC373783F0CD81A4391F119F96 /* SyncServerError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncServerError.swift; sourceTree = "<group>"; };
 		C964835B0D16D5936FFD16D2AC3EE696 /* FBSDKBridgeAPIProtocolWebV2.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKBridgeAPIProtocolWebV2.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/BridgeAPI/ProtocolVersions/FBSDKBridgeAPIProtocolWebV2.m; sourceTree = "<group>"; };
-		C9667AD25C7C0899FEF0E2DB452634F0 /* Client7.xcdatamodel */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcdatamodel; path = Client7.xcdatamodel; sourceTree = "<group>"; };
 		C96EE010C3CE925EF4040AB434E97F2F /* SyncServer-Shared.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = "SyncServer-Shared.modulemap"; sourceTree = "<group>"; };
 		CA38B4570C29605D822D320FBEBA16DE /* UITableViewCell+Extras.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UITableViewCell+Extras.h"; sourceTree = "<group>"; };
 		CA81EFD5C26DFCD7B50BB8203C092E45 /* BFCancellationToken.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = BFCancellationToken.h; path = Bolts/Common/BFCancellationToken.h; sourceTree = "<group>"; };
@@ -2082,7 +2087,7 @@
 			isa = PBXGroup;
 			children = (
 				73A7735C1A7BFFE6B2BD646E6B8AD15E /* Assets.xcassets */,
-				843A374A3FB5C771AE35E38DDBAFC920 /* Client.xcdatamodeld */,
+				832D7F89209CBAE80096368E /* Client.xcdatamodeld */,
 			);
 			name = Assets;
 			path = Client/Assets;
@@ -2686,6 +2691,8 @@
 				831C829F209C02A60055BD27 /* CoreData+Extras.swift */,
 				76084510526576E5377A0D74184C9AA3 /* DirectoryEntry.swift */,
 				97F97D8C5DAF1E2016AD9DD541319A4D /* DirectoryEntry+CoreDataProperties.swift */,
+				831C82B2209C09D50055BD27 /* DownloadContentGroup.swift */,
+				831C82B1209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift */,
 				EB96B91B731966B32160E20DC0511A8C /* DownloadFileTracker.swift */,
 				2DF8B75A8C7C22907751C90D83750CE2 /* DownloadFileTracker+CoreDataProperties.swift */,
 				147AA69A4D6637630C06A672D815DCD9 /* FileTracker.swift */,
@@ -4614,7 +4621,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				46AFFA611FB109602D0A72F79C557938 /* Client.xcdatamodeld in Sources */,
 				5D43EB7A2B210873AFC7D5E676B04533 /* ConflictManager.swift in Sources */,
 				2309F8F2495E9CDF10A5D0BFC407EFB6 /* Consistency.swift in Sources */,
 				7F9550A95D6F079D626028672BF38BEC /* Constants.swift in Sources */,
@@ -4630,6 +4636,7 @@
 				3E1F3D23540511C593C9264A6C141E25 /* FacebookSignIn.swift in Sources */,
 				1252366DDD22D00828698B80051B4278 /* FilesMisc.swift in Sources */,
 				4EE63878856DAA4EB80E2C3FCC57673C /* FileTracker+CoreDataProperties.swift in Sources */,
+				831C82B3209C09D50055BD27 /* DownloadContentGroup+CoreDataProperties.swift in Sources */,
 				C67D3C0EC103F1D1D3C11E3597A974A0 /* FileTracker.swift in Sources */,
 				83EACE702085A17D00C40AA3 /* Migrations.swift in Sources */,
 				88ED35290C50A001911FF38378DDE5B2 /* GenericSignIn.swift in Sources */,
@@ -4651,6 +4658,7 @@
 				61B46FF815A3B7FAC980426F6A738525 /* SyncManager.swift in Sources */,
 				E9E5E6C8C43632075AD717DFF15A40B6 /* SyncServer-dummy.m in Sources */,
 				39ECB61344A276014F1F099732D8128F /* SyncServer.swift in Sources */,
+				832D7F92209CBAE80096368E /* Client.xcdatamodeld in Sources */,
 				C11D014EA7E28B8453E5120C140C02C6 /* SyncServerConflict.swift in Sources */,
 				A17004DC283F918DD11A6DAA4BDCCE40 /* SyncServerDelegate.swift in Sources */,
 				E789B0704495643765E599C830D7C64D /* SyncServerError.swift in Sources */,
@@ -4663,6 +4671,7 @@
 				F151328F3434B08832B6B44756E911D5 /* UploadFileTracker.swift in Sources */,
 				CABFF195DE1F141D334393A5924EAB5C /* UploadQueue+CoreDataProperties.swift in Sources */,
 				8B33439346C132D6CE0A8319CAE54FF8 /* UploadQueue.swift in Sources */,
+				831C82B4209C09D50055BD27 /* DownloadContentGroup.swift in Sources */,
 				59BD11D9DA13DB56614C878CF5D223B1 /* UploadQueues+CoreDataProperties.swift in Sources */,
 				191B6D5394E4465881E2159A065B53A5 /* UploadQueues.swift in Sources */,
 			);
@@ -6637,18 +6646,19 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		843A374A3FB5C771AE35E38DDBAFC920 /* Client.xcdatamodeld */ = {
+		832D7F89209CBAE80096368E /* Client.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				1F4396BE213C6FEB9FE7E1F350A29762 /* Client.xcdatamodel */,
-				559EB8CFD8B7812048EB00CB66D47EA1 /* Client2.xcdatamodel */,
-				B12949027DD73BBFBCDB5F45C1BA68A1 /* Client3.xcdatamodel */,
-				17026E74BA0503AFC35D8AEDBB11E939 /* Client4.xcdatamodel */,
-				5F9DD4D1C6EE6EABBB660B4A63C7C1FF /* Client5.xcdatamodel */,
-				7954E32425BBB86DBD12D54B7208E772 /* Client6.xcdatamodel */,
-				C9667AD25C7C0899FEF0E2DB452634F0 /* Client7.xcdatamodel */,
+				832D7F8A209CBAE80096368E /* Client7.xcdatamodel */,
+				832D7F8B209CBAE80096368E /* Client2.xcdatamodel */,
+				832D7F8C209CBAE80096368E /* Client8.xcdatamodel */,
+				832D7F8D209CBAE80096368E /* Client4.xcdatamodel */,
+				832D7F8E209CBAE80096368E /* Client3.xcdatamodel */,
+				832D7F8F209CBAE80096368E /* Client6.xcdatamodel */,
+				832D7F90209CBAE80096368E /* Client.xcdatamodel */,
+				832D7F91209CBAE80096368E /* Client5.xcdatamodel */,
 			);
-			currentVersion = C9667AD25C7C0899FEF0E2DB452634F0 /* Client7.xcdatamodel */;
+			currentVersion = 832D7F8C209CBAE80096368E /* Client8.xcdatamodel */;
 			path = Client.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

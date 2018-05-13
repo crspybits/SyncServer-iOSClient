@@ -48,7 +48,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == expectedVersion)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
         
         return url
@@ -122,7 +122,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == version)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
         
         // Expecting last file contents uploaded.
         let url = urls[urls.count - 1]
@@ -175,18 +175,24 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            guard let originalURL = urls[attr.fileUUID] else {
-                XCTFail()
-                return
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                downloadCount += 1
+                guard let originalURL = urls[attr.fileUUID] else {
+                    XCTFail()
+                    return
+                }
+                
+                XCTAssert(FilesMisc.compareFiles(file1: originalURL as URL, file2: url as URL))
+                
+                XCTAssert(downloadCount <= 2)
+                if downloadCount >= 2 {
+                    shouldSaveExp.fulfill()
+                }
             }
-            
-            XCTAssert(FilesMisc.compareFiles(file1: originalURL as URL, file2: url as URL))
-            
-            XCTAssert(downloadCount <= 2)
-            if downloadCount >= 2 {
-                shouldSaveExp.fulfill()
+            else {
+                XCTFail()
             }
         }
         
@@ -262,7 +268,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            XCTAssert(file.deletedOnServer)
+            XCTAssert(file.deletedLocally)
             XCTAssert(file.fileVersion == fileVersion)
         }
     }
@@ -299,9 +305,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { deletions in
-            XCTAssert(deletions.count == 1)
-            XCTAssert(deletions[0].fileUUID == fileUUID)
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(group[0].attr.fileUUID == fileUUID)
             deletionsExp.fulfill()
         }
         
@@ -368,14 +378,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
-            guard downloadDeletions.count == 1 else {
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1, case .deletion = group[0].type else {
                 XCTFail()
                 return
             }
             
-            let downloadDeletion = downloadDeletions[0]
-            XCTAssert(downloadDeletion.fileUUID == fileUUID)
+            XCTAssert(group[0].attr.fileUUID == fileUUID)
             downloadDeletionCallback.fulfill()
         }
         
@@ -420,7 +429,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up file upload(s) of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
@@ -454,7 +463,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let numberUploads):
+            case .contentUploadsCompleted(let numberUploads):
                 XCTAssert(numberUploads == 1)
                 actualNumberUploads += 1
                 if actualNumberUploads == numberUploadsToDo {
@@ -466,7 +475,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
+        syncServerFileGroupDownloadComplete = { group in
             XCTFail()
         }
         
@@ -490,6 +499,96 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2)
     }
     
+    // This is an error because a purely appMetaData upload cannot undelete a file-- because it can't replace the previously deleted file content.
+    func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepAppMetaDataUpload_Fails() {
+        // 1) Upload a file-- uses sync system.
+        let fileVersion:FileVersionInt = 3
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
+
+        // 2) Upload delete the file, not using the sync system. This will cause the download deletion we're looking for.
+        var masterVersion:MasterVersionInt!
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            masterVersion = Singleton.get().masterVersion
+        }
+
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        // 3) Queue up an appMetaData upload of the same file.
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        
+        let done = self.expectation(description: "done")
+        let conflictExp = self.expectation(description: "conflict")
+        let errorExp = self.expectation(description: "error")
+        let deletion = self.expectation(description: "deletion")
+        
+        // 4) Reject the download deletion- and keep the appMetaData upload(s).
+        syncServerMustResolveDownloadDeletionConflicts = { conflicts in
+            guard conflicts.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            let conflict = conflicts[0]
+            
+            let deletion = conflict.downloadDeletion
+            XCTAssert(deletion.mimeType == .text)
+            XCTAssert(deletion.fileUUID == fileUUID)
+            
+            let uploadConflict = conflict.uploadConflict
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.appMetaData))
+            
+            // This is the error-- can't `.keepContentUpload` for a purely appMetaData upload.
+            uploadConflict.resolutionCallback(
+                .rejectDownloadDeletion(.keepContentUpload))
+            
+            conflictExp.fulfill()
+        }
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            guard case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
+            deletion.fulfill()
+        }
+        
+        syncServerErrorOccurred = { error in
+            errorExp.fulfill()
+        }
+        
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        attr.appMetaData = "Some app meta data"
+        
+        try! SyncServer.session.uploadAppMetaData(attr: attr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
+    }
+    
+    // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
@@ -509,12 +608,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up a file upload of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
         
-        // 4) Reject the download deletion- and keep the upload.
+        var expectSyncServerFileGroupDownloadComplete = false
+        
+        // 4) Reject the download deletion- and remove the upload.
         syncServerMustResolveDownloadDeletionConflicts = { conflicts in
             guard conflicts.count == 1 else {
                 XCTFail()
@@ -533,6 +634,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             
             uploadConflict.resolutionCallback(
                 .rejectDownloadDeletion(.removeContentUpload))
+                
+            XCTAssert(!expectSyncServerFileGroupDownloadComplete)
+            expectSyncServerFileGroupDownloadComplete = true
         }
         
         syncServerEventOccurred = { event in
@@ -540,7 +644,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTFail()
                 
             default:
@@ -548,8 +652,19 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldDoDeletions = { downloadDeletions in
-            XCTFail()
+        syncServerFileGroupDownloadComplete = { group in
+            XCTAssert(expectSyncServerFileGroupDownloadComplete)
+            
+            guard group.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            let content = group[0]
+            guard case .deletion = content.type else {
+                XCTFail()
+                return
+            }
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
@@ -582,7 +697,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up an upload deletion of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
@@ -591,7 +706,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTFail()
         }
         
-        shouldDoDeletions = { deletions in
+        syncServerFileGroupDownloadComplete = { group in
             XCTFail()
         }
         
@@ -600,16 +715,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTFail()
                 
             default:
                 XCTFail()
             }
-        }
-        
-        shouldDoDeletions = { downloadDeletions in
-            XCTFail()
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
@@ -624,7 +735,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
 
-            XCTAssert(file.deletedOnServer)
+            XCTAssert(file.deletedLocally)
         }
     }
     
@@ -683,7 +794,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -694,7 +805,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 
@@ -746,16 +857,22 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             uploadConflict.resolutionCallback(resolution)
         }
         
-        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
-            if case .acceptContentDownload = resolution {
-                XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
-                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
-                
-                guard let saveDownloadsExp = saveDownloadsExp else {
-                    XCTFail()
-                    return
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                if case .acceptContentDownload = resolution {
+                    let downloadedFileAttributes = group[0].attr
+                    XCTAssert(downloadedFileAttributes.fileUUID == file.fileUUID)
+                    XCTAssert(downloadedFileAttributes.mimeType == mimeType)
+                    
+                    guard let saveDownloadsExp = saveDownloadsExp else {
+                        XCTFail()
+                        return
+                    }
+                    saveDownloadsExp.fulfill()
                 }
-                saveDownloadsExp.fulfill()
+                else {
+                    XCTFail()
+                }
             }
             else {
                 XCTFail()
@@ -871,7 +988,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -882,7 +999,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 
@@ -943,26 +1060,35 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(uploadConflict.conflictType)")
             uploadConflict.resolutionCallback(resolution)
         }
-        
-        syncServerAppMetaDataDownloadComplete = { attr in
-            XCTAssert(attr.fileUUID == fileUUID)
-            XCTAssert(attr.appMetaData == appMetaData.contents)
-            saveDownloadAppMetaDataExp!.fulfill()
-        }
 
-        shouldSaveDownload = { (downloadedFile: NSURL,  downloadedFileAttributes: SyncAttributes) in
-            switch resolution {
-            case .acceptContentDownload:
-                XCTAssert(downloadedFileAttributes.fileUUID == fileUUID)
-                XCTAssert(downloadedFileAttributes.mimeType == mimeType)
-                
-                guard let saveDownloadsExp = saveDownloadsExp else {
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1 {
+                let attr = group[0].attr
+                switch group[0].type {
+                case .deletion:
                     XCTFail()
-                    return
+                case .appMetaData:
+                    XCTAssert(attr.fileUUID == fileUUID)
+                    XCTAssert(attr.appMetaData == appMetaData.contents)
+                    saveDownloadAppMetaDataExp!.fulfill()
+                case .file:
+                    switch resolution {
+                    case .acceptContentDownload:
+                        XCTAssert(attr.fileUUID == fileUUID)
+                        XCTAssert(attr.mimeType == mimeType)
+                        
+                        guard let saveDownloadsExp = saveDownloadsExp else {
+                            XCTFail()
+                            return
+                        }
+                        saveDownloadsExp.fulfill()
+                    case .rejectContentDownload:
+                        // Shouldn't be trying to save downloads if we're rejecting content downloads.
+                        XCTFail()
+                    }
                 }
-                saveDownloadsExp.fulfill()
-            case .rejectContentDownload:
-                // Shouldn't be trying to save downloads if we're rejecting content downloads.
+            }
+            else {
                 XCTFail()
             }
         }
@@ -994,22 +1120,18 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU2_UD0() {
         fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Accept_FU1_UD1() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
     }
@@ -1052,17 +1174,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
         appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
-    // TO-TEST
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
         appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
@@ -1167,8 +1286,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            downloadedFileExp.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadedFileExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.sync()
@@ -1181,7 +1305,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            XCTAssert(!result.deletedOnServer)
+            XCTAssert(!result.deletedLocally)
         }
     }
     
@@ -1212,7 +1336,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let done = self.expectation(description: "done")
         let fileUploadExp = self.expectation(description: "fileUploadExp")
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -1223,7 +1347,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 fileUploadExp.fulfill()
@@ -1346,9 +1470,15 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            XCTAssert(attr.appMetaData == appMetaData2.contents)
-            expectDownload.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(attr.appMetaData == appMetaData2.contents)
+                expectDownload.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.sync()

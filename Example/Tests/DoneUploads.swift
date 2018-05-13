@@ -181,6 +181,26 @@ class ServerAPI_DoneUploads: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
+    func testDoneUploadsWithDeletionChangesMasterVersion() {
+        var masterVersion = getMasterVersion()
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        masterVersion += 1
+        
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberDeletions: 1)
+        masterVersion += 1
+        
+        XCTAssert(getMasterVersion() == masterVersion)
+    }
+    
     // TODO: *2* I would like a test where there are concurrent DoneUploads operations-- across two users. e.g., users A and B each upload a file, and then concurrently do DoneUpload operatons-- this should not result in a lock/blocking situation, even with the transactional support because InnoDB does row level locking. (I'm not sure how to support access within a single iOS app by two Google users.)
     // This should be pretty much exactly like the above test, except (a) it should not result in locking/blocking, and (b) it should use two users not 1.
 }

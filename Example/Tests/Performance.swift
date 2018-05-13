@@ -41,12 +41,17 @@ class Performance: TestCase {
         self.deviceUUID = Foundation.UUID()
         
         var downloadCount = 0
-        
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
-            if downloadCount >= N {
-                expectation.fulfill()
+
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadCount += 1
+                XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
+                if downloadCount >= N {
+                    expectation.fulfill()
+                }
+            }
+            else {
+                XCTFail()
             }
         }
         
@@ -183,11 +188,16 @@ class Performance: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
-            if downloadCount >= N {
-                downloadExp.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                downloadCount += 1
+                XCTAssert(downloadCount <= Int(N), "Current number of downloads: \(downloadCount)")
+                if downloadCount >= N {
+                    downloadExp.fulfill()
+                }
+            }
+            else {
+                XCTFail()
             }
         }
         

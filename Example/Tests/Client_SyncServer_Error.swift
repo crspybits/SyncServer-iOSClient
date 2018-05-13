@@ -83,10 +83,16 @@ class Client_SyncServer_Error: TestCase {
             }
             
             var downloadCount = 0
-            shouldSaveDownload = { url, attr in
-                downloadCount += 1
-                XCTAssert(downloadCount == 1)
-                shouldSaveDownloadsExp.fulfill()
+            
+            syncServerFileGroupDownloadComplete = { group in
+                if group.count == 1, case .file = group[0].type {
+                    downloadCount += 1
+                    XCTAssert(downloadCount == 1)
+                    shouldSaveDownloadsExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
             }
             
             SyncServer.session.sync()
@@ -102,7 +108,7 @@ class Client_SyncServer_Error: TestCase {
     func testSyncFailureAfterOtherClientUploadWithRetry() {
         syncFailureAfterOtherClientUpload(retry:true)
     }
-    
+
     private func failureAfterOneUpload(retry:Bool = false) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -110,23 +116,22 @@ class Client_SyncServer_Error: TestCase {
 
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
-    
-        let previousSyncServerSingleFileUploadCompleted = self.syncServerSingleFileUploadCompleted
-        SyncManager.session.testingDelegate = self
         
-        syncServerSingleFileUploadCompleted = {next in
-            ServerAPI.session.failEndpoints = true
-
-            self.syncServerSingleFileUploadCompleted = previousSyncServerSingleFileUploadCompleted
-            SyncManager.session.testingDelegate = nil
-            next()
-        }
-        
-        SyncServer.session.eventsDesired = []
+        SyncServer.session.eventsDesired = [.singleFileUploadComplete]
         let errorExp = self.expectation(description: "errorExp1")
 
         syncServerErrorOccurred = { error in
             errorExp.fulfill()
+        }
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .singleFileUploadComplete:
+                ServerAPI.session.failEndpoints = true
+                
+            default:
+                XCTFail()
+            }
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
@@ -138,7 +143,7 @@ class Client_SyncServer_Error: TestCase {
         if retry {
             ServerAPI.session.failEndpoints = false
 
-            SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+            SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
             
             let syncDone = self.expectation(description: "syncDone")
             let fileUploadsCompletedExp = self.expectation(description: "fileUploadsCompletedExp")
@@ -150,7 +155,7 @@ class Client_SyncServer_Error: TestCase {
                 case .syncDone:
                     syncDone.fulfill()
                     
-                case .fileUploadsCompleted(numberOfFiles: let number):
+                case .contentUploadsCompleted(numberOfFiles: let number):
                     XCTAssert(number == 2)
                     
                     // One because only a single file needs to be uploaded the second time-- the first was uploaded before the error.
@@ -171,7 +176,7 @@ class Client_SyncServer_Error: TestCase {
             waitForExpectations(timeout: 20.0, handler: nil)
         }
     }
-    
+
     func testFailureAfterOneUpload() {
         failureAfterOneUpload()
     }
@@ -199,17 +204,19 @@ class Client_SyncServer_Error: TestCase {
         }
         
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
-        SyncManager.session.testingDelegate = self
-
-        let previousSyncServerSingleFileDownloadCompleted = self.syncServerSingleFileDownloadCompleted
-    
-        syncServerSingleFileDownloadCompleted = { url, attr, next in
-            // The intent is to fail the next /DownloadFile/ endpoint request-- after the first one succeeds.
-            ServerAPI.session.failEndpoints = true
-
-            self.syncServerSingleFileDownloadCompleted = previousSyncServerSingleFileDownloadCompleted
-            SyncManager.session.testingDelegate = nil
-            next()
+        
+        // The intent is to fail the next /DownloadFile/ endpoint request-- after the first one succeeds.
+        var numberDownloads = 0
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                numberDownloads += 1
+                if numberDownloads == 1 {
+                    ServerAPI.session.failEndpoints = true
+                }
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.eventsDesired = []
@@ -241,9 +248,13 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            // 9/16/17; Since we are now doing downloads incrementally (and deleting the DownloadFileTracker's after each one), we'll just get a single download here.
-            shouldSaveDownload = { url, attr in
-                shouldSaveDownloadsExp.fulfill()
+            syncServerFileGroupDownloadComplete = { group in
+                if group.count == 1, case .file = group[0].type {
+                    shouldSaveDownloadsExp.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
             }
             
             SyncServer.session.sync()
@@ -258,5 +269,5 @@ class Client_SyncServer_Error: TestCase {
     
     func testFailureAfterOneDownloadWithRetry() {
         failureAfterOneDownload(retry:true)
-    } 
+    }
 }

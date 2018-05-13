@@ -38,7 +38,7 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
     }
     
@@ -58,7 +58,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
         let expectation2 = self.expectation(description: "test2")
         
@@ -69,7 +69,7 @@ class Client_SyncServer_FileUpload: TestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 2)
                 XCTAssert(uploadsCompleted == 2)
                 expectation2.fulfill()
@@ -105,10 +105,10 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
     }
     
@@ -133,7 +133,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
         let expectation2 = self.expectation(description: "test2")
         let expectation3 = self.expectation(description: "test3")
@@ -143,7 +143,7 @@ class Client_SyncServer_FileUpload: TestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 // Only a single file was uploaded.
                 XCTAssert(number == 1)
                 expectation2.fulfill()
@@ -177,7 +177,7 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file, masterVersion: masterVersion)
     }
     
@@ -234,7 +234,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let syncDone1 = self.expectation(description: "test1")
         let syncDone2 = self.expectation(description: "test2")
 
@@ -258,7 +258,7 @@ class Client_SyncServer_FileUpload: TestCase {
                     XCTFail()
                 }
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 expectation3.fulfill()
                 
@@ -291,7 +291,7 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
     }
     
@@ -312,7 +312,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let fileUUID2 = UUID().uuidString
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectSyncDone1 = self.expectation(description: "test1")
         let expectSyncDone2 = self.expectation(description: "test2")
         let expectFileUploadsCompleted1 = self.expectation(description: "test3")
@@ -339,7 +339,7 @@ class Client_SyncServer_FileUpload: TestCase {
                     XCTFail()
                 }
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 fileUploadsCompletedCount += 1
                 XCTAssert(number == 1)
                 
@@ -403,10 +403,10 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url1 as URL, file: file1, masterVersion: masterVersion)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion)
     }
     

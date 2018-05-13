@@ -72,19 +72,15 @@ class TestCase: XCTestCase {
     var fileIndexServerSleep: TimeInterval?
     var testLockSyncCalled:Bool = false
     
-    var shouldSaveDownload: ((_ downloadedFile: NSURL, _ downloadedFileAttributes: SyncAttributes) -> ())!
     var syncServerEventOccurred: (SyncEvent) -> () = {event in }
-    var shouldDoDeletions: (_ downloadDeletions: [SyncAttributes]) -> () = { downloadDeletions in }
     var syncServerErrorOccurred: (SyncServerError) -> () = { error in
         Log.error("syncServerErrorOccurred: \(error)")
     }
-    
-    var syncServerSingleFileUploadCompleted:((_ next: @escaping ()->())->())?
-    var syncServerSingleFileDownloadCompleted:((_ url:SMRelativeLocalURL, _ attr: SyncAttributes, _ next: @escaping ()->())->())?
-    
+        
     var syncServerMustResolveDownloadDeletionConflicts:((_ conflicts:[DownloadDeletionConflict])->())?
     var syncServerMustResolveContentDownloadConflict:((_ content: ServerContentType, _ downloadedContentAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
-    var syncServerAppMetaDataDownloadComplete: ((SyncAttributes)->())!
+
+    var syncServerFileGroupDownloadComplete: (([DownloadOperation])->())!
 
     override func setUp() {
         super.setUp()
@@ -109,6 +105,69 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    @discardableResult
+    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType, fileGroupUUID: String? = nil) -> ServerAPI.File? {
+        var masterVersion = getMasterVersion()
+        var fileVersion:FileVersionInt = 0
+        let fileUUID = UUID().uuidString
+    
+        guard let (_, fileResult) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+            XCTFail()
+            return nil
+        }
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+    
+        var resultFileSize:Int64?
+        var resultFile:ServerAPI.File?
+        
+        while fileVersion < version {
+            masterVersion += 1
+            fileVersion += 1
+        
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+                XCTFail()
+                return nil
+            }
+            
+            resultFileSize = fileSize
+            resultFile = file
+            
+            doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        }
+        
+        guard let file = resultFile, let fileSize = resultFileSize else {
+            XCTFail()
+            return nil
+        }
+    
+        guard let fileIndex:[FileInfo] = getFileIndex() else {
+            XCTFail()
+            return nil
+        }
+        
+        let result = fileIndex.filter({$0.fileUUID == fileUUID})
+        guard result.count == 1 else {
+            XCTFail()
+            return nil
+        }
+
+        XCTAssert(result[0].fileVersion == fileVersion)
+        XCTAssert(result[0].deviceUUID == file.deviceUUID)
+        XCTAssert(result[0].fileGroupUUID == file.fileGroupUUID)
+        
+        if let resultMimeTypeString = result[0].mimeType {
+            let resultMimeType = MimeType(rawValue: resultMimeTypeString)
+            XCTAssert(resultMimeType == file.mimeType)
+        }
+        else {
+            XCTFail()
+        }
+        
+        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
+        
+        return fileResult
+    }
+    
     func assertThereIsNoTrackingMetaData() {
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
             // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
@@ -119,6 +178,7 @@ class TestCase: XCTestCase {
             XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
             XCTAssert(Upload.getHeadSyncQueue() == nil)
             XCTAssert(DownloadFileTracker.fetchAll().count == 0)
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             XCTAssert(UploadFileTracker.fetchAll().count == 0)
             XCTAssert(NetworkCached.fetchAll().count == 0)
         }
@@ -236,7 +296,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -253,7 +313,7 @@ class TestCase: XCTestCase {
             finalDeviceUUID = theDeviceUUID!
         }
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -304,7 +364,7 @@ class TestCase: XCTestCase {
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -508,10 +568,15 @@ class TestCase: XCTestCase {
         let expectedFiles = [file]
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount == 1)
-            XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
+            }
+            else {
+                XCTFail()
+            }
         }
         
         let expectation = self.expectation(description: "start")
@@ -643,7 +708,12 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
-    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false) -> (SMRelativeLocalURL, SyncAttributes)? {
+    enum UploadSingleFileUsingSyncError {
+        case uploadImmutable
+    }
+    
+    @discardableResult
+    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         var originalURL:SMRelativeLocalURL
@@ -669,21 +739,20 @@ class TestCase: XCTestCase {
         }
 
         var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
-        if let appMetaData = appMetaData {
-            attr.appMetaData = appMetaData
-        }
+        attr.appMetaData = appMetaData
+        attr.fileGroupUUID = fileGroupUUID
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
-        let expectation1 = self.expectation(description: "test1")
-        let expectation2 = self.expectation(description: "test2")
-        let expectation3 = self.expectation(description: "test3")
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
+        var expectation1:XCTestExpectation!
+        var expectation2:XCTestExpectation!
+        var expectation3:XCTestExpectation!
         
         syncServerEventOccurred = {event in
             switch event {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 expectation2.fulfill()
                 
@@ -699,13 +768,27 @@ class TestCase: XCTestCase {
         
         if uploadCopy {
             try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr)
-            
             // To truly exercise the `copy` characteristics-- delete the file now.
             try! FileManager.default.removeItem(at: url as URL)
         }
         else {
-            try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            do {
+                try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+                if errorExpected == UploadSingleFileUsingSyncError.uploadImmutable {
+                    XCTFail()
+                    return nil
+                }
+            } catch {
+                if errorExpected != UploadSingleFileUsingSyncError.uploadImmutable {
+                    XCTFail()
+                }
+                return nil
+            }
         }
+        
+        expectation1 = self.expectation(description: "test1")
+        expectation2 = self.expectation(description: "test2")
+        expectation3 = self.expectation(description: "test3")
         
         SyncServer.session.sync()
         
@@ -748,11 +831,17 @@ class TestCase: XCTestCase {
         
         var downloadCount = 0
         
-        shouldSaveDownload = { url, attr in
-            downloadCount += 1
-            XCTAssert(downloadCount == 1)
-            XCTAssert(attr.appMetaData == appMetaData?.contents)
-            expectation.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                XCTAssert(attr.appMetaData == appMetaData?.contents)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         SyncServer.session.eventsDesired = [.syncDone]
@@ -861,16 +950,8 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
-    func syncServerAppMetaDataDownloadComplete(attr: SyncAttributes) {
-        syncServerAppMetaDataDownloadComplete(attr)
-    }
-    
-    func syncServerSingleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes) {
-        shouldSaveDownload(url, attr)
-    }
-    
-    func syncServerShouldDoDeletions(downloadDeletions: [SyncAttributes]) {
-        shouldDoDeletions(downloadDeletions)
+    func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
+        syncServerFileGroupDownloadComplete?(group)
     }
     
     func syncServerMustResolveContentDownloadConflict(_ content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
@@ -890,22 +971,3 @@ extension TestCase : SyncServerDelegate {
     }
 }
 
-extension TestCase : SyncServerTestingDelegate {
-    func syncServerSingleFileUploadCompleted(next: @escaping ()->()) {
-        if syncServerSingleFileUploadCompleted == nil {
-            next()
-        }
-        else {
-            syncServerSingleFileUploadCompleted!(next)
-        }
-    }
-    
-    func singleFileDownloadComplete(url:SMRelativeLocalURL, attr: SyncAttributes, next: @escaping ()->()) {
-        if syncServerSingleFileDownloadCompleted == nil {
-            next()
-        }
-        else {
-            syncServerSingleFileDownloadCompleted!(url, attr, next)
-        }
-     }
-}

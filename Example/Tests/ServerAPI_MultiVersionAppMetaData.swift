@@ -289,4 +289,13 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         
         downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, failureExpected: true)
     }
+    
+    // Cannot upload v0 of a file using appMetaData upload.
+    func testUploadV0OfFileUsingAppMetaDataUploadFails() {
+        let masterVersion = getMasterVersion()
+        
+        let fileUUID = UUID().uuidString
+        let appMetaData = AppMetaData(version: 0, contents: "Foobar")
+        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, failureExpected: true)
+    }
 }

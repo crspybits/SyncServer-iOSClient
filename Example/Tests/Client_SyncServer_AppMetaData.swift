@@ -165,9 +165,15 @@ class Client_SyncServer_AppMetaData: TestCase {
         SyncServer.session.eventsDesired = [.syncDone]
         
         // Download-- expect appMetaData download only. This uses the new download appMetaData endpoint.
-        syncServerAppMetaDataDownloadComplete = { attr in
-            XCTAssert(appMetaData.contents == attr.appMetaData)
-            expAppMetaDataDownload.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .appMetaData = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(appMetaData.contents == attr.appMetaData)
+                expAppMetaDataDownload.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
         
         syncServerEventOccurred = {event in
@@ -361,5 +367,22 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(ufts[0].operation == .appMetaData)
             XCTAssert(ufts[0].appMetaData == updatedAttr.appMetaData)
         }
+    }
+    
+    
+    // Error case: Cannot upload v0 of a file using appMetaData upload.
+    func testUploadV0FileWithAppMetaUploadFails() {
+        let fileUUID = UUID().uuidString
+        
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        attr.appMetaData = "123Foobar"
+        
+        do {
+            try SyncServer.session.uploadAppMetaData(attr: attr)
+        } catch {
+            return
+        }
+        
+        XCTFail()
     }
 }

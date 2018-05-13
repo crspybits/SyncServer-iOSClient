@@ -52,25 +52,32 @@ class Client_SyncManager: TestCase {
         let file2Exp = self.expectation(description: "file2")
 
         var downloadCount = 0
-        shouldSaveDownload = { url, attr in
-            singleFileDownloaded?()
-            
-            downloadCount += 1
-            XCTAssert(downloadCount <= 2)
-            
-            if file1.fileUUID == attr.fileUUID {
-                XCTAssert(self.filesHaveSameContents(url1: file1.localURL, url2: url as URL))
-                file1Exp.fulfill()
+        
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                singleFileDownloaded?()
+                
+                downloadCount += 1
+                XCTAssert(downloadCount <= 2)
+                
+                if file1.fileUUID == attr.fileUUID {
+                    XCTAssert(self.filesHaveSameContents(url1: file1.localURL, url2: url as URL))
+                    file1Exp.fulfill()
+                }
+                
+                if file2.fileUUID == attr.fileUUID {
+                    XCTAssert(self.filesHaveSameContents(url1: file2.localURL, url2: url as URL))
+                    file2Exp.fulfill()
+                }
             }
-            
-            if file2.fileUUID == attr.fileUUID {
-                XCTAssert(self.filesHaveSameContents(url1: file2.localURL, url2: url as URL))
-                file2Exp.fulfill()
+            else {
+                XCTFail()
             }
         }
         
         SyncManager.session.start { (error) in
-            XCTAssert(error == nil)
+            XCTAssert(error == nil, "\(String(describing: error))")
             
             XCTAssert(downloadCount == 2)
             
@@ -90,7 +97,7 @@ class Client_SyncManager: TestCase {
             expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 30.0, handler: nil)
+        waitForExpectations(timeout: 60.0, handler: nil)
     }
     
     func uploadTwoFiles() -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {

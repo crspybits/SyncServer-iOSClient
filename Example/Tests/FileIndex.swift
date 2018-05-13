@@ -23,7 +23,7 @@ class ServerAPI_FileIndex: TestCase {
     }
     
     @discardableResult
-    func getFileIndex() -> (fileIndex: [FileInfo], masterVersion:MasterVersionInt)?  {
+    func getFileIndexAndMasterVersion() -> (fileIndex: [FileInfo], masterVersion:MasterVersionInt)?  {
         var result:(fileIndex: [FileInfo], masterVersion:MasterVersionInt)?
         
         let expectation = self.expectation(description: "file index")
@@ -53,7 +53,7 @@ class ServerAPI_FileIndex: TestCase {
     
     // Added this due some debugging of a problem I was doing on 1/16/18.
     func testFileIndexFollowedByUpload() {
-        guard let (_, masterVersion) = getFileIndex() else {
+        guard let (_, masterVersion) = getFileIndexAndMasterVersion() else {
             XCTFail()
             return
         }

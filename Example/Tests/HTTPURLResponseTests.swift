@@ -20,7 +20,7 @@ class HTTPURLResponseTests: XCTestCase {
         super.tearDown()
     }
     
-    // I just want to make my self confident about archiving and unarchiving `HTTPURLResponse` objects.
+    // I just want to make myself confident about archiving and unarchiving `HTTPURLResponse` objects.
     func testArchiving() {
         let url = URL(string: "https://www.SpasticMuffin.biz")!
         let version = "1.0"

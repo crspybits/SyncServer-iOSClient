@@ -113,7 +113,7 @@ class Client_Downloads: TestCase {
         }
         
         guard case .noDownloadsOrDeletions = result else {
-            XCTFail()
+            XCTFail("\(result)")
             return
         }
     }
@@ -135,7 +135,7 @@ class Client_Downloads: TestCase {
         let expectation = self.expectation(description: "next")
 
         let result = Download.session.next() { completionResult in
-            guard case .fileDownloaded(let url, _, _) = completionResult else {
+            guard case .fileDownloaded(let dft) = completionResult else {
                 XCTFail()
                 return
             }
@@ -145,7 +145,7 @@ class Client_Downloads: TestCase {
                 XCTAssert(dfts[0].fileVersion == file.fileVersion)
                 XCTAssert(dfts[0].status == .downloaded)
 
-                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
+                XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: dft.localURL! as URL))
             }
             
             expectation.fulfill()
@@ -213,7 +213,7 @@ class Client_Downloads: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    func testThatTwoNextsWithOneFileGivesAllDownloadsCompleted() {
+    func testThatNextWithOneFileMarksGroupAsCompleted() {
         let masterVersion = getMasterVersion()
         
         let fileUUID = UUID().uuidString
@@ -239,14 +239,13 @@ class Client_Downloads: TestCase {
         }
         waitForExpectations(timeout: 30.0, handler: nil)
         
-        // Second next should indicate `allDownloadsCompleted`
-        let result = Download.session.next() { completionResult in
-            XCTFail()
-        }
-        
-        guard case .allDownloadsCompleted = result else {
-            XCTFail()
-            return
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            let dcgs = DownloadContentGroup.fetchAll()
+            guard dcgs.count == 1 else {
+                XCTFail()
+                return
+            }
+            XCTAssert(dcgs[0].allDftsCompleted())
         }
     }
     

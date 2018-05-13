@@ -53,7 +53,7 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .contentUploadsCompleted]
         let syncStarted = self.expectation(description: "SyncStarted")
         let syncStopping = self.expectation(description: "SyncStopping")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -81,7 +81,7 @@ class Client_SyncServer_StopSync: TestCase {
                     SyncServer.session.sync()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(alreadyStopped)
                 fileUploads.fulfill()
                 
@@ -107,7 +107,7 @@ class Client_SyncServer_StopSync: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStopping, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncStopping, .contentUploadsCompleted, .singleFileUploadComplete]
         
         let syncStopping = self.expectation(description: "SyncStopping")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -139,7 +139,7 @@ class Client_SyncServer_StopSync: TestCase {
                     SyncServer.session.stopSync()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(alreadyStopped)
                 fileUploads.fulfill()
                 
@@ -210,9 +210,14 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            XCTAssert(alreadyStopped)
-            shouldSaveDownloadExp.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                XCTAssert(alreadyStopped)
+                shouldSaveDownloadExp.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
 
         SyncServer.session.sync()
@@ -269,13 +274,18 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
         
-        shouldSaveDownload = { url, attr in
-            if alreadyStopped {
-                shouldSaveDownloadExp2.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                if alreadyStopped {
+                    shouldSaveDownloadExp2.fulfill()
+                }
+                else {
+                    shouldSaveDownloadExp1.fulfill()
+                    SyncServer.session.stopSync()
+                }
             }
             else {
-                shouldSaveDownloadExp1.fulfill()
-                SyncServer.session.stopSync()
+                XCTFail()
             }
         }
 
@@ -345,7 +355,7 @@ class Client_SyncServer_StopSync: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .contentUploadsCompleted]
         
         let syncStartExp = self.expectation(description: "SyncStart")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -377,7 +387,7 @@ class Client_SyncServer_StopSync: TestCase {
                     singleUploadExp2.fulfill()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(numberOfStops == 2)
                 fileUploads.fulfill()
                 
@@ -421,10 +431,16 @@ class Client_SyncServer_StopSync: TestCase {
         // 2) Do the first stop sync
         let shouldSaveDownloadExp1 = self.expectation(description: "ShouldSaveDownload1")
     
-        shouldSaveDownload = { url, attr in
-            SyncServer.session.stopSync()
-            XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
-            shouldSaveDownloadExp1.fulfill()
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file(let url) = group[0].type {
+                let attr = group[0].attr
+                SyncServer.session.stopSync()
+                XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
+                shouldSaveDownloadExp1.fulfill()
+            }
+            else {
+                XCTFail()
+            }
         }
 
         SyncServer.session.sync()
@@ -452,12 +468,8 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
     
-        shouldDoDeletions = { attrs in
-            XCTAssert(false)
-        }
-        
-        shouldSaveDownload = { url, attr in
-            XCTAssert(false)
+        syncServerFileGroupDownloadComplete = { group in
+            XCTFail()
         }
     
         SyncServer.session.sync()

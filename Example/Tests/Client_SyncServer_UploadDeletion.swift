@@ -72,7 +72,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
 
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
         
         return (url, attr)
@@ -87,7 +87,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
         let syncDone1 = self.expectation(description: "test1")
         let syncDone2 = self.expectation(description: "test2")
@@ -113,7 +113,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
                     XCTFail()
                 }
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 expectation2.fulfill()
                 
@@ -153,7 +153,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
     }
 
@@ -163,7 +163,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         // Include events other than syncDone just as a means of ensuring they don't occur.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
         let syncDone1 = self.expectation(description: "test1")
         
@@ -193,7 +193,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
-            XCTAssert(result!.deletedOnServer)
+            XCTAssert(result!.deletedLocally)
         }
     }
     
@@ -405,9 +405,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
-            XCTAssert(result1!.deletedOnServer)
+            XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
-            XCTAssert(result2!.deletedOnServer)
+            XCTAssert(result2!.deletedLocally)
         }
     }
     
@@ -467,9 +467,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
-            XCTAssert(result1!.deletedOnServer)
+            XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
-            XCTAssert(result2!.deletedOnServer)
+            XCTAssert(result2!.deletedLocally)
         }
     }
     
