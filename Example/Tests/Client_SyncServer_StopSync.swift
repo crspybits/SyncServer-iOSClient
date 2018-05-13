@@ -53,7 +53,7 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .contentUploadsCompleted]
         let syncStarted = self.expectation(description: "SyncStarted")
         let syncStopping = self.expectation(description: "SyncStopping")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -81,7 +81,7 @@ class Client_SyncServer_StopSync: TestCase {
                     SyncServer.session.sync()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(alreadyStopped)
                 fileUploads.fulfill()
                 
@@ -107,7 +107,7 @@ class Client_SyncServer_StopSync: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStopping, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncStopping, .contentUploadsCompleted, .singleFileUploadComplete]
         
         let syncStopping = self.expectation(description: "SyncStopping")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -139,7 +139,7 @@ class Client_SyncServer_StopSync: TestCase {
                     SyncServer.session.stopSync()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(alreadyStopped)
                 fileUploads.fulfill()
                 
@@ -355,7 +355,7 @@ class Client_SyncServer_StopSync: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .contentUploadsCompleted]
         
         let syncStartExp = self.expectation(description: "SyncStart")
         let fileUploads = self.expectation(description: "FileUploads")
@@ -387,7 +387,7 @@ class Client_SyncServer_StopSync: TestCase {
                     singleUploadExp2.fulfill()
                 }
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTAssert(numberOfStops == 2)
                 fileUploads.fulfill()
                 

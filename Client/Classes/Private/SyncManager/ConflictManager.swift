@@ -247,26 +247,45 @@ class ConflictManager {
                 var uploadUndeletions = [SyncAttributes]()
                 
                 conflictingContentUploads.forEach { (conflictUft, attr) in
-                    let conflictingContent =                 conflictContentTypeFor(conflictingContentUploads: [conflictUft])
+                    // Note that I'm depending in the download deletion case on there just being a single uft passed as a parameter to `conflictContentTypeFor`-- because I'm assuming below in the `both` case in .keepContentUpload is for a file upload.
+                    let conflictingContent = conflictContentTypeFor(conflictingContentUploads: [conflictUft])
                     let resolver = SyncServerConflict<DownloadDeletionResolution>(
                         conflictType: .contentUpload(conflictingContent), resolutionCallback: { resolution in
-                    
+                        
+                        // The following code runs *after* the client has made their decision as to how to handle the conflict. i.e., `resolution` tells us how they want to handle the conflict.
+                        var error = false
+                        
                         switch resolution {
                         case .acceptDownloadDeletion:
                             removeConflictingUpload(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID, delegate: delegate)
                             
                         case .rejectDownloadDeletion(let uploadResolution):
-                            // We're going to disregard the download deletion.
-                            deletionsToIgnore += [attr]
-                            
                             switch uploadResolution {
                             case .keepContentUpload:
-                                // Need to mark the uft as an upload undeletion.
-                                markUftAsUploadUndeletion(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID)
-                                uploadUndeletions += [attr]
-                                
+                                // Need to mark the uft as an upload undeletion, but only in the case of a file upload-- can't do this for an appMetaData upload because we don't have file contents in that case to replace the already deleted cloud storage file.
+                                switch conflictingContent {
+                                case .both, .file:
+                                    markUftAsUploadUndeletion(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID)
+                                    uploadUndeletions += [attr]
+                                    
+                                case .appMetaData:
+                                    error = true
+
+                                    Thread.runSync(onMainThread: {
+                                        delegate.syncServerErrorOccurred(error: .appMetaDataUploadUndeletionAttempt)
+                                    })
+            
+                                    // Just so this error doesn't cause an infinite loop attempting to do the download deletion-- I'm going to convert this to an .acceptDownloadDeletion
+                                    removeConflictingUpload(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID, delegate: delegate)
+                                }
+
                             case .removeContentUpload:
                                 removeConflictingUpload(pendingContentUploads: pendingContentUploads, fileUUID: attr.fileUUID, delegate: delegate)
+                            } // End switch uploadResolution
+                            
+                            if !error {
+                                // We're going to disregard the download deletion.
+                                deletionsToIgnore += [attr]
                             }
                         }
                         
@@ -278,7 +297,7 @@ class ConflictManager {
                     })
                     
                     conflicts += [(attr, resolver)]
-                }
+                } // End conflictingContentUploads.forEach
             }
         }
         

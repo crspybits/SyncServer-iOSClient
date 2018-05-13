@@ -178,6 +178,7 @@ class TestCase: XCTestCase {
             XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
             XCTAssert(Upload.getHeadSyncQueue() == nil)
             XCTAssert(DownloadFileTracker.fetchAll().count == 0)
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             XCTAssert(UploadFileTracker.fetchAll().count == 0)
             XCTAssert(NetworkCached.fetchAll().count == 0)
         }
@@ -741,7 +742,7 @@ class TestCase: XCTestCase {
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         var expectation1:XCTestExpectation!
         var expectation2:XCTestExpectation!
         var expectation3:XCTestExpectation!
@@ -751,7 +752,7 @@ class TestCase: XCTestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 expectation2.fulfill()
                 

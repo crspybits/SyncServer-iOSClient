@@ -21,7 +21,7 @@ public enum SyncEvent {
     case singleAppMetaDataUploadComplete(fileUUID: String)
 
     case singleUploadDeletionComplete(fileUUID:UUIDString)
-    case fileUploadsCompleted(numberOfFiles:Int)
+    case contentUploadsCompleted(numberOfFiles:Int)
     case uploadDeletionsCompleted(numberOfFiles:Int)
     
     case syncStarted
@@ -44,7 +44,7 @@ public struct EventDesired: OptionSet {
     public static let singleFileUploadComplete = EventDesired(rawValue: 1 << 2)
     public static let singleAppMetaDataUploadComplete = EventDesired(rawValue: 1 << 3)
     public static let singleUploadDeletionComplete = EventDesired(rawValue: 1 << 4)
-    public static let fileUploadsCompleted = EventDesired(rawValue: 1 << 5)
+    public static let contentUploadsCompleted = EventDesired(rawValue: 1 << 5)
     public static let uploadDeletionsCompleted = EventDesired(rawValue: 1 << 6)
     
     public static let syncStarted = EventDesired(rawValue: 1 << 7)
@@ -55,7 +55,7 @@ public struct EventDesired: OptionSet {
     public static let refreshingCredentials = EventDesired(rawValue: 1 << 10)
 
     public static let defaults:EventDesired =
-        [.singleFileUploadComplete, .singleUploadDeletionComplete, .fileUploadsCompleted,
+        [.singleFileUploadComplete, .singleUploadDeletionComplete, .contentUploadsCompleted,
          .uploadDeletionsCompleted]
     public static let all:EventDesired = EventDesired.defaults.union([EventDesired.syncStarted, EventDesired.syncDone, EventDesired.syncStopping, EventDesired.refreshingCredentials, EventDesired.willStartDownloads, EventDesired.willStartUploads, EventDesired.singleAppMetaDataUploadComplete])
     
@@ -70,8 +70,8 @@ public struct EventDesired: OptionSet {
         case .willStartUploads:
             eventIsDesired = .willStartUploads
             
-        case .fileUploadsCompleted:
-            eventIsDesired = .fileUploadsCompleted
+        case .contentUploadsCompleted:
+            eventIsDesired = .contentUploadsCompleted
             
         case .uploadDeletionsCompleted:
             eventIsDesired = .uploadDeletionsCompleted

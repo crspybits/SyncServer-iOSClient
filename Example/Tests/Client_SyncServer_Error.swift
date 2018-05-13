@@ -143,7 +143,7 @@ class Client_SyncServer_Error: TestCase {
         if retry {
             ServerAPI.session.failEndpoints = false
 
-            SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+            SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
             
             let syncDone = self.expectation(description: "syncDone")
             let fileUploadsCompletedExp = self.expectation(description: "fileUploadsCompletedExp")
@@ -155,7 +155,7 @@ class Client_SyncServer_Error: TestCase {
                 case .syncDone:
                     syncDone.fulfill()
                     
-                case .fileUploadsCompleted(numberOfFiles: let number):
+                case .contentUploadsCompleted(numberOfFiles: let number):
                     XCTAssert(number == 2)
                     
                     // One because only a single file needs to be uploaded the second time-- the first was uploaded before the error.

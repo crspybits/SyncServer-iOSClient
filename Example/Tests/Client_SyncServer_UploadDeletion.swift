@@ -87,7 +87,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         let fileUUID = UUID().uuidString
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
         let syncDone1 = self.expectation(description: "test1")
         let syncDone2 = self.expectation(description: "test2")
@@ -113,7 +113,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
                     XCTFail()
                 }
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 expectation2.fulfill()
                 
@@ -163,7 +163,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
         
         // Include events other than syncDone just as a means of ensuring they don't occur.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
         let syncDone1 = self.expectation(description: "test1")
         

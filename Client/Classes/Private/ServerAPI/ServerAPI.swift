@@ -661,6 +661,7 @@ class ServerAPI {
     case serverMasterVersionUpdate(Int64)
     }
     
+    // Note that you can't do an undeletion for an appMetaData upload-- because there is no content to upload. I.e., when an uploadDeletion occurs the file is deleted in cloud storage. Thus, there is no option for this method to undelete.
     func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, serverMasterVersion: MasterVersionInt, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
         let endpoint = ServerEndpoints.uploadAppMetaData
         

@@ -511,7 +511,6 @@ public class SyncServer {
                 Singleton.removeAll()
                 NetworkCached.removeAll()
                 DownloadContentGroup.removeAll()
-
             }
             
             do {
@@ -526,10 +525,13 @@ public class SyncServer {
         }
     }
     
-    // Logs information about all tracking internal meta data.
-    public func logAllTracking() {
+    static let trailingMarker = "*************** logAllTracking: Ends ***************"
+    
+    // Logs information about all tracking internal meta data. When the completion handler is called, the file data logged should be present in persistent storage. The completion runs asynchronously on the main thread.
+    public func logAllTracking(completion: (()->())? = nil) {
         Log.msg("*************** Starts: logAllTracking ***************")
         CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            DownloadContentGroup.printAll()
             DownloadFileTracker.printAll()
             UploadFileTracker.printAll()
             UploadQueue.printAll()
@@ -537,7 +539,14 @@ public class SyncServer {
             Singleton.printAll()
             NetworkCached.printAll()
         }
-        Log.msg("*************** logAllTracking: Ends ***************")
+        Log.msg(SyncServer.trailingMarker)
+        
+        // See also https://stackoverflow.com/questions/50311546/ios-flush-all-output-files/50311616
+        if let completion = completion {
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
     }
     
     public struct LocalConsistencyResults {

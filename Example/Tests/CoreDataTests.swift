@@ -117,6 +117,11 @@ class CoreDataTests: TestCase {
     }
     
     func testThatTrackingResetWorks() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let _ = DownloadFileTracker.newObject()
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+        }
+        
         do {
             try SyncServer.session.reset(type: .tracking)
         } catch (let error) {
@@ -127,6 +132,11 @@ class CoreDataTests: TestCase {
     }
     
     func testThatPlainResetWorks() {
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            let _ = DirectoryEntry.newObject()
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+        }
+        
         do {
             try SyncServer.session.reset(type: .all)
         } catch (let error) {
@@ -137,12 +147,32 @@ class CoreDataTests: TestCase {
     }
     
     func testLogAllTracking() {
+        XCTAssert(Log.deleteLogFile())
+        
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let uuid = UUID().uuidString
         let attr = SyncAttributes(fileUUID: uuid, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         
-        SyncServer.session.logAllTracking()
+        let exp = expectation(description: "test")
+        
+        SyncServer.session.logAllTracking() {
+            // Read the file from disk and see if the trailing marker is present.
+            var fileContents:String!
+            
+            do {
+                fileContents = try String(contentsOfFile: Log.logFileURL!.path)
+            } catch (let error) {
+                XCTFail("\(error)")
+                return
+            }
+
+            XCTAssert(fileContents.contains(SyncServer.trailingMarker), "\(fileContents)")
+            
+            exp.fulfill()
+        }
+
+        waitForExpectations(timeout: 10.0, handler: nil)
     }
     
     func testThatResetWorksWithObjectsInMetaData() {

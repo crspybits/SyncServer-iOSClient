@@ -429,7 +429,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up file upload(s) of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
@@ -463,7 +463,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let numberUploads):
+            case .contentUploadsCompleted(let numberUploads):
                 XCTAssert(numberUploads == 1)
                 actualNumberUploads += 1
                 if actualNumberUploads == numberUploadsToDo {
@@ -499,6 +499,95 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2)
     }
     
+    // This is an error because a purely appMetaData upload cannot undelete a file-- because it can't replace the previously deleted file content.
+    func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepAppMetaDataUpload_Fails() {
+        // 1) Upload a file-- uses sync system.
+        let fileVersion:FileVersionInt = 3
+        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+            XCTFail()
+            return
+        }
+
+        // 2) Upload delete the file, not using the sync system. This will cause the download deletion we're looking for.
+        var masterVersion:MasterVersionInt!
+        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            masterVersion = Singleton.get().masterVersion
+        }
+
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        // 3) Queue up an appMetaData upload of the same file.
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        
+        let done = self.expectation(description: "done")
+        let conflictExp = self.expectation(description: "conflict")
+        let errorExp = self.expectation(description: "error")
+        let deletion = self.expectation(description: "deletion")
+        
+        // 4) Reject the download deletion- and keep the appMetaData upload(s).
+        syncServerMustResolveDownloadDeletionConflicts = { conflicts in
+            guard conflicts.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            let conflict = conflicts[0]
+            
+            let deletion = conflict.downloadDeletion
+            XCTAssert(deletion.mimeType == .text)
+            XCTAssert(deletion.fileUUID == fileUUID)
+            
+            let uploadConflict = conflict.uploadConflict
+            
+            XCTAssert(uploadConflict.conflictType == .contentUpload(.appMetaData))
+            
+            // This is the error-- can't `.keepContentUpload` for a purely appMetaData upload.
+            uploadConflict.resolutionCallback(
+                .rejectDownloadDeletion(.keepContentUpload))
+            
+            conflictExp.fulfill()
+        }
+        
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerFileGroupDownloadComplete = { group in
+            guard group.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            guard case .deletion = group[0].type else {
+                XCTFail()
+                return
+            }
+            
+            deletion.fulfill()
+        }
+        
+        syncServerErrorOccurred = { error in
+            errorExp.fulfill()
+        }
+        
+        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        attr.appMetaData = "Some app meta data"
+        
+        try! SyncServer.session.uploadAppMetaData(attr: attr)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
+    }
+    
     // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
         // 1) Upload a file.
@@ -519,7 +608,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up a file upload of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
@@ -555,7 +644,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTFail()
                 
             default:
@@ -608,7 +697,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
         
         // 3) Queue up an upload deletion of the same file.
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         let done = self.expectation(description: "done")
@@ -626,7 +715,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 XCTFail()
                 
             default:
@@ -705,7 +794,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -716,7 +805,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 
@@ -899,7 +988,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .uploadDeletionsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .uploadDeletionsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -910,7 +999,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 
@@ -1247,7 +1336,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let done = self.expectation(description: "done")
         let fileUploadExp = self.expectation(description: "fileUploadExp")
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
         
         syncServerEventOccurred = { event in
@@ -1258,7 +1347,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                     done.fulfill()
                 }
                 
-            case .fileUploadsCompleted(let num):
+            case .contentUploadsCompleted(let num):
                 Log.msg("uploadResolution: \(String(describing: uploadResolution))")
                 XCTAssert(num == 1)
                 fileUploadExp.fulfill()

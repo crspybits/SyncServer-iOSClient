@@ -47,6 +47,7 @@ public enum SyncServerError: Error {
     case non200StatusCode(Int)
     case badCheckCreds
     case badAddUser
+    case appMetaDataUploadUndeletionAttempt
     case unknownServerError
     case coreDataError(Error)
     case otherError(Error)

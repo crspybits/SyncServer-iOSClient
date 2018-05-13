@@ -35,7 +35,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         
         let expectation1 = self.expectation(description: "test1")
         let expectation2 = self.expectation(description: "test2")
@@ -47,7 +47,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 2)
                 
                 // This is three because one of the uploads is repeated when the master version is updated.
@@ -104,7 +104,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
 
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
 
         let syncDone1Exp = self.expectation(description: "syncDone1Exp")
         let file1Exp = self.expectation(description: "file1Exp")
@@ -114,7 +114,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .syncDone:
                 syncDone1Exp.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 file1Exp.fulfill()
                 
@@ -129,7 +129,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         
         let syncDone2Exp = self.expectation(description: "syncDone2Exp")
         let fileUploadsCompletedExp = self.expectation(description: "fileUploadsCompleted")
@@ -141,7 +141,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .syncDone:
                 syncDone2Exp.fulfill()
                 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 XCTAssert(singleUploadsCompleted == 2, "Uploads actually completed: \(singleUploadsCompleted)")
                 fileUploadsCompletedExp.fulfill()
@@ -212,7 +212,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: .text)
 
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted]
         
         let syncDoneExp2 = self.expectation(description: "syncDoneExp2")
         let fileUploadsCompletedExp = self.expectation(description: "fileUploadsCompletedExp")
@@ -223,7 +223,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .syncDone:
                 syncDoneExp2.fulfill()
 
-            case .fileUploadsCompleted(numberOfFiles: let number):
+            case .contentUploadsCompleted(numberOfFiles: let number):
                 XCTAssert(number == 1)
                 
                 // This is two because the upload is repeated when the master version is updated.

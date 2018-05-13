@@ -299,7 +299,7 @@ class SyncManager {
             // `numTransferred` may not be accurate in the case of retries/recovery.
             case .doneUploads(numberTransferred: _):
                 var uploadQueue:UploadQueue!
-                var fileUploads:[UploadFileTracker]!
+                var contentUploads:[UploadFileTracker]!
                 var uploadDeletions:[UploadFileTracker]!
                 var errorResult:SyncServerError?
 
@@ -311,7 +311,7 @@ class SyncManager {
                         return
                     }
                     
-                    fileUploads = uploadQueue.uploadFileTrackers.filter {$0.operation.isContents}
+                    contentUploads = uploadQueue.uploadFileTrackers.filter {$0.operation.isContents}
                 }
                 
                 if errorResult != nil {
@@ -319,14 +319,14 @@ class SyncManager {
                     return
                 }
                 
-                if fileUploads.count > 0 {
-                    EventDesired.reportEvent(.fileUploadsCompleted(numberOfFiles: fileUploads.count), mask: self.desiredEvents, delegate: self.delegate)
+                if contentUploads.count > 0 {
+                    EventDesired.reportEvent(.contentUploadsCompleted(numberOfFiles: contentUploads.count), mask: self.desiredEvents, delegate: self.delegate)
                 }
     
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() { [unowned self] in
-                    if fileUploads.count > 0 {
+                    if contentUploads.count > 0 {
                         // Each of the DirectoryEntry's for the uploads needs to now be given its version, as uploaded. And appMetaData needs to be updated in directory if it has been updated on this upload.
-                        fileUploads.forEach { uft in
+                        contentUploads.forEach { uft in
                             guard let uploadedEntry = DirectoryEntry.fetchObjectWithUUID(uuid: uft.fileUUID) else {
                                 assert(false)
                                 return

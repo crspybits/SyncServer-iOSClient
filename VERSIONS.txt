@@ -1,13 +1,13 @@
 SyncServer-iOSClient
 
-<<<<<<< HEAD
 Version 15.0.0
 	* Added fileGroupUUID & file group support.
 		This is a breaking change in terms of delegate callbacks-- the download delegate callback now deals with file groups.
 		https://github.com/crspybits/SyncServerII/issues/59
 		https://github.com/crspybits/SyncServer-iOSClient/issues/29
+	* Fixed an issue with conflicts between download deletions and appMetaData uploads
+		This situation cannot be resolved by a client with .rejectDownloadDeletion(.keepContentUpload) because an app meta data upload cannot replace the content of a previously deleted file.
 		
-=======
 Version 14.3.1 (5/3/18)
 	* Fix faulting in issue-- with logging tracking state.
 
@@ -16,7 +16,6 @@ Version 14.3.0 (5/3/18)
 	* Added code to reset the state of those Core Data objects.
 	* Fixed Git issue-- hadn't been tracking Pods in Example app and wass causing problems.
 	
->>>>>>> master
 Version 14.2.0 (4/23/18)
 	* Added code to do some "garbage collection" cleanup + handle a migration issue.
 	

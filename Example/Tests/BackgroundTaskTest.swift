@@ -181,7 +181,7 @@ class BackgroundTaskTest: TestCase {
     
     // Search through the console log output for "Using cached upload result".
     func testRestartUpload() {
-        SyncServer.session.eventsDesired = [.syncDone, .fileUploadsCompleted]
+        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
         SyncServer.session.delegate = self
 
         let done = self.expectation(description: "done")
@@ -196,7 +196,7 @@ class BackgroundTaskTest: TestCase {
             case .syncDone:
                 done.fulfill()
                 
-            case .fileUploadsCompleted:
+            case .contentUploadsCompleted:
                 uploaded.fulfill()
             
             default:
