@@ -1,6 +1,9 @@
 SyncServer-iOSClient
 
-Version 15.0.1 (5/13/18)
+Version 15.0.2 (5/15/18)
+	* Added a migration
+	
+Version 15.0.1 (5/15/18)
 	* Fixed issue with public qualifier on DownloadOperation member in delegate method.
 	* Now when a client gives `rejectDownloadDeletion` as a conflict resolution to a download deletion, this will reject download deletion for *all* of the pending files with the same fileGroupUUID-- in order to maintain file group integrity. See also https://github.com/crspybits/SharedImages/issues/77
 	
