@@ -1500,4 +1500,111 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(directoryEntries[0].appMetaDataVersion == appMetaData2.version)
         }
     }
+    
+    // Two download deletions in the same file group. File upload conflict. Client resolves conflict with `.rejectDownloadDeletion(.keepContentUpload))`
+    func testTwoDownloadDeletionsInSameFileGroup() {
+        // Upload files
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let fileUUID1 = UUID().uuidString
+        let fileUUID2 = UUID().uuidString
+        let fileGroupUUID = UUID().uuidString
+        
+        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileGroupUUID: fileGroupUUID, fileURL: url) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID2, fileGroupUUID: fileGroupUUID, fileURL: url) else {
+            XCTFail()
+            return
+        }
+        
+        // Delete them.
+        let masterVersion = getMasterVersion()
+
+        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: fileUUID1, fileVersion: 0)
+        uploadDeletion(fileToDelete: fileToDelete1, masterVersion: masterVersion)
+        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: fileUUID2, fileVersion: 0)
+        uploadDeletion(fileToDelete: fileToDelete2, masterVersion: masterVersion)
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+
+        // Initiate an upload to create the conflict.
+        
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        let expectSyncDone = self.expectation(description: "test1")
+        let expectConflicts = self.expectation(description: "test2")
+        var numberSyncDone = 0
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                numberSyncDone += 1
+                if numberSyncDone == 2 {
+                    expectSyncDone.fulfill()
+                }
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerFileGroupDownloadComplete = { group in
+            // We don't get the download deletion for the second file because (a) we are using a file group, and (b) we selected .rejectDownloadDeletion-- which operates across the file group.
+            XCTFail()
+        }
+        
+        syncServerMustResolveDownloadDeletionConflicts = { conflicts in
+            guard conflicts.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            let conflict = conflicts[0]
+            
+            guard case .contentUpload(.file)? = conflict.uploadConflict.conflictType else {
+                XCTFail()
+                return
+            }
+            
+            conflict.uploadConflict.resolveConflict(resolution:
+                .rejectDownloadDeletion(.keepContentUpload))
+            
+            DispatchQueue.main.async {
+                /* This file won't be deleted locally yet. But, it will be marked as deleted on the server. How do we trigger an undeletion? It seems like we want to allow the client to trigger an undeletion. I'm not sure I want to get that power to clients though...
+                Possibilities:
+                1) Add a parameter to SyncAttributes-- for undeletion-- applicable only for file uploads.
+                2) Add some state to the DirectoryEntry -- and when a undeletion is marked in a uft, the other directory entries in the group (if any) can be marked as pending undeletion. Which will indicate on the next file upload, that they should be undeleted. Using `deletedOnServer` for this purpose.
+                */
+                try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
+                SyncServer.session.sync()
+            }
+            
+            expectConflicts.fulfill()
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        guard let fileIndex = getFileIndex() else {
+            XCTFail()
+            return
+        }
+        
+        let file1 = fileIndex.filter {$0.fileUUID == attr1.fileUUID}
+        guard file1.count == 1, file1[0].deleted == false else {
+            XCTFail()
+            return
+        }
+        
+        let file2 = fileIndex.filter {$0.fileUUID == attr2.fileUUID}
+        guard file2.count == 1, file2[0].deleted == false else {
+            XCTFail()
+            return
+        }
+    }
 }
