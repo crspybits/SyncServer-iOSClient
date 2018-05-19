@@ -978,4 +978,75 @@ class Client_FileGroup: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
+    
+    // Make sure the files have their expected contents.
+    func testDownloadAGroupWithATextFileAndImageWorks() {
+        // Upload a group of files.
+        let masterVersion = getMasterVersion()
+        
+        let fileGroupUUID = UUID().uuidString
+
+        let imageFileUUID = UUID().uuidString
+        let textFileUUID = UUID().uuidString
+
+        let textFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let imageFileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
+
+        guard let _ = uploadFile(fileURL:textFileURL, mimeType: .text, fileUUID: textFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+            return
+        }
+        
+        guard let _ = uploadFile(fileURL:imageFileURL, mimeType: .text, fileUUID: imageFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        
+        // Download them with sync
+        
+        let expDone = self.expectation(description: "test1")
+        let expImage = self.expectation(description: "test2")
+        let expText = self.expectation(description: "test3")
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expDone.fulfill()
+                
+            default:
+                XCTFail("\(event)")
+            }
+        }
+        
+        syncServerFileGroupDownloadComplete = { group in
+            XCTAssert(group.count == 2)
+            
+            group.forEach { file in
+                guard case .file(let url) = file.type else {
+                    XCTFail()
+                    return
+                }
+                
+                XCTAssert(file.attr.fileGroupUUID == fileGroupUUID)
+                
+                if file.attr.fileUUID == textFileUUID {
+                    XCTAssert(self.filesHaveSameContents(url1: url as URL, url2: textFileURL))
+                    expText.fulfill()
+                }
+                else if file.attr.fileUUID == imageFileUUID {
+                    XCTAssert(self.filesHaveSameContents(url1: url as URL, url2: imageFileURL))
+                    expImage.fulfill()
+                }
+                else {
+                    XCTFail()
+                }
+            }
+        }
+
+        SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
 }
