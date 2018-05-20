@@ -1,6 +1,9 @@
 SyncServer-iOSClient
 
-Version 15.1.0
+Version 15.1.1 (5/19/18)
+	* Fixed a bug where in some cases (who knows why!) DirectoryEntry's don't always have mimeType's.
+
+Version 15.1.0 (5/19/18)
 	* Fixed issue with core data model: New attribute should have been optional to support migration.
 	* Added new client method-- `getAttributes` to enable a client to get SyncAttributes for a file.
 	* Fixed name conflict in NSUserDefault variable.
