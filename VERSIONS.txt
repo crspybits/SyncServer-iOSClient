@@ -1,5 +1,11 @@
 SyncServer-iOSClient
 
+Version 15.1.0
+	* Fixed issue with core data model: New attribute should have been optional to support migration.
+	* Added new client method-- `getAttributes` to enable a client to get SyncAttributes for a file.
+	* Fixed name conflict in NSUserDefault variable.
+	* Added "migration" to enable DirectoryEntry's to be updated with fileGroupUUID's when they had them on the server but didn't have them in the DirectoryEntry.
+	
 Version 15.0.2 (5/15/18)
 	* Added a migration
 	
