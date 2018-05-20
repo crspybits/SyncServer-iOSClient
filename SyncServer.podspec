@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   
   s.dependency 'Gloss', '~> 1.2'
   
-  s.dependency 'SyncServer-Shared', '~> 6.1'
+  s.dependency 'SyncServer-Shared', '~> 6.3'
   
   s.default_subspec = 'Lite'
   
