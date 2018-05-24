@@ -417,20 +417,23 @@ public class SyncServer {
                 doStart = false
                 return
             }
+
+            // [2]
+            if syncOperating {
+                delayedSync = true
+                doStart = false
+                return // exit the Synchronized.block
+            }
+            else {
+                syncOperating = true
+            }
             
+            // 5/21/18; Previously, I had the code at [2] below this block. But that generated a race condition to an apparent deadlock. See also https://github.com/crspybits/SharedImages/issues/101 Plus, it seems odd to me that I'd do a delayedSync and not do sync right now if I'm doing this below (another bug waiting to happen in that case). I think the deadlock was because I was trying to do two of the `performAndWait`s concurrently.
             CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
                 // TODO: *0* Need an error reporting mechanism. These should not be `try!`
                 if try! Upload.pendingSync().uploadFileTrackers.count > 0  {
                     try! Upload.movePendingSyncToSynced()
                 }
-            }
-            
-            if syncOperating {
-                delayedSync = true
-                doStart = false
-            }
-            else {
-                syncOperating = true
             }
         }
         
