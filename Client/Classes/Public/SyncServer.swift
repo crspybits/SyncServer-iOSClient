@@ -686,7 +686,7 @@ public class SyncServer {
             
             Synchronized.block(self) { [unowned self] in
                 CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
-                    if !self.stoppingSync && (Upload.haveSyncQueue()  || self.delayedSync) {
+                    if !self.stoppingSync && (Upload.haveSyncQueue() || self.delayedSync) {
                         self.delayedSync = false
                         doStart = true
                     }

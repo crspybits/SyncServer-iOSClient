@@ -11,10 +11,13 @@ import XCTest
 import SMCoreLib
 import SyncServer_Shared
 
+// 4/23/18; There are ideas about how to disable the network here: https://stackoverflow.com/questions/4808433/is-it-possible-to-disable-the-network-in-ios-simulator but I've yet to see anything where you can programmatically disable it in unit tests. I used to have these tests sort-of working by using `Network.session().debugNetworkOff` but I'm no longer relying in the same way on the `Network` connected tests.
+
 class ServerAPI_NetworkLoss: TestCase {
-    
+#if false
     override func setUp() {
         super.setUp()
+        
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
@@ -38,7 +41,7 @@ class ServerAPI_NetworkLoss: TestCase {
     
     func testHealthCheckNetworkLoss() {
         apiCallNetworkLoss() { exp in
-            ServerAPI.session.healthCheck { error in
+            ServerAPI.session.healthCheck { _, error in
                 XCTAssert(error != nil)
                 exp.fulfill()
             }
@@ -156,4 +159,5 @@ class ServerAPI_NetworkLoss: TestCase {
             }
         }
     }
+#endif
 }
