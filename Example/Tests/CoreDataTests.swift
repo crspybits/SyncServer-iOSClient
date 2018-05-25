@@ -25,7 +25,7 @@ class CoreDataTests: TestCase {
     }
     
     func testLocalURLOnUploadFileTracker() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let obj = UploadFileTracker.newObject() as! UploadFileTracker
             obj.localURL = SMRelativeLocalURL(withRelativePath: "foobar", toBaseURLType: .documentsDirectory)
             XCTAssert(obj.localURL != nil)
@@ -33,14 +33,14 @@ class CoreDataTests: TestCase {
     }
     
     func testThatUploadFileTrackersWorks() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let uq = UploadQueue.newObject() as! UploadQueue
             XCTAssert(uq.uploadFileTrackers.count == 0)
         }
     }
     
     func testThatPendingSyncQueueIsInitiallyEmpty() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
         }
     }
@@ -52,7 +52,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatPendingSyncQueueCanAddObject() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
 
             do {
@@ -66,13 +66,13 @@ class CoreDataTests: TestCase {
     }
     
     func testThatSyncedInitiallyIsEmpty() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(Upload.synced().queues!.count == 0)
         }
     }
     
     func testMovePendingSyncToSynced() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
             do {
@@ -85,7 +85,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatGetHeadSyncQueueWorks() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
             do {
@@ -103,7 +103,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatRemoveHeadSyncQueueWorks() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
             Upload.removeHeadSyncQueue()
@@ -117,7 +117,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatTrackingResetWorks() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let _ = DownloadFileTracker.newObject()
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
         }
@@ -132,7 +132,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatPlainResetWorks() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let _ = DirectoryEntry.newObject()
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
         }
@@ -176,7 +176,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatResetWorksWithObjectsInMetaData() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
             
@@ -206,7 +206,7 @@ class CoreDataTests: TestCase {
         let statusCode = 200
         let origResponse = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let obj = NetworkCached.newObject() as! NetworkCached
             obj.fileUUID = fileUUID
             obj.fileVersion = version
@@ -265,7 +265,7 @@ class CoreDataTests: TestCase {
         let fileUUIDUpload = UUID().uuidString
         createNetworkCached(withVersion: version, fileUUID:fileUUIDUpload, download: false)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let _ = NetworkCached.fetchObjectWithUUID(fileUUIDDownload, andVersion: version, download: true) else {
                 XCTFail()
                 return
@@ -281,7 +281,7 @@ class CoreDataTests: TestCase {
     func testFetchObjectWithServerURLKey() {
         let serverURL = URL(fileURLWithPath: "https://syncserver.cprince.com/FileIndex/")
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let obj = NetworkCached.newObject() as! NetworkCached
             obj.serverURLKey = serverURL.absoluteString
             obj.save()
@@ -296,7 +296,7 @@ class CoreDataTests: TestCase {
     }
     
     func testDeletionOfStaleCacheEntriesDoesNothingWhenEntriesRecent() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let obj1 = NetworkCached.newObject() as! NetworkCached
             obj1.save()
             
@@ -311,7 +311,7 @@ class CoreDataTests: TestCase {
     }
     
     func testDeletionOfStaleCacheEntriesRemovesWhenEntriesOld() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let staleDate = NSCalendar.current.date(byAdding: .day, value: -(NetworkCached.staleNumberOfDays + 1), to: Date())!
             
             let obj1 = NetworkCached.newObject() as! NetworkCached
@@ -330,7 +330,7 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToNewFileGroup() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
             let fileGroupUUID = UUID().uuidString
@@ -348,7 +348,7 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToExistingFileGroup() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             let fileGroupUUID = UUID().uuidString
 
@@ -372,7 +372,7 @@ class CoreDataTests: TestCase {
     }
     
     func testFileGroupFudgeCase() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
             DownloadContentGroup.addDownloadFileTracker(dft, to: nil)
             
@@ -389,7 +389,7 @@ class CoreDataTests: TestCase {
     }
     
     func testCleanupUploads() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let uft1 = UploadFileTracker.newObject() as! UploadFileTracker
             uft1.status = .uploaded
             
@@ -401,7 +401,7 @@ class CoreDataTests: TestCase {
         
         SyncManager.cleanupUploads()
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let ufts = UploadFileTracker.fetchAll().filter {$0.status == .uploaded}
             XCTAssert(ufts.count == 0)
         }

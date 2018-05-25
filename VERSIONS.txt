@@ -1,12 +1,14 @@
 SyncServer-iOSClient
 
-Version 15.2.0
+Version 15.2.0 (5/24/18)
 	* Fixed: Dany issue: Multiple quick refreshes cause a crash
 		https://github.com/crspybits/SharedImages/issues/101
 		(Apparently due to a deadlock)
-	* Attempted fix of https://github.com/crspybits/SharedImages/issues/110 by not checking for a lack of network connection before an endpoint call to the server. I'm wondering if I'm getting false indications of a lack of a network. Use the network check as a diagnostic after an error instead.
+	* Attempted fix of https://github.com/crspybits/SharedImages/issues/110 by not checking for a lack of network connection before an endpoint call to the server. I'm wondering if I'm getting false indications of a lack of a network. Now using the network check as a diagnostic after an error instead.
 	* Added in a check for cellular data connection
 		https://github.com/crspybits/SharedImages/issues/106
+	* Fixing a Core Data synchronization issue
+		I had generally been allowing for multiple concurrent calls to `performAndWait`-- which can apparently result in deadlocks. I am now serializing these requests-- see CoreDataSync
 		
 Version 15.1.1 (5/19/18)
 	* Fixed a bug where in some cases (who knows why!) DirectoryEntry's don't always have mimeType's.
