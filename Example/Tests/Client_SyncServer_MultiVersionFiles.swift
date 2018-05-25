@@ -38,7 +38,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
             guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 XCTFail()
@@ -112,7 +112,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         ])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
             guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID) else {
                 XCTFail()
@@ -216,7 +216,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
         
         // Make sure the files/versions are in our file index.
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let file1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1),
             let file2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2) else {
                 XCTFail()
@@ -262,7 +262,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         waitForExpectations(timeout: 30.0, handler: nil)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let file = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID) else {
                 XCTFail()
                 return
@@ -281,7 +281,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -333,7 +333,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
 
@@ -420,7 +420,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
 
@@ -510,7 +510,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         // 2) Upload delete the file, not using the sync system. This will cause the download deletion we're looking for.
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
 
@@ -599,7 +599,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
 
@@ -688,7 +688,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
         // 2) Upload delete the file, not using the sync system.
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
 
@@ -729,7 +729,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
         
         // Make sure the file is marked as deleted in our local file index.
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let file = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID) else {
                 XCTFail()
                 return
@@ -1259,7 +1259,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         // 3) "Someone else" do an upload undeletion-- do this using the Server API directly.
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -1299,7 +1299,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 XCTFail()
                 return
@@ -1486,7 +1486,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
         
         // 4) Make sure the directory has the same appMetaData
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID1
             }

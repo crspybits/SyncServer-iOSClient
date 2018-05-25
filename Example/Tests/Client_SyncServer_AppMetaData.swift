@@ -38,7 +38,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -62,7 +62,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -82,7 +82,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -104,7 +104,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -127,7 +127,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -227,7 +227,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         
         XCTAssert(appMetaDataContents == updatedAttr.appMetaData)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -281,7 +281,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         
         XCTAssert(appMetaDataContents == updatedAttr.appMetaData)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let directoryEntries = DirectoryEntry.fetchAll().filter {entry in
                 entry.fileUUID == fileUUID
             }
@@ -308,7 +308,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         updatedAttr.appMetaData = "foobar"
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
 
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let ufts = try! Upload.pendingSync().uploadFileTrackers
             guard ufts.count == 1 else {
                 XCTFail()
@@ -332,7 +332,7 @@ class Client_SyncServer_AppMetaData: TestCase {
 
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let ufts = try! Upload.pendingSync().uploadFileTrackers
             guard ufts.count == 1 else {
                 XCTFail()
@@ -357,7 +357,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         updatedAttr.appMetaData = "foobar2"
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let ufts = try! Upload.pendingSync().uploadFileTrackers
             guard ufts.count == 1 else {
                 XCTFail()

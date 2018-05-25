@@ -169,7 +169,7 @@ class TestCase: XCTestCase {
     }
     
     func assertThereIsNoTrackingMetaData() {
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
             XCTAssert(UploadQueue.fetchAll().count == 0)
             XCTAssert(UploadQueues.fetchAll().count == 0)
@@ -187,7 +187,7 @@ class TestCase: XCTestCase {
     func assertThereIsNoMetaData() {
         assertThereIsNoTrackingMetaData()
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DirectoryEntry.fetchAll().count == 0)
         }
     }
@@ -585,7 +585,7 @@ class TestCase: XCTestCase {
             XCTAssert(error == nil)
             XCTAssert(downloadCount == 1)
             
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 let entries = DirectoryEntry.fetchAll()
                 
                 // There may be more directory entries than just accounted for in this single function call, so don't do this:
@@ -866,7 +866,7 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
         
         // 9/16/17; I'm getting an odd test interaction. The test immediately after this one is failing seemingly because there is a download available *after* this test. This is to check to see if somehow there is a DownloadFileTracker still available. There shouldn't be.
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dfts = DownloadFileTracker.fetchAll()
             XCTAssert(dfts.count == 0)
         }

@@ -81,7 +81,7 @@ class Client_SyncManager: TestCase {
             
             XCTAssert(downloadCount == 2)
             
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 let entries = DirectoryEntry.fetchAll()
                 XCTAssert(entries.count == expectedFiles.count)
 
@@ -140,7 +140,7 @@ class Client_SyncManager: TestCase {
         let singleFileDownload = {
             numberDownloads += 1
             if numberDownloads == 1 {
-                CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+                CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     // This is fake: It would be conceptually better to upload a file here but that's a bit of a pain the way I have it setup in testing.
                     Singleton.get().masterVersion = Singleton.get().masterVersion - 1
                     do {

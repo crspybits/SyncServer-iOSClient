@@ -41,7 +41,7 @@ class Client_Downloads: TestCase {
                 XCTFail()
             }
             
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 XCTAssert(Singleton.get().masterVersion == expectedMasterVersion)
 
                 let dfts = DownloadFileTracker.fetchAll()
@@ -140,7 +140,7 @@ class Client_Downloads: TestCase {
                 return
             }
             
-            CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 let dfts = DownloadFileTracker.fetchAll()
                 XCTAssert(dfts[0].fileVersion == file.fileVersion)
                 XCTAssert(dfts[0].status == .downloaded)
@@ -156,7 +156,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dfts = DownloadFileTracker.fetchAll()
             XCTAssert(dfts[0].status == .downloading)
         }
@@ -178,7 +178,7 @@ class Client_Downloads: TestCase {
         
         checkForDownloads(expectedMasterVersion: masterVersion + 1, expectedFiles: [file])
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Fake an incorrect master version.
             Singleton.get().masterVersion = masterVersion
             
@@ -205,7 +205,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dfts = DownloadFileTracker.fetchAll()
             XCTAssert(dfts[0].status == .downloading)
         }
@@ -239,7 +239,7 @@ class Client_Downloads: TestCase {
         }
         waitForExpectations(timeout: 30.0, handler: nil)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dcgs = DownloadContentGroup.fetchAll()
             guard dcgs.count == 1 else {
                 XCTFail()

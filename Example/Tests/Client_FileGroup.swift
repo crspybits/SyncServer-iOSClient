@@ -138,7 +138,7 @@ class Client_FileGroup: TestCase {
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let entries = DirectoryEntry.fetchAll()
             let filtered = entries.filter {$0.fileUUID == fileUUID}
             guard filtered.count == 1 else {
@@ -175,7 +175,7 @@ class Client_FileGroup: TestCase {
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let entries = DirectoryEntry.fetchAll()
             let filtered = entries.filter {$0.fileUUID == file.fileUUID}
             guard filtered.count == 1 else {
@@ -483,7 +483,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -543,7 +543,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -608,7 +608,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -672,7 +672,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -758,7 +758,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -849,7 +849,7 @@ class Client_FileGroup: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         

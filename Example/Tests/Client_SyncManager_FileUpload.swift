@@ -34,7 +34,7 @@ class Client_SyncServer_FileUpload: TestCase {
         getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -101,7 +101,7 @@ class Client_SyncServer_FileUpload: TestCase {
         ])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -173,7 +173,7 @@ class Client_SyncServer_FileUpload: TestCase {
         
         // Download the file and make sure it corresponds to url2
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -287,7 +287,7 @@ class Client_SyncServer_FileUpload: TestCase {
         getFileIndex(expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -399,7 +399,7 @@ class Client_SyncServer_FileUpload: TestCase {
         
         // Download and check the files
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         

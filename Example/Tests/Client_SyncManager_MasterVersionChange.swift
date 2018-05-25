@@ -59,7 +59,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
                     // Serious faking of the master version change between the two file uploads.s :). I was having too much problem trying to do an intervening upload right here.
-                    CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
                         Singleton.get().masterVersion -= 1
                     }
                 }
@@ -84,7 +84,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -149,7 +149,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .singleFileUploadComplete(_):
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
-                    CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
                         Singleton.get().masterVersion += 1
                     }
                 }
@@ -171,7 +171,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         ])
         
         var masterVersion:MasterVersionInt!
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
@@ -238,7 +238,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .singleFileUploadComplete(_):
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
-                    CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
                         Singleton.get().masterVersion += 1
                     }
                 }
@@ -320,7 +320,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 downloadCount += 1
                 
                 if downloadCount == 1 {
-                    CoreData.sessionNamed(Constants.coreDataName).performAndWait {
+                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
                         Singleton.get().masterVersion += 1
                     }
                 }

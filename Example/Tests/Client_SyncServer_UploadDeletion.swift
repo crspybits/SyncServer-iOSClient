@@ -70,7 +70,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
             return nil
         }
 
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
             XCTAssert(result!.deletedLocally)
         }
@@ -151,7 +151,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         XCTAssert(fileIndex[0].deleted)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
             XCTAssert(result!.deletedLocally)
         }
@@ -191,7 +191,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         XCTAssert(fileIndex.count == 0)
     
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
             XCTAssert(result!.deletedLocally)
         }
@@ -403,7 +403,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
             XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
@@ -465,7 +465,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         XCTAssert(fileIndex[0].deleted)
         XCTAssert(fileIndex[1].deleted)
         
-        CoreData.sessionNamed(Constants.coreDataName).performAndWait() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let result1 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID1)
             XCTAssert(result1!.deletedLocally)
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
