@@ -417,6 +417,12 @@ public class SyncServer {
                 doStart = false
                 return
             }
+            
+            // 5/24/18; The positioning of this block of code has given me some consternation. It *must* come before block [2] below-- because the `sync` operation must do a sync, and `movePendingSyncToSynced` is core to what the sync operation is-- any delay aspect just doesn't trigger it with the `start` operation. HOWEVER, I found that https://github.com/crspybits/SharedImages/issues/101 was due to a deadlock of performAndWait calls. So, I've ended up with a rather different means of dealing with Core Data synchronization in the form of `CoreDataSync` used below.
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                // TODO: *0* Need an error reporting mechanism. These should not be `try!`
+                if try! Upload.pendingSync().uploadFileTrackers.count > 0  {
+                    try! Upload.movePendingSyncToSynced()
                 }
             }
             
