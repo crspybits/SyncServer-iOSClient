@@ -28,10 +28,9 @@ Pod::Spec.new do |s|
   s.preserve_paths = 'Client/Assets/**/*'
 
   s.dependency 'SMCoreLib', '~> 1.2'
-  
   s.dependency 'Gloss', '~> 1.2'
-  
   s.dependency 'SyncServer-Shared', '~> 6.3'
+  s.dependency 'RealReachability', '~> 1.2'
   
   s.default_subspec = 'Lite'
   
@@ -42,8 +41,8 @@ Pod::Spec.new do |s|
   s.subspec 'Facebook' do |facebook|
     facebook.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
-    facebook.dependency 'FacebookLogin', '~> 0.2'
-    facebook.dependency 'FacebookCore', '~> 0.2'
+    facebook.dependency 'FacebookCore'
+    facebook.dependency 'FacebookLogin'
   end
 
   s.subspec 'Dropbox' do |dropbox|

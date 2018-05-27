@@ -11,7 +11,11 @@ open class TeamLogRoutes {
         self.client = client
     }
 
-    /// Retrieves team events. Permission : Team Auditing.
+    /// Retrieves team events. Events have a lifespan of two years. Events older than two years will not be returned.
+    /// Many attributes note 'may be missing due to historical data gap'. Note that the file_operations category and &
+    /// analogous paper events are not available on all Dropbox Business plans /business/plans-comparison. Use
+    /// features/get_values /developers/documentation/http/teams#team-features-get_values to check for this feature.
+    /// Permission : Team Auditing.
     ///
     /// - parameter limit: Number of results to return per call.
     /// - parameter accountId: Filter the events by account ID. Return ony events with this account_id as either Actor,
