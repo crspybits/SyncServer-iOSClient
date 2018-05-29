@@ -1,0 +1,57 @@
+---
+min_acl: public
+github_url: https://github.com/crspybits/SyncServer-iOSClient.git
+author: Spastic Muffin, LLC
+clean:
+output: ../crspybits.github.io/iOS-Client-Docs/
+module: SyncServer
+xcodebuild_arguments: ["-workspace","Example/SyncServer.xcworkspace","-scheme","SyncServer","-sdk","iphonesimulator"]
+include:
+  - "Client/Classes/Public/*"
+exclude:
+  - "Client/Classes/Public/SignIn/Extras/UIView+Extras.swift"
+custom_categories:
+  - name: File Synchronization
+    children:
+    - SyncServer
+    - SyncAttributes
+    - SyncServerDelegate
+    - SyncEvent
+    - EventDesired
+    - SyncServerError
+    - FileUUID
+    - DownloadOperation
+    - ServerVersion
+  - name: Conflict Resolution
+    children:
+    - SyncServerConflict
+    - ContentDownloadResolution
+    - DownloadDeletionResolution   
+    - ConflictingClientOperation 
+    - ServerContentType
+  - name: Users and Sharing
+    children:
+    - SignInManager
+    - SignInManagerDelegate
+    - SignIn
+    - SignInStart
+    - SyncServerUser
+    - SharingInvitation
+    - SharingInvitationDelegate
+    - SignInAccount
+    - SignInSubviewDelegate
+    - UserActionNeeded
+    - UserActionOccurred
+    - SignInState
+    - SignInUIState
+    - GenericCredentials
+    - GenericSignIn
+    - GenericSignInDelegate
+    - GenericSignOutDelegate
+    - Tappable
+  - name: Specific Sign-in's
+    children:
+    - DropboxCredentials
+    - DropboxSyncServerSignIn
+    - FacebookCredentials
+    - FacebookSyncServerSignIn

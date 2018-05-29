@@ -1,5 +1,7 @@
 NOTE NOTE NOTE: I think I can't increase the Swift version of this pod to 4.0 until all of its component pods are also at 4.0
 
+# 0) Run `jazzy` to generate the docs. Check for warnings. Check the docs to see if they look OK.
+
 # 1) Validate pod by building it locally from Example app, using :path notation.
 
 # 2) validate the pod, without downloading
