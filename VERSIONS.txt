@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 15.3.0 (5/27/18)
+	* Now using https://github.com/dustturtle/RealReachability to detect network before making server calls.
+	
 Version 15.2.0 (5/24/18)
 	* Fixed: Dany issue: Multiple quick refreshes cause a crash
 		https://github.com/crspybits/SharedImages/issues/101

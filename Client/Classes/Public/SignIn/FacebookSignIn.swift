@@ -11,8 +11,8 @@
 
 import Foundation
 import SMCoreLib
-import FacebookLogin
 import FacebookCore
+import FacebookLogin
 import SyncServer_Shared
 
 /// Enables you to sign in as a Facebook user to (a) create a new sharing user (must have an invitation from another SyncServer user), or (b) sign in as an existing sharing user.
