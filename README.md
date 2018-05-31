@@ -1,6 +1,8 @@
 For documentation on the overall project see: https://crspybits.github.io/SyncServerII/
 
 [Client code](https://github.com/crspybits/SyncServer-iOSClient/tree/dev/Client): The iOS client interface to the SyncServer server.
+
+[Jazzy documentation on this iOS SyncServer client interface](https://crspybits.github.io/iOS-Client-Docs/)
 	
 [Example code](https://github.com/crspybits/SyncServer-iOSClient/tree/dev/Example): An example of using this iOS client, along with tests for the Client interface.
 
