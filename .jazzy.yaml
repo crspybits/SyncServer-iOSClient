@@ -6,6 +6,7 @@ clean:
 output: ../crspybits.github.io/iOS-Client-Docs/
 module: SyncServer
 xcodebuild_arguments: ["-workspace","Example/SyncServer.xcworkspace","-scheme","SyncServer","-sdk","iphonesimulator"]
+undocumented_text: ""
 include:
   - "Client/Classes/Public/*"
 exclude:
