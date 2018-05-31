@@ -1,3 +1,5 @@
+SyncServerII synchronizes an app's data between mobile devices and user-owned cloud storage systems, and enables users to safely share that data.
+
 For documentation on the overall project see: https://crspybits.github.io/SyncServerII/
 
 [Client code](https://github.com/crspybits/SyncServer-iOSClient/tree/dev/Client): The iOS client interface to the SyncServer server.
