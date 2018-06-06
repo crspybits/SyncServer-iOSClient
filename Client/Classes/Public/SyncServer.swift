@@ -11,7 +11,7 @@ import SMCoreLib
 import SyncServer_Shared
 import RealReachability
 
-/// Synchronize files and app meta data with other instances of the same client sapp.
+/// Synchronize files and app meta data with other instances of the same client app.
 public class SyncServer {
     /// The singleton for this class.
     public static let session = SyncServer()
