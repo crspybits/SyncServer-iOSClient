@@ -47,6 +47,25 @@
       "name": "Lite"
     },
     {
+      "name": "Google",
+      "xcconfig": {
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN",
+        "OTHER_LDFLAGS": "$(inherited) -ObjC"
+      },
+      "pod_target_xcconfig": {
+        "FRAMEWORK_SEARCH_PATHS": "$(inherited) $(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2"
+      },
+      "frameworks": [
+        "GoogleSignIn",
+        "GoogleSignInDependencies"
+      ],
+      "resource_bundles": {
+        "GoogleSignIn": [
+          "$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2/*.bundle"
+        ]
+      }
+    },
+    {
       "name": "Facebook",
       "xcconfig": {
         "OTHER_SWIFT_FLAGS": "$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN"

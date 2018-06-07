@@ -50,4 +50,21 @@ Pod::Spec.new do |s|
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_DROPBOX_SIGNIN' }
     dropbox.dependency 'SwiftyDropbox', '~> 4.3'
   end
+
+  s.subspec 'Google' do |google|
+    google.xcconfig = { 
+        'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN',
+        'OTHER_LDFLAGS' => '$(inherited) -ObjC'
+    }
+
+    google.pod_target_xcconfig = {
+        'FRAMEWORK_SEARCH_PATHS' => '$(inherited) $(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2'
+    }
+
+    google.frameworks = ['GoogleSignIn', 'GoogleSignInDependencies']
+
+    google.resource_bundles = {
+      'GoogleSignIn' => ['$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2/*.bundle']
+    }
+  end
 end
