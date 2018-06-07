@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 15.4.0
+	* Now have Google SignIn as Cocoapod subspec-- had to bring in specific version of Google SignIn frameworks-- so no longer using Cocoapods to dependency management on that.
+		https://github.com/crspybits/SyncServer-iOSClient/issues/16
+		
 Version 15.3.0 (5/27/18)
 	* Now using https://github.com/dustturtle/RealReachability to detect network before making server calls.
 	

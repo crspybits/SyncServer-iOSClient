@@ -11,7 +11,7 @@ import SMCoreLib
 import SyncServer_Shared
 import RealReachability
 
-/// Synchronize files and app meta data with other instances of the same client sapp.
+/// Synchronize files and app meta data with other instances of the same client app.
 public class SyncServer {
     /// The singleton for this class.
     public static let session = SyncServer()
@@ -834,14 +834,12 @@ public class SyncServer {
         }
     }
 
-#if false
-    // This is intended for development/debug only. This enables you do a consistency check between your local files and SyncServer meta data. Does a sync first to ensure files are synchronized.
     // TODO: *2* This is incomplete. Needs more work.
+    /// This is intended for development/debug only. This enables you do a consistency check between your local files and SyncServer meta data. Does a sync first to ensure files are synchronized.
     public func consistencyCheck(localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) {
         sync {
             // TODO: *2* Check for errors in sync.
             Consistency.check(localFiles: localFiles, repair: repair, callback: completion)
         }
     }
-#endif
 }

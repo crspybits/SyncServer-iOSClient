@@ -5,11 +5,13 @@ use_frameworks!
 
 target 'SyncServer_Example' do
 	# This is needed because we can't put it in the SyncServer Cocoapod-- it apparently has static frameworks. :(.
-	pod 'GoogleSignIn', '~> 4.1'
+	# pod 'GoogleSignIn', '~> 4.1'
 	
 	pod 'SyncServer', :path => '..'
 	pod 'SyncServer/Facebook', :path => '..'
 	pod 'SyncServer/Dropbox', :path => '..'
+	pod 'SyncServer/Google', :path => '..'
+	
 	pod 'SMCoreLib', :path => '../../Common/SMCoreLib'
 	pod 'SyncServer-Shared', :path => '../../SyncServer-Shared'
 	
