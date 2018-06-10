@@ -1,7 +1,7 @@
 SyncServer-iOSClient
 
-Version 15.4.0
-	* Now have Google SignIn as Cocoapod subspec-- had to bring in specific version of Google SignIn frameworks-- so no longer using Cocoapods to dependency management on that.
+Version 15.4.0 (6/7/18)
+	* Now have Google SignIn as Cocoapod subspec-- had to convert Google Sign In to a dynamic framework.
 		https://github.com/crspybits/SyncServer-iOSClient/issues/16
 		
 Version 15.3.0 (5/27/18)

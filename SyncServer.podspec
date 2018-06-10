@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '15.3.0'
+  s.version          = '15.4.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -22,16 +22,14 @@ Pod::Spec.new do |s|
   }
 
   s.source_files = 'Client/Classes/**/*.{swift}'
-  
   s.resources = ['Client/Assets/**/*', 'Client/Classes/**/*.{xib}']
-
   s.preserve_paths = 'Client/Assets/**/*'
 
   s.dependency 'SMCoreLib', '~> 1.2'
   s.dependency 'Gloss', '~> 1.2'
   s.dependency 'SyncServer-Shared', '~> 6.3'
   s.dependency 'RealReachability', '~> 1.2'
-  
+
   s.default_subspec = 'Lite'
   
   s.subspec 'Lite' do |lite|
@@ -52,19 +50,8 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'Google' do |google|
-    google.xcconfig = { 
-        'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN',
-        'OTHER_LDFLAGS' => '$(inherited) -ObjC'
-    }
-
-    google.pod_target_xcconfig = {
-        'FRAMEWORK_SEARCH_PATHS' => '$(inherited) $(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2'
-    }
-
-    google.frameworks = ['GoogleSignIn', 'GoogleSignInDependencies']
-
-    google.resource_bundles = {
-      'GoogleSignIn' => ['$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2/*.bundle']
-    }
+    google.xcconfig =   
+        { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN' }
+    s.vendored_frameworks = 'VendoredFrameworks/GoogleySignIn.framework'
   end
 end

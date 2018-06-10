@@ -10,12 +10,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../Client/Classes/Public/SyncServer.swift"
-            timestampString = "549151617.6590739"
+            timestampString = "550266215.823809"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "473"
             endingLineNumber = "473"
-            landmarkName = "getAttributes(forUUID:)"
+            landmarkName = "sync(completion:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

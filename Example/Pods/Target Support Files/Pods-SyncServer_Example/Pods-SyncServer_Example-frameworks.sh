@@ -156,6 +156,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/SMCoreLib/SMCoreLib.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SwiftyBeaver/SwiftyBeaver.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SwiftyDropbox/SwiftyDropbox.framework"
+  install_framework "${PODS_ROOT}/../../VendoredFrameworks/GoogleySignIn.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SyncServer/SyncServer.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SyncServer-Shared/SyncServer_Shared.framework"
 fi
@@ -173,6 +174,7 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/SMCoreLib/SMCoreLib.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SwiftyBeaver/SwiftyBeaver.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SwiftyDropbox/SwiftyDropbox.framework"
+  install_framework "${PODS_ROOT}/../../VendoredFrameworks/GoogleySignIn.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SyncServer/SyncServer.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/SyncServer-Shared/SyncServer_Shared.framework"
 fi

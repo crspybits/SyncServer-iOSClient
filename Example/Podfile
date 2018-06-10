@@ -10,7 +10,7 @@ target 'SyncServer_Example' do
 	pod 'SyncServer', :path => '..'
 	pod 'SyncServer/Facebook', :path => '..'
 	pod 'SyncServer/Dropbox', :path => '..'
-	pod 'SyncServer/Google', :path => '..'
+	# pod 'SyncServer/Google', :path => '..'
 	
 	pod 'SMCoreLib', :path => '../../Common/SMCoreLib'
 	pod 'SyncServer-Shared', :path => '../../SyncServer-Shared'
