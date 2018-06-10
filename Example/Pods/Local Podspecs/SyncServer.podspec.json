@@ -42,7 +42,6 @@
     ]
   },
   "default_subspecs": "Lite",
-  "vendored_frameworks": "VendoredFrameworks/GoogleySignIn.framework",
   "subspecs": [
     {
       "name": "Lite"
@@ -76,7 +75,8 @@
       "name": "Google",
       "xcconfig": {
         "OTHER_SWIFT_FLAGS": "$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN"
-      }
+      },
+      "vendored_frameworks": "VendoredFrameworks/GoogleySignIn.framework"
     }
   ]
 }

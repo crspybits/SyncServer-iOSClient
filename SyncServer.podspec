@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '15.4.0'
+  s.version          = '15.4.1'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -52,6 +52,6 @@ Pod::Spec.new do |s|
   s.subspec 'Google' do |google|
     google.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN' }
-    s.vendored_frameworks = 'VendoredFrameworks/GoogleySignIn.framework'
+    google.vendored_frameworks = 'VendoredFrameworks/GoogleySignIn.framework'
   end
 end

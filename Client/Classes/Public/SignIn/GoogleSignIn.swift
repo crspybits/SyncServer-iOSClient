@@ -8,12 +8,11 @@
 //
 
 // See the .podspec file for this definition.
-//#if SYNCSERVER_GOOGLE_SIGNIN
+#if SYNCSERVER_GOOGLE_SIGNIN
 
 import Foundation
 import SMCoreLib
 import SyncServer_Shared
-// import GoogleSignIn
 import GoogleySignIn
 
 public class GoogleCredentials : GenericCredentials, CustomDebugStringConvertible {
@@ -477,4 +476,4 @@ private class GoogleSignInOutButton : UIView, Tappable {
     }
 }
 
-//#endif
+#endif
