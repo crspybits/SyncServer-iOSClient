@@ -1,11 +1,9 @@
 SyncServer-iOSClient
 
-Version 15.4.3 (6/10/18)
-	* Moved Google Sign In to its own pod to deal with resolving GoogleSignIn.bundle issue. See https://github.com/crspybits/GoogleSignIn
-	
-Version 15.4.2 (6/9/18)
+Version 15.4.2 (6/10/18)
 	* Fix issue with naming of Google Sign In framework-- the GoogleSignIn.bundle was not being loaded if the framework name didn't match.
-	
+	* Moved Google Sign In to its own pod to deal with resolving GoogleSignIn.bundle issue. See https://github.com/crspybits/GoogleSignIn
+		
 Version 15.4.1 (6/9/18)
 	* A few adjustments for the last changes to Google Sign In.
 

@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '15.4.3'
+  s.version          = '15.4.2'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -54,7 +54,7 @@ Pod::Spec.new do |s|
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN' }
 
     # This is a dependency on the https://github.com/crspybits/GoogleSignIn *dynamic* framework.
-    # In your Podfile, at the very top of the the file, put:
+    # In your Podfile, at the very top of the file, put:
     #   source 'https://github.com/crspybits/Specs.git'
     google.dependency 'GoogleSignIn', '~> 0.1'
   end
