@@ -1,1 +1,1 @@
-GoogleySignIn.framework is from https://github.com/crspybits/GoogleySignIn
+GoogleSignIn.framework is from https://github.com/crspybits/GoogleSignIn
