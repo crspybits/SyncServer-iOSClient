@@ -1,1 +1,0 @@
-GoogleSignIn.framework is from https://github.com/crspybits/GoogleSignIn
