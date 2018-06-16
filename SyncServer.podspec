@@ -28,7 +28,6 @@ Pod::Spec.new do |s|
   s.dependency 'SMCoreLib', '~> 1.2'
   s.dependency 'Gloss', '~> 1.2'
   s.dependency 'SyncServer-Shared', '~> 6.3'
-  s.dependency 'RealReachability', '~> 1.2'
 
   s.default_subspec = 'Lite'
   

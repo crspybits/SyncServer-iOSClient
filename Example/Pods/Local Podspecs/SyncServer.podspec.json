@@ -36,9 +36,6 @@
     ],
     "SyncServer-Shared": [
       "~> 6.3"
-    ],
-    "RealReachability": [
-      "~> 1.2"
     ]
   },
   "default_subspecs": "Lite",

@@ -1,5 +1,12 @@
 SyncServer-iOSClient
 
+Version 15.5.0
+	* Trying to resolve: Lost network
+		Note that these issues started after I introduced a network detection change into the SyncServer client-- and so I'm going to try to resolve this at the client level.
+		https://github.com/crspybits/SharedImages/issues/125
+	* Added `.syncDelayed` event.
+		Trying to deal with https://github.com/crspybits/SharedImages/issues/126
+		
 Version 15.4.3 (6/12/18)
 	* Update to Pod (GoogleSignIn)-- to add bitcode due to a problem building SharedImages for release.
 
