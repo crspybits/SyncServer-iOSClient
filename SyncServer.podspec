@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '15.5.0'
+  s.version          = '15.6.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
 
   s.dependency 'SMCoreLib', '~> 1.2'
   s.dependency 'Gloss', '~> 1.2'
-  s.dependency 'SyncServer-Shared', '~> 6.3'
+  s.dependency 'SyncServer-Shared', '~> 7.0'
 
   s.default_subspec = 'Lite'
   

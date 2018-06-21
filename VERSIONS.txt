@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 15.6.0 (6/20/18)
+	* Updated version of SyncServer-Shared library
+	
 Version 15.5.0 (6/16/18)
 	* Trying to resolve: Lost network
 		Note that these issues started after I introduced a network detection change into the SyncServer client-- and so I'm going to try to resolve this at the client level.
