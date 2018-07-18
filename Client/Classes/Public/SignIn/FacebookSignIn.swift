@@ -58,7 +58,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
         signInOutButton.signIn = self
     }
     
-    public var signInTypesAllowed:SignInType = .sharingUser
+    public var userType:UserType = .sharing
     
     public func appLaunchSetup(userSignedIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     

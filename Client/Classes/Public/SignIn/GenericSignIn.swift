@@ -38,7 +38,7 @@ public enum UserActionNeeded {
 public enum UserActionOccurred {
     case userSignedOut
     case userNotFoundOnSignInAttempt
-    case existingUserSignedIn(SharingPermission?)
+    case existingUserSignedIn(Permission?)
     case sharingUserCreated
     case owningUserCreated
 }
@@ -73,7 +73,7 @@ public protocol Tappable {
 
 public protocol GenericSignIn : class {
     /// Some services, e.g., Facebook, are only suitable for sharing users-- i.e., they don't have cloud storage.
-    var signInTypesAllowed:SignInType {get}
+    var userType:UserType {get}
 
     /// Delegate not dependent on the UI. Typically present through lifespan of app.
     var signOutDelegate:GenericSignOutDelegate? {get set}

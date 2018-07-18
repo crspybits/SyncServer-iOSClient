@@ -101,6 +101,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
         Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
+                
             SyncServerUser.session.createSharingInvitation(withPermission: .admin) { (invitationUUID, error)  in
                 guard error == nil else {
                     Thread.runSync(onMainThread: {
@@ -123,7 +124,7 @@ extension ViewController : GenericSignInDelegate {
         var result:UserActionNeeded = .error
         
         // A bit of a hack to test sharing users with Facebook.
-        if ViewController.sharingInvitationUUID.stringValue != "" && signIn.signInTypesAllowed.contains(.sharingUser) {
+        if ViewController.sharingInvitationUUID.stringValue != "" {
             result = .createSharingUser(invitationCode: ViewController.sharingInvitationUUID.stringValue)
             ViewController.sharingInvitationUUID.stringValue = ""
         } else {
@@ -185,7 +186,6 @@ extension ViewController : SyncServerDelegate {
         default:
             assert(false)
         }
-        
     }
 }
 

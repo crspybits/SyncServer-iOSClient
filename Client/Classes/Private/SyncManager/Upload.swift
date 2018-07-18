@@ -130,7 +130,7 @@ class Upload {
                 return
             }
             
-            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!)
+            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupId: <#SharingGroupId#>)
         }
         
         guard nextResult == nil else {

@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 16.0.0
+	* Added sharingGroupId to SyncAttributes and more generally added in sharing groups.
+	
 Version 15.6.0 (6/20/18)
 	* Updated version of SyncServer-Shared library
 	

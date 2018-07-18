@@ -113,7 +113,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         signInOutButton.signIn = self
     }
     
-    public var signInTypesAllowed:SignInType = .both
+    public var userType:UserType = .owning
     
     public func appLaunchSetup(userSignedIn: Bool, withLaunchOptions options:[UIApplicationLaunchOptionsKey : Any]?) {
     

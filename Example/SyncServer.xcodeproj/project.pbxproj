@@ -29,6 +29,7 @@
 		8344CC2B1E5FDD1800BEB263 /* Client_Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */; };
 		83544F7F1EF4E0E5007E0887 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833729841E0F6BAE002CA164 /* Authentication.swift */; };
 		83544F871EF58B32007E0887 /* SyncServer_ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */; };
+		835881CB20FDA35000856398 /* ServerAPI_GetSharingGroupIds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835881CA20FDA35000856398 /* ServerAPI_GetSharingGroupIds.swift */; };
 		835C60AC1E62ABF3003E9AF8 /* CoreDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60AB1E62ABF3003E9AF8 /* CoreDataTests.swift */; };
 		835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */; };
 		835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */; };
@@ -118,6 +119,7 @@
 		83544F841EF58B32007E0887 /* SyncServer_ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncServer_ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncServer_ExampleUITests.swift; sourceTree = "<group>"; };
 		83544F881EF58B32007E0887 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		835881CA20FDA35000856398 /* ServerAPI_GetSharingGroupIds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_GetSharingGroupIds.swift; sourceTree = "<group>"; };
 		835C60AB1E62ABF3003E9AF8 /* CoreDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataTests.swift; sourceTree = "<group>"; };
 		835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager.swift; sourceTree = "<group>"; };
 		835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_NetworkLoss.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				835881CA20FDA35000856398 /* ServerAPI_GetSharingGroupIds.swift */,
 				832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */,
 				839A0A4D20A2CE5C00F0AD63 /* Client_FileGroup.swift */,
 				839966FA207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift */,
@@ -641,6 +644,7 @@
 				837244541E419E7B00155E89 /* DoneUploads.swift in Sources */,
 				83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */,
 				839966FB207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift in Sources */,
+				835881CB20FDA35000856398 /* ServerAPI_GetSharingGroupIds.swift in Sources */,
 				8378D9BE1E91B8F000470D49 /* Client_SyncServer_Error.swift in Sources */,
 				8363160C2001D2C200F8E55B /* BackgroundTaskTest.swift in Sources */,
 				839966F92075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift in Sources */,

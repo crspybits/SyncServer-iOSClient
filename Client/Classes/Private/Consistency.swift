@@ -8,10 +8,11 @@
 
 import Foundation
 import SMCoreLib
+import SyncServer_Shared
 
 class Consistency {
-    static func check(localFiles:[UUIDString], repair:Bool = false, callback:((Error?)->())?) {
-        ServerAPI.session.fileIndex { (fileInfo, masterVersion, error) in
+    static func check(sharingGroupId: SharingGroupId, localFiles:[UUIDString], repair:Bool = false, callback:((Error?)->())?) {
+        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileInfo, masterVersion, error) in
             guard error == nil else {
                 callback?(error)
                 return

@@ -59,8 +59,7 @@ public class SyncServerUser {
     
     public enum CheckForExistingUserResult {
         case noUser
-        case owningUser
-        case sharingUser(sharingPermission:SharingPermission, accessToken:String?)
+        case user(permission:Permission, accessToken:String?)
     }
     
     fileprivate func showAlert(with title:String, and message:String? = nil) {
@@ -104,12 +103,8 @@ public class SyncServerUser {
                 
                 checkForUserResult = .noUser
                 
-            case .some(.owningUser(let syncServerUserId)):
-                checkForUserResult = .owningUser
-                SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
-                
-            case .some(.sharingUser(let syncServerUserId, let permission, let accessToken)):
-                checkForUserResult = .sharingUser(sharingPermission: permission, accessToken:accessToken)
+            case .some(.user(let syncServerUserId, let permission, let accessToken)):
+                checkForUserResult = .user(permission: permission, accessToken:accessToken)
                 SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
             }
             
@@ -156,9 +151,9 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to create a sharing invitation.
-    public func createSharingInvitation(withPermission permission:SharingPermission, completion:((_ invitationCode:String?, Error?)->(Void))?) {
+    public func createSharingInvitation(withPermission permission:Permission, sharingGroupId: SharingGroupId, completion:((_ invitationCode:String?, Error?)->(Void))?) {
 
-        ServerAPI.session.createSharingInvitation(withPermission: permission) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: permission, sharingGroupId: sharingGroupId) { (sharingInvitationUUID, error) in
             Thread.runSync(onMainThread: {
                 completion?(sharingInvitationUUID, error)
             })
@@ -166,13 +161,13 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to redeem a sharing invitation.
-    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, completion:((_ accessToken:String?, Error?)->())?) {
+    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, Error?)->())?) {
         
         self.creds = creds
         
-        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode) { accessToken, error in
+        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode) { accessToken, sharingGroupId, error in
             Thread.runSync(onMainThread: {
-                completion?(accessToken, error)
+                completion?(accessToken, sharingGroupId, error)
             })
         }
     }
