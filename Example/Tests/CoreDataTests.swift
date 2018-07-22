@@ -11,6 +11,7 @@
 import XCTest
 @testable import SyncServer
 import SMCoreLib
+import SyncServer_Shared
 
 class CoreDataTests: TestCase {
     
@@ -45,15 +46,21 @@ class CoreDataTests: TestCase {
         }
     }
     
-    func addObjectToPendingSync() {
+    func addObjectToPendingSync(sharingGroupId: SharingGroupId) {
         let uft = UploadFileTracker.newObject() as! UploadFileTracker
         uft.fileUUID = UUID().uuidString
+        uft.sharingGroupId = sharingGroupId
         try! Upload.pendingSync().addToUploadsOverride(uft)
     }
     
     func testThatPendingSyncQueueCanAddObject() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync()
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
 
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -72,8 +79,13 @@ class CoreDataTests: TestCase {
     }
     
     func testMovePendingSyncToSynced() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync()
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
             try! Upload.movePendingSyncToSynced()
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -91,7 +103,7 @@ class CoreDataTests: TestCase {
         }
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync()
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
             try! Upload.movePendingSyncToSynced()
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -114,7 +126,7 @@ class CoreDataTests: TestCase {
         }
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync()
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
             try! Upload.movePendingSyncToSynced()
             Upload.removeHeadSyncQueue(sharingGroupId: sharingGroupId)
             do {
@@ -201,13 +213,13 @@ class CoreDataTests: TestCase {
     }
     
     func testThatResetWorksWithObjectsInMetaData() {
-        guard let sharingGroupIds = getSharingGroupIds() else {
+        guard let sharingGroupIds = getSharingGroupIds(), sharingGroupIds.count > 0 else {
             XCTFail()
             return
         }
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync()
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupIds[0])
             try! Upload.movePendingSyncToSynced()
             
             do {

@@ -22,35 +22,29 @@ class ServerAPI_GetSharingGroupIds: TestCase {
         super.tearDown()
     }
     
-    /*
     @discardableResult
     func getSharingGroups() -> [SharingGroupId]?  {
         var result:[SharingGroupId]?
         
-        let expectation = self.expectation(description: "get sharing groups)
+        let expectation = self.expectation(description: "get sharing groups")
         
-        ServerAPI.session
-        ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
+        ServerAPI.session.getSharingGroups { sharingGroupIds, error in
             XCTAssert(error == nil)
-            XCTAssert(masterVersion! >= 0)
-            
-            if let fileIndex = fileIndex, let masterVersion = masterVersion, masterVersion >= 0 {
-                result = (fileIndex, masterVersion)
-            }
-            else {
-                XCTFail()
-            }
-            
+            XCTAssert(sharingGroupIds != nil)
+            result = sharingGroupIds
             expectation.fulfill()
         }
+
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
         return result
     }
-    */
     
     func testExample() {
-
+        guard let sharingGroups = getSharingGroups(), sharingGroups.count >= 1 else {
+            XCTFail()
+            return
+        }
     }
 }

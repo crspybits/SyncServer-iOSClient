@@ -56,7 +56,7 @@ extension Upload {
         }
         
         return queues.filter {
-            $0.uploadFileTrackers[0].sharingGroupId == sharingGroupId
+            $0.uploadFileTrackers.count > 0 && $0.uploadFileTrackers[0].sharingGroupId == sharingGroupId
         }
     }
     

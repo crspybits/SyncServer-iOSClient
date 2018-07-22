@@ -68,7 +68,8 @@ class Client_SyncServer_Sync: TestCase {
         let syncStarted2 = self.expectation(description: "test2")
         let syncDone1 = self.expectation(description: "test3")
         let syncDone2 = self.expectation(description: "test4")
-        
+        let syncDelayed = self.expectation(description: "test5")
+
         var syncDoneCount = 0
         var syncStartedCount = 0
 
@@ -100,8 +101,11 @@ class Client_SyncServer_Sync: TestCase {
                     XCTFail()
                 }
                 
+            case .syncDelayed:
+                syncDelayed.fulfill()
+                
             default:
-                XCTFail()
+                XCTFail("\(event)")
             }
         }
         

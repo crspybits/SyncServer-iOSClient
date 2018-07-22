@@ -55,7 +55,6 @@ class ServerAPI_Authentication: TestCase {
         
         ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error != nil)
-            XCTAssert(sharingGroupId != nil)
             expectation.fulfill()
         }
         
