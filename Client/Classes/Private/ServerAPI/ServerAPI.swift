@@ -124,7 +124,8 @@ class ServerAPI {
     
     // Adds the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil).
     // If the type of owning user being added needs a cloud folder name, you must give it here (e.g., Google).
-    public func addUser(cloudFolderName: String? = nil, completion:((UserId?, SyncServerError?)->(Void))?) {
+    public func addUser(cloudFolderName: String? = nil,
+        completion:((UserId?, SharingGroupId?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.addUser
         var parameters:String?
         
@@ -134,7 +135,7 @@ class ServerAPI {
             ]
             
             guard let addUserRequest = AddUserRequest(json: params) else {
-                completion?(nil, .couldNotCreateRequest)
+                completion?(nil, nil, .couldNotCreateRequest)
                 return
             }
             
@@ -147,23 +148,23 @@ class ServerAPI {
             toURL: url) { (response,  httpStatus, error) in
            
             guard let response = response else {
-                completion?(nil, .nilResponse)
+                completion?(nil, nil, .nilResponse)
                 return
             }
             
             let error = self.checkForError(statusCode: httpStatus, error: error)
 
             guard error == nil else {
-                completion?(nil, error)
+                completion?(nil, nil, error)
                 return
             }
             
             guard let checkCredsResponse = AddUserResponse(json: response) else {
-                completion?(nil, .badAddUser)
+                completion?(nil, nil, .badAddUser)
                 return
             }
             
-            completion?(checkCredsResponse.userId, nil)
+            completion?(checkCredsResponse.userId, checkCredsResponse.sharingGroupId, nil)
         }
     }
     

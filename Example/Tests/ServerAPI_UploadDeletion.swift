@@ -23,29 +23,42 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionActuallyUploadsTheDeletion() {
-        uploadDeletion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        uploadDeletion(sharingGroupId: sharingGroupId)
     }
     
     func testThatTwoUploadDeletionsOfTheSameFileWork() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
         // for the file upload
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
 
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
 
-        getUploads(expectedFiles: [
+        getUploads(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID, fileSize: nil)
         ]) { fileInfo in
             XCTAssert(fileInfo.deleted)
@@ -55,50 +68,72 @@ class ServerAPI_UploadDeletion: TestCase {
     // TODO: *0* Do an upload deletion, then a second upload deletion with the same file-- make sure the 2nd one fails.
     
     func testThatActualDeletionInDebugWorks() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
         // for the file upload
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
-        var fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        var fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
         fileToDelete.actualDeletion = true
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
         
-        getFileIndex(expectedFiles: []) { fileInfo in
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []) { fileInfo in
             XCTAssert(fileInfo.fileUUID != fileUUID)
         }
     }
     
     func testDeleteAllServerFiles() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return
         }
         
         // for the file upload
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
-        removeAllServerFilesInFileIndex()
-        
-        getFileIndex(expectedFiles: []) { fileInfo in
+        guard let sharingGroupIds = getSharingGroupIds() else {
             XCTFail()
+            return
+        }
+    
+        sharingGroupIds.forEach { sharingGroupId in
+            removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId)
+            getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []) { fileInfo in
+                XCTFail()
+            }
         }
     }
 }

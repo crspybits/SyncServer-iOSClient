@@ -28,12 +28,17 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     
     // Demonstrate that we can "recover" from a master version change during upload. This "recovery" is really just the client side work necessary to deal with our lazy synchronization process.
     func testMasterVersionChangeDuringUpload() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         
@@ -71,11 +76,11 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let _ = getFileIndex(expectedFiles: [
+        guard let _ = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID1, fileSize: nil),
             (fileUUID: fileUUID2, fileSize: nil)
         ]) else {
@@ -88,19 +93,24 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
     }
     
     func testMasterVersionChangeOccuringOnDoneUploads() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
 
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
@@ -125,7 +135,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         // 1) Do the upload of the first file.
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -162,11 +172,11 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // 2) Do the upload of the second file, with a simulated master version change just after the upload. This tests getting the master version update on DoneUploads.
 
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(expectedFiles: [
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID2, fileSize: nil),
         ])
         
@@ -175,14 +185,19 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
     }
 
     func testMasterVersionUpdateOnUploadDeletion() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
 
         // 1) Preparation: Upload a file, identified by UUID1. This is the file we'll delete below. We have to use the SyncServer.session client interface so that it will get recorded in the local meta data for the client.
 
@@ -203,14 +218,14 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // File to upload which will cause a SyncServer event which will allow us to upload fileUUID2
         let fileUUID3 = UUID().uuidString
         
-        let attr3 = SyncAttributes(fileUUID: fileUUID3, mimeType: .text)
+        let attr3 = SyncAttributes(fileUUID: fileUUID3, sharingGroupId: sharingGroupId, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted]
         
@@ -255,19 +270,28 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             XCTFail("\(error)")
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
 
     func testMasterVersionChangeDuringDownload() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Algorithm:
         // Upload two files *not* using the client upload.
         // Next, use the client interface to sync files.
         // When a single file has been downloaded, simulate a master version change.
         // 9/16/17; Since we're now doing the downloads incrementally, we should just get a total of 3 downloads.
         
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
         var files = [FileUUIDURL]()
 
         let fileUUID1 = UUID().uuidString
@@ -284,17 +308,17 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID3, url: fileURL3)
         ]
         
-        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -338,7 +362,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

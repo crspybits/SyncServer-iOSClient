@@ -100,9 +100,14 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     }
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
+        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds, sharingGroupIds.count > 0 else {
+            Log.error("No sharing group ids!")
+            return
+        }
+        
         Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
                 
-            SyncServerUser.session.createSharingInvitation(withPermission: .admin) { (invitationUUID, error)  in
+            SyncServerUser.session.createSharingInvitation(withPermission: .admin, sharingGroupId: sharingGroupIds[0]) { (invitationUUID, error)  in
                 guard error == nil else {
                     Thread.runSync(onMainThread: {
                         Alert.show(message: "Error: Could not create sharing invitation: \(error!)")

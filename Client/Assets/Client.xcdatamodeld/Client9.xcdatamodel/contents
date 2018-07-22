@@ -13,6 +13,7 @@
     </entity>
     <entity name="DownloadContentGroup" representedClassName="DownloadContentGroup" syncable="YES">
         <attribute name="fileGroupUUID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="sharingGroupId" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="statusRaw" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="downloads" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="DownloadFileTracker" inverseName="group" inverseEntity="DownloadFileTracker" syncable="YES"/>
     </entity>
@@ -63,7 +64,7 @@
     </entity>
     <elements>
         <element name="DirectoryEntry" positionX="-63" positionY="-18" width="128" height="180"/>
-        <element name="DownloadContentGroup" positionX="-45" positionY="117" width="128" height="90"/>
+        <element name="DownloadContentGroup" positionX="-45" positionY="117" width="128" height="105"/>
         <element name="DownloadFileTracker" positionX="-36" positionY="27" width="128" height="90"/>
         <element name="FileTracker" positionX="-18" positionY="117" width="128" height="210"/>
         <element name="NetworkCached" positionX="-45" positionY="81" width="128" height="135"/>

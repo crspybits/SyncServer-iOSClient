@@ -105,17 +105,39 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
-    @discardableResult
-    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType, fileGroupUUID: String? = nil) -> ServerAPI.File? {
-        var masterVersion = getMasterVersion()
-        var fileVersion:FileVersionInt = 0
-        let fileUUID = UUID().uuidString
-    
-        guard let (_, fileResult) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+    func getFirstSharingGroupId() -> SharingGroupId? {
+        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds, sharingGroupIds.count > 0 else {
             XCTFail()
             return nil
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        return sharingGroupIds[0]
+    }
+    
+    func getSharingGroupIds() -> [SharingGroupId]? {
+        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds else {
+            XCTFail()
+            return nil
+        }
+        
+        return sharingGroupIds
+    }
+    
+    @discardableResult
+    func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType, sharingGroupId: SharingGroupId, fileGroupUUID: String? = nil) -> ServerAPI.File? {
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return nil
+        }
+        
+        var fileVersion:FileVersionInt = 0
+        let fileUUID = UUID().uuidString
+    
+        guard let (_, fileResult) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+            XCTFail()
+            return nil
+        }
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
     
         var resultFileSize:Int64?
         var resultFile:ServerAPI.File?
@@ -124,7 +146,7 @@ class TestCase: XCTestCase {
             masterVersion += 1
             fileVersion += 1
         
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
                 XCTFail()
                 return nil
             }
@@ -132,7 +154,7 @@ class TestCase: XCTestCase {
             resultFileSize = fileSize
             resultFile = file
             
-            doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+            doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         }
         
         guard let file = resultFile, let fileSize = resultFileSize else {
@@ -140,7 +162,7 @@ class TestCase: XCTestCase {
             return nil
         }
     
-        guard let fileIndex:[FileInfo] = getFileIndex() else {
+        guard let fileIndex:[FileInfo] = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return nil
         }
@@ -163,12 +185,12 @@ class TestCase: XCTestCase {
             XCTFail()
         }
         
-        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, appMetaData: nil, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, appMetaData: nil, fileSize: fileSize)
         
         return fileResult
     }
     
-    func assertThereIsNoTrackingMetaData() {
+    func assertThereIsNoTrackingMetaData(sharingGroupIds: [SharingGroupId]) {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
             XCTAssert(UploadQueue.fetchAll().count == 0)
@@ -176,7 +198,11 @@ class TestCase: XCTestCase {
             XCTAssert(Singleton.fetchAll().count == 0)
             
             XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
-            XCTAssert(Upload.getHeadSyncQueue() == nil)
+            
+            sharingGroupIds.forEach { sharingGroupId in
+                XCTAssert(Upload.getHeadSyncQueue(forSharingGroupId: sharingGroupId) == nil)
+            }
+            
             XCTAssert(DownloadFileTracker.fetchAll().count == 0)
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             XCTAssert(UploadFileTracker.fetchAll().count == 0)
@@ -184,8 +210,8 @@ class TestCase: XCTestCase {
         }
     }
     
-    func assertThereIsNoMetaData() {
-        assertThereIsNoTrackingMetaData()
+    func assertThereIsNoMetaData(sharingGroupIds: [SharingGroupId]) {
+        assertThereIsNoTrackingMetaData(sharingGroupIds: sharingGroupIds)
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DirectoryEntry.fetchAll().count == 0)
@@ -204,15 +230,19 @@ class TestCase: XCTestCase {
         return result
     }
     
-    func getMasterVersion() -> MasterVersionInt {
+    func getMasterVersion(sharingGroupId: SharingGroupId) -> MasterVersionInt? {
         let expectation1 = self.expectation(description: "fileIndex")
 
-        var serverMasterVersion:MasterVersionInt = 0
+        var serverMasterVersion:MasterVersionInt?
         
-        ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
-            XCTAssert(error == nil)
-            XCTAssert(masterVersion! >= 0)
-            serverMasterVersion = masterVersion!
+        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
+            if error == nil && masterVersion != nil && masterVersion! >= 0 {
+                serverMasterVersion = masterVersion
+            }
+            else {
+                XCTFail()
+            }
+            
             expectation1.fulfill()
         }
         
@@ -222,12 +252,12 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo]? {
+    func getFileIndex(sharingGroupId: SharingGroupId, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo]? {
         let expectation1 = self.expectation(description: "fileIndex")
         
         var fileInfoResult: [FileInfo]?
         
-        ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
+        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
             XCTAssert(error == nil)
             XCTAssert(masterVersion! >= 0)
             
@@ -265,10 +295,10 @@ class TestCase: XCTestCase {
         return fileInfoResult
     }
     
-    func getUploads(expectedFiles:[(fileUUID:String, fileSize:Int64?)], callback:((FileInfo)->())? = nil) {
+    func getUploads(sharingGroupId: SharingGroupId, expectedFiles:[(fileUUID:String, fileSize:Int64?)], callback:((FileInfo)->())? = nil) {
         let expectation1 = self.expectation(description: "getUploads")
         
-        ServerAPI.session.getUploads { (uploads, error) in
+        ServerAPI.session.getUploads(sharingGroupId: sharingGroupId) { (uploads, error) in
             XCTAssert(error == nil)
             
             XCTAssert(expectedFiles.count == uploads?.count)
@@ -296,7 +326,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupId: SharingGroupId, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -313,7 +343,7 @@ class TestCase: XCTestCase {
             finalDeviceUUID = theDeviceUUID!
         }
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, sharingGroupId: sharingGroupId, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -352,7 +382,7 @@ class TestCase: XCTestCase {
         }
     }
     
-    func uploadFile(fileName:String, fileExtension:String, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, withExpectation expectation:XCTestExpectation) {
+    func uploadFile(fileName:String, fileExtension:String, sharingGroupId: SharingGroupId, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, withExpectation expectation:XCTestExpectation) {
     
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -364,7 +394,7 @@ class TestCase: XCTestCase {
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
         
         // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
         guard let fileData = try? Data(contentsOf: file.localURL) else {
@@ -392,7 +422,7 @@ class TestCase: XCTestCase {
         }
     }
     
-    func doneUploads(masterVersion: MasterVersionInt, expectedNumberUploads:Int64=0, expectedNumberDeletions:UInt=0) {
+    func doneUploads(masterVersion: MasterVersionInt,  sharingGroupId: SharingGroupId, expectedNumberUploads:Int64=0, expectedNumberDeletions:UInt=0) {
     
         let expectedNumber = expectedNumberUploads + Int64(expectedNumberDeletions)
         if expectedNumber <= 0 {
@@ -402,7 +432,7 @@ class TestCase: XCTestCase {
         
         let expectation = self.expectation(description: "doneUploads")
 
-        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, numberOfDeletions: expectedNumberDeletions) {
+        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId, numberOfDeletions: expectedNumberDeletions) {
             doneUploadsResult, error in
             
             XCTAssert(error == nil)
@@ -419,8 +449,11 @@ class TestCase: XCTestCase {
         waitForExpectations(timeout: Double(expectedNumber)*20.0, handler: nil)
     }
     
-    func removeAllServerFilesInFileIndex(actualDeletion:Bool=true) {
-        let masterVersion = getMasterVersion()
+    func removeAllServerFilesInFileIndex(sharingGroupId: SharingGroupId, actualDeletion:Bool=true) {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         var filesToDelete:[FileInfo]?
         let uploadDeletion = self.expectation(description: "uploadDeletion")
@@ -432,7 +465,7 @@ class TestCase: XCTestCase {
             }
             
             let fileIndexObj = filesToDelete![indexToRemove]
-            var fileToDelete = ServerAPI.FileToDelete(fileUUID: fileIndexObj.fileUUID, fileVersion: fileIndexObj.fileVersion)
+            var fileToDelete = ServerAPI.FileToDelete(fileUUID: fileIndexObj.fileUUID, fileVersion: fileIndexObj.fileVersion, sharingGroupId: sharingGroupId)
             
             fileToDelete.actualDeletion = actualDeletion
             
@@ -449,7 +482,7 @@ class TestCase: XCTestCase {
         
         var numberDeletions:Int!
         
-        ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
+        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
             
             XCTAssert(error == nil)
             XCTAssert(masterVersion! >= 0)
@@ -470,16 +503,16 @@ class TestCase: XCTestCase {
         
         // actual deletion removes actual rows from the file index-- in which case we don't need the done uploads to wrap things up.
         if numberDeletions! > 0 && !actualDeletion {
-            doneUploads(masterVersion: masterVersion, expectedNumberDeletions: UInt(numberDeletions!))
+            doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberDeletions: UInt(numberDeletions!))
         }
     }
 
     @discardableResult
-    func uploadAppMetaData(masterVersion: MasterVersionInt, appMetaData: AppMetaData, fileUUID: String, failureExpected: Bool = false) -> Bool {
+    func uploadAppMetaData(masterVersion: MasterVersionInt, appMetaData: AppMetaData, fileUUID: String, sharingGroupId: SharingGroupId, failureExpected: Bool = false) -> Bool {
         let exp = self.expectation(description: "exp")
         var result = true
         
-        ServerAPI.session.uploadAppMetaData(appMetaData: appMetaData, fileUUID: fileUUID, serverMasterVersion: masterVersion) { serverResult in
+        ServerAPI.session.uploadAppMetaData(appMetaData: appMetaData, fileUUID: fileUUID, serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId) { serverResult in
             switch serverResult {
             case .success(.success):
                 if failureExpected {
@@ -508,11 +541,11 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func downloadAppMetaData(masterVersion: MasterVersionInt, appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, failureExpected: Bool = false) -> String? {
+    func downloadAppMetaData(masterVersion: MasterVersionInt, appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String,  sharingGroupId: SharingGroupId, failureExpected: Bool = false) -> String? {
         let exp = self.expectation(description: "exp")
         var result:String?
         
-        ServerAPI.session.downloadAppMetaData(appMetaDataVersion: appMetaDataVersion, fileUUID: fileUUID, serverMasterVersion: masterVersion) { serverResult in
+        ServerAPI.session.downloadAppMetaData(appMetaDataVersion: appMetaDataVersion, fileUUID: fileUUID, serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId) { serverResult in
             switch serverResult {
             case .success(.appMetaData(let appMetaData)):
                 if failureExpected {
@@ -553,17 +586,20 @@ class TestCase: XCTestCase {
 
     @discardableResult
     // Uses SyncManager.session.start
-    func uploadAndDownloadOneFileUsingStart() -> (ServerAPI.File, MasterVersionInt)? {
-        let masterVersion = getMasterVersion()
+    func uploadAndDownloadOneFileUsingStart( sharingGroupId: SharingGroupId) -> (ServerAPI.File, MasterVersionInt)? {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return nil
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         let expectedFiles = [file]
         var downloadCount = 0
@@ -581,7 +617,7 @@ class TestCase: XCTestCase {
         
         let expectation = self.expectation(description: "start")
 
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(error == nil)
             XCTAssert(downloadCount == 1)
             
@@ -608,23 +644,26 @@ class TestCase: XCTestCase {
     }
 
     @discardableResult
-    func uploadDeletion() -> (fileUUID:String, MasterVersionInt)? {
-        let masterVersion = getMasterVersion()
+    func uploadDeletion( sharingGroupId: SharingGroupId) -> (fileUUID:String, MasterVersionInt)? {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return nil
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
         // for the file upload
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
         
-        getUploads(expectedFiles: [
+        getUploads(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID, fileSize: nil)
         ]) { fileInfo in
             XCTAssert(fileInfo.deleted)
@@ -633,21 +672,21 @@ class TestCase: XCTestCase {
         return (fileUUID, masterVersion+1)
     }
     
-    func uploadDeletionOfOneFileWithDoneUploads() {
-        guard let (fileUUID, masterVersion) = uploadDeletion() else {
+    func uploadDeletionOfOneFileWithDoneUploads(sharingGroupId: SharingGroupId) {
+        guard let (fileUUID, masterVersion) = uploadDeletion(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
 
-        self.doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        self.doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        self.getUploads(expectedFiles: []) { file in
+        self.getUploads(sharingGroupId: sharingGroupId, expectedFiles: []) { file in
             XCTAssert(file.fileUUID != fileUUID)
         }
         
         var foundDeletedFile = false
         
-        getFileIndex(expectedFiles: [
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID, fileSize: nil)
         ]) { file in
             if file.fileUUID == fileUUID {
@@ -659,30 +698,33 @@ class TestCase: XCTestCase {
         XCTAssert(foundDeletedFile)
     }
     
-    func uploadAndDownloadTextFile(appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
+    func uploadAndDownloadTextFile(sharingGroupId: SharingGroupId, appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
     
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         var actualFileUUID:String! = fileUUID
         if fileUUID == nil {
             actualFileUUID = UUID().uuidString
         }
         
-        guard let (fileSize, file) = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let (fileSize, file) = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupId: sharingGroupId, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, appMetaData: appMetaData, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, appMetaData: appMetaData, fileSize: fileSize)
     }
     
-    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, appMetaData:AppMetaData? = nil, fileSize:Int64? = nil) {
+    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, sharingGroupId: SharingGroupId, appMetaData:AppMetaData? = nil, fileSize:Int64? = nil) {
         let expectation = self.expectation(description: "doneUploads")
 
         let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: file.fileUUID, fileVersion: file.fileVersion, appMetaDataVersion: appMetaData?.version)
 
-        ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj, serverMasterVersion: masterVersion) { (result, error) in
+        ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj, serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId) { (result, error) in
             
             guard let result = result, error == nil else {
                 XCTFail()
@@ -713,7 +755,7 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func uploadSingleFileUsingSync(fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
+    func uploadSingleFileUsingSync(sharingGroupId: SharingGroupId, fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         var originalURL:SMRelativeLocalURL
@@ -738,7 +780,7 @@ class TestCase: XCTestCase {
             url = copyOfFileURL
         }
 
-        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         
@@ -790,14 +832,14 @@ class TestCase: XCTestCase {
         expectation2 = self.expectation(description: "test2")
         expectation3 = self.expectation(description: "test3")
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
         return (originalURL, attr)
     }
     
-    func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {        
+    func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
         do {
             try SyncServer.resetMetaData()
         } catch {
@@ -805,26 +847,36 @@ class TestCase: XCTestCase {
         }
 
         if removeServerFiles {
-            removeAllServerFilesInFileIndex(actualDeletion:actualDeletion)
+            guard let sharingGroupIds = getSharingGroupIds() else {
+                XCTFail()
+                return
+            }
+        
+            sharingGroupIds.forEach { sharingGroupId in
+                removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId, actualDeletion:actualDeletion)
+            }
         }
     }
     
     // returns the fileUUID
     @discardableResult
-    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType, appMetaData:AppMetaData? = nil) -> String? {
+    func doASingleDownloadUsingSync(fileName: String, fileExtension:String, mimeType:MimeType,  sharingGroupId: SharingGroupId, appMetaData:AppMetaData? = nil) -> String? {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload a file.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return nil
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
             return nil
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         let expectation = self.expectation(description: "test1")
         self.deviceUUID = Foundation.UUID()
@@ -859,7 +911,7 @@ class TestCase: XCTestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         

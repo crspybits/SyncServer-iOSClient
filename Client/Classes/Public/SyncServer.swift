@@ -495,17 +495,17 @@ public class SyncServer {
     }
     
     /**
-        If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions. If there is a `sync` currently taking place, this closes the collection of uploads/deletions queued, and will wait until after the current sync is done, and try again.
+        If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued, and will wait until after the current sync is done, and try again.
      
         If a stopSync is currently pending, then this call will be ignored.
      
         Non-blocking in all cases.
     */
-    public func sync() {
-        sync(completion:nil)
+    public func sync(sharingGroupId: SharingGroupId) {
+        sync(sharingGroupId:sharingGroupId, completion:nil)
     }
     
-    func sync(completion:(()->())?) {
+    func sync(sharingGroupId: SharingGroupId, completion:(()->())?) {
         var doStart = true
         
         Synchronized.block(self) {
@@ -535,7 +535,7 @@ public class SyncServer {
         }
         
         if doStart {
-            start(completion: completion)
+            start(sharingGroupId: sharingGroupId, completion: completion)
         }
     }
     
@@ -797,11 +797,11 @@ public class SyncServer {
         return results
     }
     
-    private func start(completion:(()->())?) {
+    private func start(sharingGroupId: SharingGroupId, completion:(()->())?) {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        SyncManager.session.start(first: true) { error in
+        SyncManager.session.start(sharingGroupId: sharingGroupId, first: true) { error in
             if error != nil {
                 Thread.runSync(onMainThread: {
                     self.delegate?.syncServerErrorOccurred(error: error!)
@@ -824,7 +824,7 @@ public class SyncServer {
             
             Synchronized.block(self) { [unowned self] in
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    if !self.stoppingSync && (Upload.haveSyncQueue() || self.delayedSync) {
+                    if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupId: sharingGroupId) || self.delayedSync) {
                         self.delayedSync = false
                         doStart = true
                     }
@@ -837,7 +837,7 @@ public class SyncServer {
             }
             
             if doStart {
-                self.start(completion:completion)
+                self.start(sharingGroupId: sharingGroupId, completion:completion)
             }
         }
     }
@@ -874,7 +874,7 @@ public class SyncServer {
     // TODO: *2* This is incomplete. Needs more work.
     /// This is intended for development/debug only. This enables you do a consistency check between your local files and SyncServer meta data. Does a sync first to ensure files are synchronized.
     public func consistencyCheck(sharingGroupId: SharingGroupId, localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) {
-        sync {
+        sync(sharingGroupId: sharingGroupId) {
             // TODO: *2* Check for errors in sync.
             Consistency.check(sharingGroupId: sharingGroupId, localFiles: localFiles, repair: repair, callback: completion)
         }

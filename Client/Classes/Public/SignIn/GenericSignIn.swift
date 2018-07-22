@@ -39,8 +39,8 @@ public enum UserActionOccurred {
     case userSignedOut
     case userNotFoundOnSignInAttempt
     case existingUserSignedIn(Permission?)
-    case sharingUserCreated
-    case owningUserCreated
+    case sharingUserCreated(sharingGroupId: SharingGroupId)
+    case owningUserCreated(sharingGroupId: SharingGroupId)
 }
 
 public protocol GenericSignOutDelegate : class {
@@ -108,18 +108,18 @@ public protocol GenericSignIn : class {
 }
 
 extension GenericSignIn {
-    public func successCreatingOwningUser() {
+    public func successCreatingOwningUser(sharingGroupId: SharingGroupId) {
         SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new owning user! You are now signed in too!") { [unowned self] in
             // 12/27/17; I'm putting these delegate actions after the user taps OK so that we don't navigate away from the current view controller. That seems too fast in terms of UX, and can cause other problems.
-            self.delegate?.userActionOccurred(action: .owningUserCreated, signIn: self)
+            self.delegate?.userActionOccurred(action: .owningUserCreated(sharingGroupId: sharingGroupId), signIn: self)
             self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
         }
     }
     
-    public func successCreatingSharingUser() {
+    public func successCreatingSharingUser(sharingGroupId: SharingGroupId) {
         SMCoreLib.Alert.show(withTitle: "Success!", message: "Created new sharing user! You are now signed in too!") { [unowned self] in
             // 12/27/17; See above reasoning.
-            self.delegate?.userActionOccurred(action: .sharingUserCreated, signIn: self)
+            self.delegate?.userActionOccurred(action: .sharingUserCreated(sharingGroupId: sharingGroupId), signIn: self)
             self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
         }
     }

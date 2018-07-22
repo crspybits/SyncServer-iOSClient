@@ -322,9 +322,9 @@ public class DropboxSyncServerSignIn : GenericSignIn {
                 return
             }
             
-            SyncServerUser.session.addUser(creds: creds) {[unowned self] error in
-                if error == nil {
-                    self.successCreatingOwningUser()
+            SyncServerUser.session.addUser(creds: creds) {[unowned self] sharingGroupId, error  in
+                if error == nil, let sharingGroupId = sharingGroupId {
+                    self.successCreatingOwningUser(sharingGroupId: sharingGroupId)
                 }
                 else {
                     SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")

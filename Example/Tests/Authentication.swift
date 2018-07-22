@@ -53,8 +53,9 @@ class ServerAPI_Authentication: TestCase {
         let expectation = self.expectation(description: "authentication")
         ServerNetworking.session.delegate = nil
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
-            XCTAssert(error != nil) 
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+            XCTAssert(error != nil)
+            XCTAssert(sharingGroupId != nil)
             expectation.fulfill()
         }
         
@@ -68,9 +69,10 @@ class ServerAPI_Authentication: TestCase {
         
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
             expectation.fulfill()
         }
         
@@ -87,13 +89,14 @@ class ServerAPI_Authentication: TestCase {
 
         Log.msg("deviceUUID1: \(self.deviceUUID)")
 
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
             addUserExpectation.fulfill()
             ServerAPI.session.checkCreds { checkCredsResult, error in
                 XCTAssert(error == nil)
-                guard case .owningUser = checkCredsResult! else {
+                guard case .user = checkCredsResult! else {
                     XCTFail()
                     return
                 }
@@ -113,9 +116,10 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
             addUserExpectation.fulfill()
             
             self.authTokens[ServerConstants.HTTPOAuth2AccessTokenKey] = "foobar"
@@ -141,9 +145,10 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
             addUserExpectation.fulfill()
             
             self.authTokens[ServerConstants.HTTPOAuth2AccessTokenKey] = "foobar"
@@ -167,9 +172,10 @@ class ServerAPI_Authentication: TestCase {
         let removeUserExpectation = self.expectation(description: "removeUser")
         let addUserExpectation2 = self.expectation(description: "addUser2")
 
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
             addUserExpectation.fulfill()
             
             ServerAPI.session.removeUser { error in
@@ -177,9 +183,10 @@ class ServerAPI_Authentication: TestCase {
                 removeUserExpectation.fulfill()
                 
                 // Because we don't want to leave tests in a state where we don't have the user we need.
-                ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+                ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
                     XCTAssert(error == nil)
                     XCTAssert(userId != nil)
+                    XCTAssert(sharingGroupId != nil)
                     addUserExpectation2.fulfill()
                 }
             }
@@ -189,6 +196,11 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testCredentialsRefreshGenerically() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let testCreds = TestCreds()
         testCreds.uiDisplayName = "chris@cprince.com"
         testCreds.username = "Chris"
@@ -201,7 +213,7 @@ class ServerAPI_Authentication: TestCase {
         
         let expectation1 = self.expectation(description: "fileIndex")
         
-        ServerAPI.session.fileIndex { (fileIndex, masterVersion, error) in
+        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
             XCTAssert(error != nil)
             XCTAssert(testCreds.called == true)
             expectation1.fulfill()
@@ -214,7 +226,7 @@ class ServerAPI_Authentication: TestCase {
             
             let addUserExpectation = self.expectation(description: "addUser")
             
-            ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, error in
+            ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
                 XCTAssert(error == nil)
                 XCTAssert(userId != nil)
                 addUserExpectation.fulfill()

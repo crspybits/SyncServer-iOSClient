@@ -73,7 +73,7 @@ public class DirectoryEntry: NSManagedObject, CoreDataModel, AllOperations {
             mimeType = .unknown
         }
         
-        var attr = SyncAttributes(fileUUID: fileUUID!, mimeType: mimeType)
+        var attr = SyncAttributes(fileUUID: fileUUID!, sharingGroupId: sharingGroupId, mimeType: mimeType)
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         return attr

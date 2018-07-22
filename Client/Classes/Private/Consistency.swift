@@ -85,7 +85,7 @@ class Consistency {
                 }
             }
 
-            if messageResult.characters.count > 0 {
+            if messageResult.count > 0 {
                 messageResult = "\nConsistency check: Results through \(localFiles.count) local files, \(fileInfo!.count) server files, and \(entries.count) DirectoryEntry meta data entries:\n\(messageResult)"
                 Log.warning(messageResult)
             }
@@ -96,7 +96,7 @@ class Consistency {
             
             if repair {
                 do {
-                    try repairServerFilesNotPresentLocally(fileUUIDs: serverFilesNotPresentLocally) {
+                    try repairServerFilesNotPresentLocally(fileUUIDs: serverFilesNotPresentLocally, sharingGroupId: sharingGroupId) {
                         callback?(nil)
                     }
                 } catch (let error) {
@@ -109,7 +109,7 @@ class Consistency {
         }
     }
     
-    static func repairServerFilesNotPresentLocally(fileUUIDs:[UUIDString], completion:@escaping ()->()) throws {
+    static func repairServerFilesNotPresentLocally(fileUUIDs:[UUIDString], sharingGroupId: SharingGroupId, completion:@escaping ()->()) throws {
         if fileUUIDs.count == 0 {
             completion()
         }
@@ -136,7 +136,7 @@ class Consistency {
 
         // A bit odd calling back up to the SyncServer, but sync will not call back down to us.
         // TODO: *3* Should use delegation here or a callback. Cleaner.
-        SyncServer.session.sync() {
+        SyncServer.session.sync(sharingGroupId: sharingGroupId) {
             completion()
         }
     }

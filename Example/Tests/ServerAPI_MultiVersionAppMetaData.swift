@@ -23,20 +23,28 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testMakeSureAppMetaDataVersionIsInFileIndex() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
         
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex() else {
+        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -53,6 +61,11 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testUploadInitialAppMetaDataWithEndpointWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         /* Steps:
         1) Upload file with nil app meta data.
         2) Done uploads
@@ -61,27 +74,30 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         5) File index to check app meta data version.
         */
         
-        var masterVersion = getMasterVersion()
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex() else {
+        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -98,66 +114,90 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadFile() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
         let appMetaData = AppMetaData(version: 1, contents: "Foobar")
-        uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, appMetaData:appMetaData)
+        uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, appMetaData:appMetaData)
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadAppMetaData() {
-        var masterVersion = getMasterVersion()
-        
-        let fileUUID = UUID().uuidString
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
         let appMetaData = AppMetaData(version: 1, contents: "Foobar")
-        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, failureExpected: true)
+        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupId: sharingGroupId, failureExpected: true)
     }
     
     func testUploadAppMetaDataMultipleVersionWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload app meta version 0 -- with endpoint.
         // Then version 1 with endpoint.
         
-        var masterVersion = getMasterVersion()
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
         let appMetaData2 = AppMetaData(version: 1, contents: "Foobar2")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData2, fileUUID: fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData2, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex() else {
+        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -174,38 +214,54 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithNilVersionFails() {
-        var masterVersion = getMasterVersion()
-        
-        let fileUUID = UUID().uuidString
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
-        downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, failureExpected: true)
+        downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, sharingGroupId: sharingGroupId, failureExpected: true)
     }
 
     func testDownloadAppMetaDataWithVersion0Works() {
-        var masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
         
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
-        guard let appMetaDataContents = downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID) else {
+        guard let appMetaDataContents = downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -214,35 +270,43 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithVersion1Works() {
-        var masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData1) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData1) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
         let appMetaData2 = AppMetaData(version: 1, contents: "Foobar2")
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: 1) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: 1) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         masterVersion += 1
         
-        guard let appMetaDataContents = downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 1, fileUUID: fileUUID) else {
+        guard let appMetaDataContents = downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 1, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
         XCTAssert(appMetaData2.contents == appMetaDataContents)
         
-        guard let fileIndex = getFileIndex() else {
+        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -259,43 +323,67 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadWithBadMasterVersionFails() {
-        let masterVersion = getMasterVersion()
-        
-        let fileUUID = UUID().uuidString
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        
-        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         // Don't increment the master version
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
-        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, failureExpected: true)
+        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupId: sharingGroupId, failureExpected: true)
     }
     
     func testAppMetaDataDownloadWithBadMasterVersionFails() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
 
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
-        uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         // Don't increment the master version
         
-        downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, failureExpected: true)
+        downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, sharingGroupId: sharingGroupId, failureExpected: true)
     }
     
     // Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0OfFileUsingAppMetaDataUploadFails() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
-        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, failureExpected: true)
+        uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupId: sharingGroupId, failureExpected: true)
     }
 }

@@ -85,6 +85,11 @@ class CoreDataTests: TestCase {
     }
     
     func testThatGetHeadSyncQueueWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
@@ -93,7 +98,7 @@ class CoreDataTests: TestCase {
             } catch {
                 XCTFail()
             }
-            guard let uploadQueue = Upload.getHeadSyncQueue() else {
+            guard let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupId: sharingGroupId) else {
                 XCTFail()
                 return
             }
@@ -103,10 +108,15 @@ class CoreDataTests: TestCase {
     }
     
     func testThatRemoveHeadSyncQueueWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
-            Upload.removeHeadSyncQueue()
+            Upload.removeHeadSyncQueue(sharingGroupId: sharingGroupId)
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch {
@@ -117,6 +127,11 @@ class CoreDataTests: TestCase {
     }
     
     func testThatTrackingResetWorks() {
+        guard let sharingGroupIds = getSharingGroupIds() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let _ = DownloadFileTracker.newObject()
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
@@ -128,10 +143,15 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        assertThereIsNoTrackingMetaData()
+        assertThereIsNoTrackingMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     func testThatPlainResetWorks() {
+        guard let sharingGroupIds = getSharingGroupIds() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let _ = DirectoryEntry.newObject()
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
@@ -143,15 +163,20 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        assertThereIsNoMetaData()
+        assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     func testLogAllTracking() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         XCTAssert(Log.deleteLogFile())
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let uuid = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: uuid, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: uuid, sharingGroupId: sharingGroupId, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         
         let exp = expectation(description: "test")
@@ -176,6 +201,11 @@ class CoreDataTests: TestCase {
     }
     
     func testThatResetWorksWithObjectsInMetaData() {
+        guard let sharingGroupIds = getSharingGroupIds() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync()
             try! Upload.movePendingSyncToSynced()
@@ -193,7 +223,7 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        assertThereIsNoMetaData()
+        assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     // NetworkCached tests
@@ -334,7 +364,13 @@ class CoreDataTests: TestCase {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
             let fileGroupUUID = UUID().uuidString
-            DownloadContentGroup.addDownloadFileTracker(dft, to: fileGroupUUID)
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft, to: fileGroupUUID)
+            }
+            catch {
+                XCTFail()
+                return
+            }
             let dcgs = DownloadContentGroup.fetchAll()
             guard dcgs.count == 1, let downloads = dcgs[0].downloads else {
                 XCTFail()
@@ -353,10 +389,24 @@ class CoreDataTests: TestCase {
             let fileGroupUUID = UUID().uuidString
 
             let dft1 = DownloadFileTracker.newObject() as! DownloadFileTracker
-            DownloadContentGroup.addDownloadFileTracker(dft1, to: fileGroupUUID)
+            
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft1, to: fileGroupUUID)
+            }
+            catch {
+                XCTFail()
+                return
+            }
             
             let dft2 = DownloadFileTracker.newObject() as! DownloadFileTracker
-            DownloadContentGroup.addDownloadFileTracker(dft2, to: fileGroupUUID)
+            
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft2, to: fileGroupUUID)
+            }
+            catch {
+                XCTFail()
+                return
+            }
             
             let dcgs = DownloadContentGroup.fetchAll()
             
@@ -374,8 +424,15 @@ class CoreDataTests: TestCase {
     func testFileGroupFudgeCase() {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
-            DownloadContentGroup.addDownloadFileTracker(dft, to: nil)
             
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft, to: nil)
+            }
+            catch {
+                XCTFail()
+                return
+            }
+                        
             let dcgs = DownloadContentGroup.fetchAll()
 
             guard dcgs.count == 1, let downloads = dcgs[0].downloads else {

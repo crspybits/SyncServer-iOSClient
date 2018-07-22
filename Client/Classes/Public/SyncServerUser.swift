@@ -11,15 +11,15 @@ import SMCoreLib
 import SyncServer_Shared
 
 public class SyncServerUser {
-    private var _creds:GenericCredentials?
     public var creds:GenericCredentials? {
-        set {
-            ServerAPI.session.creds = newValue
-            _creds = newValue
-        }
-        
-        get {
-            return _creds
+        didSet {
+            ServerAPI.session.creds = creds
+            if let _ = creds {
+                setupSharingGroups()
+            }
+            else {
+                sharingGroupIds = nil
+            }
         }
     }
     
@@ -33,6 +33,31 @@ public class SyncServerUser {
         }
         else {
             return SyncServerUser.syncServerUserId.stringValue
+        }
+    }
+    
+    static let sharingGroupIds = SMPersistItemData(name: "SyncServerUser.sharingGroupIds", initialDataValue: Data(), persistType: .userDefaults)
+    
+    /// This is set at app launch, and is an error if a user is signed in and there are no sharingGroupIds.
+    public internal(set) var sharingGroupIds: [SharingGroupId]? {
+        get {
+            if SyncServerUser.sharingGroupIds.dataValue == Data() {
+                return nil
+            }
+            else {
+                let ids = NSKeyedUnarchiver.unarchiveObject(with: SyncServerUser.sharingGroupIds.dataValue) as? [SharingGroupId]
+                return ids
+            }
+        }
+        set {
+            var newArchive:Data!
+            if newValue == nil {
+                newArchive = Data()
+            }
+            else {
+                newArchive = NSKeyedArchiver.archivedData(withRootObject: newValue!)
+            }
+            SyncServerUser.sharingGroupIds.dataValue = newArchive
         }
     }
     
@@ -72,6 +97,18 @@ public class SyncServerUser {
         Thread.runSync(onMainThread: {
             rootViewController?.present(alert, animated: true, completion: nil)
         })
+    }
+    
+    private func setupSharingGroups() {
+        ServerAPI.session.getSharingGroups { sharingGroupIds, error in
+            if error == nil, let sharingGroupIds = sharingGroupIds {
+                self.sharingGroupIds = sharingGroupIds
+                Log.msg("Sharing group ids: \(sharingGroupIds)")
+            }
+            else {
+                Log.error("Error getting sharing group ids: \(String(describing: error))")
+            }
+        }
     }
     
     /// Calls the server API method to check credentials.
@@ -126,12 +163,12 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to add a user.
-    public func addUser(creds: GenericCredentials, completion:@escaping (Error?) ->()) {
+    public func addUser(creds: GenericCredentials, completion:@escaping (SharingGroupId?, Error?) ->()) {
         Log.msg("SignInCreds: \(creds)")
 
         self.creds = creds
         
-        ServerAPI.session.addUser(cloudFolderName: cloudFolderName) { syncServerUserId, error in
+        ServerAPI.session.addUser(cloudFolderName: cloudFolderName) { syncServerUserId, sharingGroupId, error in
             if error != nil {
                 self.creds = nil
                 Log.error("Error: \(String(describing: error))")
@@ -145,7 +182,7 @@ public class SyncServerUser {
             }
             
             Thread.runSync(onMainThread: {
-                completion(error)
+                completion(sharingGroupId, error)
             })
         }
     }
