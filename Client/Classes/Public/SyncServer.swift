@@ -429,7 +429,11 @@ public class SyncServer {
             throw SyncServerError.deletingUnknownFile
         }
         
-        if let errorToThrow = checkIfSameSharingGroup(sharingGroupId: entry.sharingGroupId) {
+        guard let sharingGroupId = entry.sharingGroupId else {
+            throw SyncServerError.noSharingGroupId
+        }
+        
+        if let errorToThrow = checkIfSameSharingGroup(sharingGroupId: sharingGroupId) {
             throw errorToThrow
         }
 

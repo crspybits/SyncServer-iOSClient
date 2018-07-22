@@ -371,6 +371,37 @@ class CoreDataTests: TestCase {
         }
     }
     
+    func testAddDifferentSharingGroupIdsToSameDCGFails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
+            
+            let dft1 = DownloadFileTracker.newObject() as! DownloadFileTracker
+            let fileGroupUUID = UUID().uuidString
+            dft1.sharingGroupId = sharingGroupId
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft1, to: fileGroupUUID)
+            }
+            catch {
+                XCTFail()
+                return
+            }
+            
+            let dft2 = DownloadFileTracker.newObject() as! DownloadFileTracker
+            dft2.sharingGroupId = sharingGroupId + 1
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft2, to: fileGroupUUID)
+                XCTFail()
+            }
+            catch {
+            }
+        }
+    }
+    
     func testAddToNewFileGroup() {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)

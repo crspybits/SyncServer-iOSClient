@@ -130,7 +130,12 @@ class Upload {
                 return
             }
             
-            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupId: nextToUpload.sharingGroupId)
+            if entry!.sharingGroupId == nil {
+                nextResult = .error(.noSharingGroupId)
+                return
+            }
+            
+            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupId: nextToUpload.sharingGroupId!)
         }
         
         guard nextResult == nil else {
@@ -307,9 +312,14 @@ class Upload {
                     }
             
                     let mimeType = MimeType(rawValue: nextToUpload.mimeType!)!
+                    
+                    if nextToUpload.sharingGroupId == nil {
+                        completionResult = .error(.noSharingGroupId)
+                        return
+                    }
 
                     // 1/27/18; See [2] below.
-                    var attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, sharingGroupId: nextToUpload.sharingGroupId, mimeType:mimeType, creationDate: creationDate, updateDate: updateDate)
+                    var attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, sharingGroupId: nextToUpload.sharingGroupId!, mimeType:mimeType, creationDate: creationDate, updateDate: updateDate)
                     
                     // `nextToUpload.appMetaData` may be nil because the client isn't making a change to the appMetaData.
                     var appMetaData:String?

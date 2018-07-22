@@ -2,7 +2,7 @@
 //  DirectoryEntry+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 7/17/18.
+//  Created by Christopher G Prince on 7/22/18.
 //
 //
 
@@ -24,6 +24,6 @@ extension DirectoryEntry {
     @NSManaged public var fileUUID: String?
     @NSManaged public var fileVersionInternal: NSNumber?
     @NSManaged public var mimeType: String?
-    @NSManaged public var sharingGroupId: Int64
+    @NSManaged public var sharingGroupIdInternal: NSNumber?
 
 }
