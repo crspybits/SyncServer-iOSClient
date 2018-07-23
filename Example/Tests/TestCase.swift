@@ -17,7 +17,7 @@ class TestCase: XCTestCase {
     // For Google, before running each complete set of tests, you must copy the access token from a recent sign-in (i.e., immediately before the tests) in to the .plist file.
     // For Facebook, before running each complete set of tests, you must have a long-lived access token in the .plist that is current (i.e., within the last 60 days).
     // For Dropbox, just use an access token-- they live until revoked.
-    static let currTestAccount:TestAccount = .dropbox
+    static let currTestAccount:TestAccount = .google
     
     func currTestAccountIsSharing() -> Bool {
         return TestCase.currTestAccount.accountType == ServerConstants.AuthTokenType.FacebookToken
