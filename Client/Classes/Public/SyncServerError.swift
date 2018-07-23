@@ -49,6 +49,7 @@ public enum SyncServerError: Error {
     case urlSessionError(Error)
     case couldNotGetHTTPURLResponse
     case non200StatusCode(Int)
+    case invitingUserRemoved
     case badCheckCreds
     case badAddUser
     case appMetaDataUploadUndeletionAttempt

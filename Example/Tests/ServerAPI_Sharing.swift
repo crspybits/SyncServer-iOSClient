@@ -50,8 +50,7 @@ class ServerAPI_Sharing: TestCase {
         ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupId: sharingGroupId) { (sharingInvitationUUID, error) in
             XCTAssert(error == nil)
             XCTAssert(sharingInvitationUUID != nil)
-            
-            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!) { accessToken, sharingGroupId, error in
+            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!, cloudFolderName: self.cloudFolderName) { accessToken, sharingGroupId, error in
                 XCTAssert(error != nil)
                 expectation.fulfill()
             }

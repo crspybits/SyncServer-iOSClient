@@ -66,6 +66,7 @@ public class SignInManager : NSObject {
     public var currentSignIn:GenericSignIn? {
         didSet {
             if currentSignIn == nil {
+                SyncServerUser.session.creds = nil
                 SignInManager.currentSignInName.stringValue = ""
             }
             else {

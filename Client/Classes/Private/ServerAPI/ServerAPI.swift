@@ -310,6 +310,7 @@ class ServerAPI {
     }
     
     // Set undelete = true in order to do an upload undeletion. The server file must already have been deleted. The meaning is to upload a new file version for a file that has already been deleted on the server. The use case is for conflict resolution-- when a download deletion and a file upload are taking place at the same time, and the client want's its upload to take priority over the download deletion.
+    // Returns error `SyncServerError.invitingUserRemoved` in the case of a purely sharing user trying to upload a file and their original inviting user has been removed from the system.
     func uploadFile(file:File, serverMasterVersion:MasterVersionInt, undelete:Bool = false, completion:((UploadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.uploadFile
 
@@ -345,6 +346,12 @@ class ServerAPI {
         let networkingFile = ServerNetworkingLoadingFile(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
 
         upload(file: networkingFile, fromLocalURL: file.localURL, toServerURL: url, method: endpoint.method) { (response, httpStatus, error) in
+
+            if httpStatus == HTTPStatus.gone.rawValue {
+                completion?(nil, .invitingUserRemoved)
+                return
+            }
+            
             let resultError = self.checkForError(statusCode: httpStatus, error: error)
 
             if resultError == nil {
@@ -673,11 +680,15 @@ class ServerAPI {
     }
     
     // Some accounts return an access token after sign-in (e.g., Facebook's long-lived access token).
-    func redeemSharingInvitation(sharingInvitationUUID:String, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, SyncServerError?)->(Void))?) {
+    // When redeeming a sharing invitation for an owning user account type that requires a cloud folder, you must give a cloud folder in the redeeming request.
+    func redeemSharingInvitation(sharingInvitationUUID:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.redeemSharingInvitation
 
         var paramsForRequest:[String:Any] = [:]
         paramsForRequest[RedeemSharingInvitationRequest.sharingInvitationUUIDKey] = sharingInvitationUUID
+        if let cloudFolderName = cloudFolderName {
+            paramsForRequest[AddUserRequest.cloudFolderNameKey] = cloudFolderName
+        }
         let redeemRequest = RedeemSharingInvitationRequest(json: paramsForRequest)!
         
         let parameters = redeemRequest.urlParameters()!

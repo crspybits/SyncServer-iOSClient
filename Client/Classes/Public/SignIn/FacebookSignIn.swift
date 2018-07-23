@@ -203,7 +203,7 @@ public class FacebookSyncServerSignIn : GenericSignIn {
             Log.msg("signUserOut: FacebookSignIn: tried to create an owning user!")
             
         case .createSharingUser(invitationCode: let invitationCode):
-            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode) {[unowned self] longLivedAccessToken, sharingGroupId, error in
+            SyncServerUser.session.redeemSharingInvitation(creds: credentials!, invitationCode: invitationCode, cloudFolderName: SyncServerUser.session.cloudFolderName) {[unowned self] longLivedAccessToken, sharingGroupId, error in
                 if error == nil, let sharingGroupId = sharingGroupId {
                     Log.msg("Facebook long-lived access token: \(String(describing: longLivedAccessToken))")
                     self.successCreatingSharingUser(sharingGroupId: sharingGroupId)

@@ -305,7 +305,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                 }
                 
             case .createSharingUser(invitationCode: let invitationCode):
-                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode) {[unowned self] accessToken, sharingGroupId, error in
+                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode, cloudFolderName: SyncServerUser.session.cloudFolderName) {[unowned self] accessToken, sharingGroupId, error in
                     if error == nil, let sharingGroupId = sharingGroupId {
                         self.successCreatingSharingUser(sharingGroupId: sharingGroupId)
                     }

@@ -61,7 +61,7 @@ public class SyncServerUser {
         }
     }
     
-    private var cloudFolderName:String?
+    public private(set) var cloudFolderName:String?
     
     public static let session = SyncServerUser()
     
@@ -198,11 +198,11 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to redeem a sharing invitation.
-    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, Error?)->())?) {
+    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, Error?)->())?) {
         
         self.creds = creds
         
-        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode) { accessToken, sharingGroupId, error in
+        ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode, cloudFolderName: cloudFolderName) { accessToken, sharingGroupId, error in
             Thread.runSync(onMainThread: {
                 completion?(accessToken, sharingGroupId, error)
             })

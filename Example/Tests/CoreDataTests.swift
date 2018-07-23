@@ -403,10 +403,17 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToNewFileGroup() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
             let fileGroupUUID = UUID().uuidString
+            dft.sharingGroupId = sharingGroupId
+            
             do {
                 try DownloadContentGroup.addDownloadFileTracker(dft, to: fileGroupUUID)
             }
@@ -427,12 +434,16 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToExistingFileGroup() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
             let fileGroupUUID = UUID().uuidString
-
             let dft1 = DownloadFileTracker.newObject() as! DownloadFileTracker
-            
+            dft1.sharingGroupId = sharingGroupId
             do {
                 try DownloadContentGroup.addDownloadFileTracker(dft1, to: fileGroupUUID)
             }
@@ -442,7 +453,8 @@ class CoreDataTests: TestCase {
             }
             
             let dft2 = DownloadFileTracker.newObject() as! DownloadFileTracker
-            
+            dft2.sharingGroupId = sharingGroupId
+
             do {
                 try DownloadContentGroup.addDownloadFileTracker(dft2, to: fileGroupUUID)
             }
@@ -465,8 +477,14 @@ class CoreDataTests: TestCase {
     }
     
     func testFileGroupFudgeCase() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
+            dft.sharingGroupId = sharingGroupId
             
             do {
                 try DownloadContentGroup.addDownloadFileTracker(dft, to: nil)
