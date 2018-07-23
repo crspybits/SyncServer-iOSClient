@@ -24,40 +24,55 @@ class Client_FileGroup: TestCase {
     
     // Upload a file with nil group UUID for v0, and try to upload a non-nil for v1; should fail
     func testUploadNonNilGroupUUIDAfterNilFails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID = UUID().uuidString
 
         // Nil file group UUID
-        guard let _ = uploadSingleFileUsingSync(fileUUID: fileUUID) else {
+        guard let _ = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID) else {
             XCTFail()
             return
         }
         
         let fileGroupUUID = UUID().uuidString
-        let result = uploadSingleFileUsingSync(fileUUID: fileUUID, fileGroupUUID: fileGroupUUID, errorExpected: .uploadImmutable)
+        let result = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID, fileGroupUUID: fileGroupUUID, errorExpected: .uploadImmutable)
         XCTAssert(result == nil)
     }
     
     // Upload a file with non-nil group UUID for v0, and try to upload a different non-nil group UUID for v1; should fail
     func testUploadDifferentNonNilGroupUUIDAfterNonNilFails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID = UUID().uuidString
         let fileGroupUUID1 = UUID().uuidString
         
-        guard let _ = uploadSingleFileUsingSync(fileUUID: fileUUID, fileGroupUUID: fileGroupUUID1) else {
+        guard let _ = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID, fileGroupUUID: fileGroupUUID1) else {
             XCTFail()
             return
         }
         
         let fileGroupUUID2 = UUID().uuidString
-        let result = uploadSingleFileUsingSync(fileUUID: fileUUID, fileGroupUUID: fileGroupUUID2, errorExpected: .uploadImmutable)
+        let result = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID, fileGroupUUID: fileGroupUUID2, errorExpected: .uploadImmutable)
         XCTAssert(result == nil)
     }
     
     // appMetaData upload of a file with a non-nil group-UUID for v1, where it's the same as previous-- should work
     func testAppMetaDataUploadWithSameNonNilGroupUUIDWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID = UUID().uuidString
         let fileGroupUUID = UUID().uuidString
 
-        guard let (_, attr) = uploadSingleFileUsingSync(fileUUID:fileUUID, fileGroupUUID: fileGroupUUID) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID:fileUUID, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -79,17 +94,22 @@ class Client_FileGroup: TestCase {
         updatedAttr.appMetaData = "123Foobar"
         updatedAttr.fileGroupUUID = fileGroupUUID
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // appMetaData upload of a file with a non-nil group-UUID for v1, where it's different than previous-- should fail.
     func testAppMetaDataUploadWithDifferentNonNilGroupUUIDFails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID = UUID().uuidString
         let fileGroupUUID1 = UUID().uuidString
 
-        guard let (_, attr) = uploadSingleFileUsingSync(fileUUID:fileUUID, fileGroupUUID: fileGroupUUID1) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID:fileUUID, fileGroupUUID: fileGroupUUID1) else {
             XCTFail()
             return
         }
@@ -109,17 +129,25 @@ class Client_FileGroup: TestCase {
     
     // When a file is downloaded for the first time and it has a group UUID, make sure the group UUID is stored in the directory.
     func testFirstDownloadStoresFileGroupUUID() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID = UUID().uuidString
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
         let fileGroupUUID = UUID().uuidString
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         let expDone = self.expectation(description: "test1")
         SyncServer.session.eventsDesired = [.syncDone]
@@ -134,7 +162,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -151,9 +179,14 @@ class Client_FileGroup: TestCase {
     
     // Download v1 of a file as the first time a file is downloaded, and make sure the group UUID makes it into the directory.
     func testV1DownloadStoresFileGroupUUID() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         let fileGroupUUID = UUID().uuidString
-        guard let file = uploadFileVersion(1, fileURL: fileURL, mimeType: .text, fileGroupUUID: fileGroupUUID) else {
+        guard let file = uploadFileVersion(1, fileURL: fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -171,7 +204,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -190,8 +223,16 @@ class Client_FileGroup: TestCase {
     
     // Download a group of files-- i.e., a collection of files with the same group UUID. The delegate callback should be called for exactly this group of files.
     func testDownloadGroupOfFilesWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload a group of files.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileGroupUUID = UUID().uuidString
 
@@ -200,15 +241,15 @@ class Client_FileGroup: TestCase {
 
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Download them with sync
         
@@ -245,15 +286,23 @@ class Client_FileGroup: TestCase {
             groupDone.fulfill()
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // Download a group of files-- i.e., a collection of files with the same group UUID. The delegate callback should be called for exactly this group of files. Include another file-- not in this group UUID-- delegate should get called separately for this.
     func testDownloadGroupOfFilesWithSeparateFileWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload a group of files.
-        var masterVersion = getMasterVersion()
+        guard var masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileGroupUUID = UUID().uuidString
 
@@ -263,22 +312,22 @@ class Client_FileGroup: TestCase {
         
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         masterVersion += 1
         
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID3, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID3, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // Download them with sync
         
@@ -329,14 +378,22 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // Downloading groups, with specific group UUID's, with just one file in them should work.
     func testSingleGroupSizeWithGroupUUIDs() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileGroupUUID1 = UUID().uuidString
         let fileGroupUUID2 = UUID().uuidString
@@ -346,15 +403,15 @@ class Client_FileGroup: TestCase {
         
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID1) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID1) else {
             return
         }
         
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID2) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID2) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Download them with sync
         
@@ -398,29 +455,37 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // You should get the same effect when not giving a group UUID for the downloaded file-- it should act as a group of size 1.
     func testSingleGroupSizeWithoutGroupUUIDs() {
-        let masterVersion = getMasterVersion()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
         
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return
         }
         
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Download them with sync
         
@@ -469,15 +534,20 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testGroupWithOnlyADownloadDeletion() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileGroupUUID = UUID().uuidString
         
-        guard let (_, attr) = uploadSingleFileUsingSync(fileGroupUUID: fileGroupUUID) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -487,9 +557,9 @@ class Client_FileGroup: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr.fileUUID, fileVersion: 0)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // Get the download deletion with sync
         
@@ -524,20 +594,25 @@ class Client_FileGroup: TestCase {
             downloadDeletion.fulfill()
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testGroupWithTwoDeletionWithSameGroupUUID() {
-        let fileGroupUUID = UUID().uuidString
-
-        guard let (_, attr1) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        guard let (_, attr2) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        let fileGroupUUID = UUID().uuidString
+
+        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr2) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -547,11 +622,11 @@ class Client_FileGroup: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0)
+        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete1, masterVersion: masterVersion)
-        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: attr2.fileUUID, fileVersion: 0)
+        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: attr2.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete2, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Get the download deletions with sync
         
@@ -594,15 +669,20 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testGroupWithOnlyAnAppMetaDataUpdate() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileGroupUUID = UUID().uuidString
         
-        guard let (_, attr) = uploadSingleFileUsingSync(fileGroupUUID: fileGroupUUID) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -613,11 +693,11 @@ class Client_FileGroup: TestCase {
         }
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr.fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr.fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
         // Get the app meta data update with sync
         
@@ -653,20 +733,25 @@ class Client_FileGroup: TestCase {
             downloadAppMetaData.fulfill()
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testGroupWithTwoAppMetaDataUpdatesWithSameGroupUUID() {
-        let fileGroupUUID = UUID().uuidString
-
-        guard let (_, attr1) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        guard let (_, attr2) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        let fileGroupUUID = UUID().uuidString
+
+        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr2) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -677,18 +762,18 @@ class Client_FileGroup: TestCase {
         }
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr1.fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr1.fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
         let appMetaData2 = AppMetaData(version: 0, contents: "Blarbar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData2, fileUUID: attr2.fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData2, fileUUID: attr2.fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Get the download app meta data updates with sync
         
@@ -733,26 +818,31 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // A download group with a version update, appMetaData download, and a deletion.
     func testGroupWithVersionUpdateAppMetaDataDownloadAndDeletions() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileGroupUUID = UUID().uuidString
 
-        guard let (_, attr1) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
             XCTFail()
             return
         }
         
-        guard let (_, attr2) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        guard let (_, attr2) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
             XCTFail()
             return
         }
         
-        guard let (_, attr3) = uploadSingleFileUsingSync(fileGroupUUID:fileGroupUUID) else {
+        guard let (_, attr3) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID:fileGroupUUID) else {
             XCTFail()
             return
         }
@@ -764,20 +854,20 @@ class Client_FileGroup: TestCase {
         
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
 
-        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: attr1.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: attr1.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
             return
         }
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
-        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr2.fileUUID) else {
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData1, fileUUID: attr2.fileUUID, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr3.fileUUID, fileVersion: 0)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr3.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 3)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 3)
         
         // Get the download updates with sync
         
@@ -831,19 +921,24 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // Two separate groups with deletions-- nil group UUID in each case.
     func testTwoGroupsWithDeletionsWithNilGroupId() {
-        guard let (_, attr1) = uploadSingleFileUsingSync() else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        guard let (_, attr2) = uploadSingleFileUsingSync() else {
+        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr2) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -853,13 +948,13 @@ class Client_FileGroup: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0)
+        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete1, masterVersion: masterVersion)
         
-        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: attr2.fileUUID, fileVersion: 0)
+        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: attr2.fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete2, masterVersion: masterVersion)
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Get the download updates with sync
         
@@ -903,15 +998,23 @@ class Client_FileGroup: TestCase {
             XCTAssert(group[0].attr.fileGroupUUID == nil)
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // A group with a larger numbers of operations-- e.g., with 10 downloads.
     func testFileGroupWithLargerNumberOfOperations() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload a group of files.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileGroupUUID = UUID().uuidString
         let numberOfFiles = 10
@@ -926,12 +1029,12 @@ class Client_FileGroup: TestCase {
 
         for index in 0..<numberOfFiles {
             let fileUUID = fileUUIDs[index]
-            guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+            guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
                 return
             }
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: Int64(numberOfFiles))
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: Int64(numberOfFiles))
         
         // Download them with sync
         
@@ -974,15 +1077,23 @@ class Client_FileGroup: TestCase {
             groupDone.fulfill()
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     // Make sure the files have their expected contents.
     func testDownloadAGroupWithATextFileAndImageWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload a group of files.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         
         let fileGroupUUID = UUID().uuidString
 
@@ -992,15 +1103,15 @@ class Client_FileGroup: TestCase {
         let textFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
         let imageFileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
 
-        guard let _ = uploadFile(fileURL:textFileURL, mimeType: .text, fileUUID: textFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:textFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: textFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        guard let _ = uploadFile(fileURL:imageFileURL, mimeType: .text, fileUUID: imageFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:imageFileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: imageFileUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Download them with sync
         
@@ -1045,7 +1156,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

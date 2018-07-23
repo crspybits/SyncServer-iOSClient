@@ -25,7 +25,12 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForAnUploadedFileWorks() {
-        guard let (_, uploadedAttr) = uploadSingleFileUsingSync(fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, uploadedAttr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
             XCTFail()
             return
         }
@@ -42,15 +47,24 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADownloadedFileWorks() {
-        let masterVersion = getMasterVersion()
-        let fileUUID = UUID().uuidString
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        
-        guard let (_, uploadedAttr) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        let fileUUID = UUID().uuidString
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let (_, uploadedAttr) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         let download = self.expectation(description: "test1")
         let done = self.expectation(description: "done")
@@ -73,7 +87,7 @@ class Client_GetAttributes: TestCase {
             }
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -89,9 +103,14 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADeletedFileFails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -113,10 +132,10 @@ class Client_GetAttributes: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         

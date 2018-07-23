@@ -28,14 +28,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // uploads text files.
     @discardableResult
-    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {
+    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, sharingGroupId: SharingGroupId, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {
         
-        guard let (url, attr) = uploadSingleFileUsingSync(fileUUID: fileUUID, fileURL:fileURL) else {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID, fileURL:fileURL) else {
             XCTFail()
             return nil
         }
         
-        getFileIndex(expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
@@ -48,8 +48,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == expectedVersion)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
         
         return url
     }
@@ -58,20 +58,30 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // Make sure that different versions get uploaded each time.
     // And that the directory entry has the right version after the last upload.
     func testSequentialVersionUploadWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileUUID = UUID().uuidString
-        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0)
+        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0, sharingGroupId: sharingGroupId)
         
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 1, fileURL: url2)
+        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 1, sharingGroupId: sharingGroupId, fileURL: url2)
         
         let url3 = SMRelativeLocalURL(withRelativePath: "UploadMe4.txt", toBaseURLType: .mainBundle)!
-        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 2, fileURL: url3)
+        sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 2, sharingGroupId: sharingGroupId, fileURL: url3)
     }
     
     // 1b) queue for upload the same file several times, concurrently. Don't do a sync until queuing each one.
     // Make sure that different versions get uploaded each time.
     // And that the directory entry has the right version after the last upload.
     func testConcurrentVersionUploadWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let urls = [url1, url2]
@@ -98,16 +108,16 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let version:FileVersionInt = 1
         for index in 0...version {
-            let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+            let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
             let url = urls[Int(index)]
             
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(expectedFiles: [
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
             (fileUUID: fileUUID, fileSize: nil),
         ])
         
@@ -122,28 +132,28 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == version)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
         
         // Expecting last file contents uploaded.
         let url = urls[urls.count - 1]
         
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
     }
     
     // What happens if you queue the same time several times without calling sync? It gets replaced-- no version update. See docs for uploadImmutable.
     
     // Returns the fileUUID
     @discardableResult
-    func uploadVersion(_ maxVersion:FileVersionInt) -> (fileUUID: String, SMRelativeLocalURL)? {
+    func uploadVersion(_ maxVersion:FileVersionInt, sharingGroupId: SharingGroupId) -> (fileUUID: String, SMRelativeLocalURL)? {
         let fileUUID = UUID().uuidString
-        guard let url = sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0) else {
+        guard let url = sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 0, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return nil
         }
         
         if maxVersion > 0 {
             for version in 1...maxVersion {
-                sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: version)
+                sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: version, sharingGroupId: sharingGroupId)
             }
         }
         
@@ -154,8 +164,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         i.e., Use sync to upload different file versions, e.g., version 1 of file UUID X, version 3 of file UUID Y. Reset local meta data. Sync again. Should get those different file versions.
     */
     func testFileDownloadOfDifferentVersions() {
-        guard let (fileUUID1, url1) = uploadVersion(1),
-        let (fileUUID2, url2) = uploadVersion(3) else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        guard let (fileUUID1, url1) = uploadVersion(1, sharingGroupId: sharingGroupId),
+            let (fileUUID2, url2) = uploadVersion(3, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -211,7 +226,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -230,9 +245,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Upload delete some higher numbered file version-- will have to upload the same file several times first.
     func testUploadDeleteHigherNumberedFileVersionWorks() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileVersion:FileVersionInt = 3
         
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -258,7 +278,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -274,8 +294,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testDownloadDeleteHigherNumberedFileVersion() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let fileVersion:FileVersionInt = 3
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -286,9 +311,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Upload delete the file-- but don't use sync system so we don't record it in our local meta data.
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
         SyncServer.session.eventsDesired = [.syncDone]
         SyncServer.session.delegate = self
@@ -316,7 +341,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -324,9 +349,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // MARK: Conflict resolution
     
     func downloadDeletionConflict_AcceptDownloadDeletion(numberUploads:Int) {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -337,9 +367,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Queue up file upload(s) of the same file.
         SyncServer.session.eventsDesired = [.syncDone]
@@ -389,11 +419,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         
         for _ in 1...numberUploads {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -408,12 +438,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         downloadDeletionConflict_AcceptDownloadDeletion(numberUploads: 2)
     }
     
-    func downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:Int) {
+    func downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:Int, sharingGroupId: SharingGroupId) {
         var actualNumberUploads = 0
         
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -424,9 +454,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Queue up file upload(s) of the same file.
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
@@ -480,11 +510,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         
         for _ in 1...numberUploadsToDo {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -492,18 +522,33 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Deletion conflict: a file is being download deleted, but there is a pending upload for the same file. B) Choose to refuse the deletion-- do an upload undeletion.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_1() {
-        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:1)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:1, sharingGroupId: sharingGroupId)
     }
     
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_2() {
-        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2, sharingGroupId: sharingGroupId)
     }
     
     // This is an error because a purely appMetaData upload cannot undelete a file-- because it can't replace the previously deleted file content.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepAppMetaDataUpload_Fails() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload a file-- uses sync system.
         let fileVersion:FileVersionInt = 3
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -514,9 +559,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Queue up an appMetaData upload of the same file.
         SyncServer.session.eventsDesired = [.syncDone]
@@ -579,20 +624,25 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             errorExp.fulfill()
         }
         
-        var attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         attr.appMetaData = "Some app meta data"
         
         try! SyncServer.session.uploadAppMetaData(attr: attr)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
     // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 3
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -603,9 +653,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Queue up a file upload of the same file.
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
@@ -668,9 +718,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
-        let attr = SyncAttributes(fileUUID: fileUUID, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -679,9 +729,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
     // A file is being download deleted, and there is a pending upload deletion for the same file. This should *not* report a download deletion to the delegate callback-- the client already knows about the deletion.
     func testDownloadDeletionWithPendingUploadDeletion() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload a file.
         let fileVersion:FileVersionInt = 0
-        guard let (fileUUID, _) = uploadVersion(fileVersion) else {
+        guard let (fileUUID, _) = uploadVersion(fileVersion, sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -692,9 +747,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
 
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Queue up an upload deletion of the same file.
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
@@ -724,7 +779,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -739,7 +794,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
     }
     
-    func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
+    func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:ContentDownloadResolution, sharingGroupId: SharingGroupId) {
     
         let numberSyncDoneExpected = numberFileUploads + (uploadDeletion ? 1 : 0)
         var actualNumberSyncDone = 0
@@ -761,14 +816,17 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
-        let masterVersion = getMasterVersion()
-        
-        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, serverMasterVersion: masterVersion) else {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupId: sharingGroupId, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
         // 2) Setup our callbacks & expectations
         let done = self.expectation(description: "done")
@@ -883,15 +941,15 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         if numberFileUploads > 0 {
             for _ in 1...numberFileUploads {
-                let attr = SyncAttributes(fileUUID: file.fileUUID, mimeType: mimeType)
+                let attr = SyncAttributes(fileUUID: file.fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-                SyncServer.session.sync()
+                SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
         if uploadDeletion {
             try! SyncServer.session.delete(fileWithUUID: file.fileUUID)
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -902,9 +960,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         case appMetaData
     }
     
-    func appMetaDataConflict(downloadType: DownloadType = .file, numberAppMetaDataUploads: Int, numberFileUploads: Int = 0, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
+    func appMetaDataConflict(downloadType: DownloadType = .file, sharingGroupId: SharingGroupId, numberAppMetaDataUploads: Int, numberFileUploads: Int = 0, uploadDeletion: Bool, resolution:ContentDownloadResolution) {
     
-        guard let (_, attr) = uploadSingleFileUsingSync() else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -938,24 +996,27 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file OR appMetaData, not using the sync system-- this is the download that will conflict with the following upload.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
 
         switch downloadType {
         case .file:
-            guard let _ = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
+            guard let _ = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 1) else {
                 XCTFail()
                 return
             }
             
         case .appMetaData:
-            guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID) else {
+            guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupId: sharingGroupId) else {
                 XCTFail()
                 return
             }
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
         // 2) Setup our callbacks & expectations
         let done = self.expectation(description: "done")
@@ -1097,43 +1158,63 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         if numberAppMetaDataUploads > 0 {
             for index in 1...numberAppMetaDataUploads {
-                var attr = SyncAttributes(fileUUID: fileUUID, mimeType: mimeType)
+                var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 attr.appMetaData = "foobar\(index)"
                 try! SyncServer.session.uploadAppMetaData(attr: attr)
-                SyncServer.session.sync()
+                SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
         if numberFileUploads > 0 {
             for _ in 1...numberFileUploads {
-                let attr = SyncAttributes(fileUUID: fileUUID, mimeType: mimeType)
+                let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-                SyncServer.session.sync()
+                SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
         if uploadDeletion {
             try! SyncServer.session.delete(fileWithUUID: fileUUID)
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
     func testFileDownloadConflict_Accept_FU1_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload, sharingGroupId: sharingGroupId)
     }
 
     func testFileDownloadConflict_Accept_FU2_UD0() {
-        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload, sharingGroupId: sharingGroupId)
     }
 
     func testFileDownloadConflict_Accept_FU1_UD1() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload, sharingGroupId: sharingGroupId)
     }
 
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll), sharingGroupId: sharingGroupId)
     }
     
     /* Cases for file-download conflict:
@@ -1155,82 +1236,177 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     */
 
     func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupId: sharingGroupId)
     }
 
     func testFileDownloadConflict_Reject_FU2_Keep_UD0() {
-        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupId: sharingGroupId)
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupId: sharingGroupId)
     }
     
     func testFileDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions), sharingGroupId: sharingGroupId)
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll), sharingGroupId: sharingGroupId)
     }
     
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
-        appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD0() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD0() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU2_Keep_UD0() {
-        appMetaDataConflict(numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        appMetaDataConflict(numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
     func testAppMetaData_Upload_DownloadConflict_Accept_FU1_UD0() {
-        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(downloadType: .appMetaData, sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
     func testAppMetaData_Upload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(downloadType: .appMetaData, sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
     // What happens now if you upload contents for a file, but have an app meta data download occur? i.e., in terms of conflicts?
     func testAppMetaData_FileUpload_DownloadConflict_Accept_FU1_UD0() {
-        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(downloadType: .appMetaData, sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
     }
     
     func testAppMetaData_FileUpload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        appMetaDataConflict(downloadType: .appMetaData, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
+        appMetaDataConflict(downloadType: .appMetaData, sharingGroupId: sharingGroupId, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
     }
     
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
     func testLocalDeletionDownloadedAgainBecauseUndeleted() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload the file.
-        guard let (url, attr) = uploadSingleFileUsingSync() else {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -1252,7 +1428,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -1263,11 +1439,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, sharingGroupId: sharingGroupId, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 4) So we're ready: Locally, we've deleted the file. On the server, the file has been undeleted. We should get an event indicating the file has been downloaded. And after, I'd expect the file to not be marked as deleted in our local directory.
         
@@ -1295,7 +1471,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -1310,6 +1486,11 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflictRejectRemoveAllAndUploadNewFile() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let uploadResolution:ContentDownloadResolution.UploadResolution = .removeAll
         let resolution = ContentDownloadResolution.rejectContentDownload(uploadResolution)
         
@@ -1323,14 +1504,17 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
-        let masterVersion = getMasterVersion()
-        
-        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, serverMasterVersion: masterVersion) else {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupId: sharingGroupId, serverMasterVersion: masterVersion) else {
+            XCTFail()
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
 
         // 2) Setup our callbacks & expectations
         let done = self.expectation(description: "done")
@@ -1377,30 +1561,35 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            SyncServer.session.sync()
+            SyncServer.session.sync(sharingGroupId: sharingGroupId)
             
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
             uploadConflict.resolutionCallback(resolution)
         }
         
-        let attr = SyncAttributes(fileUUID: file.fileUUID, mimeType: mimeType)
+        let attr = SyncAttributes(fileUUID: file.fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
         try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
    // Version 1 upload of a file gets access to original appMetaData in the callback, when uploaded with nil appMetaData (which doesn't change the app meta data).
     func testCallbackHasOrignalAppMetaData() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         
         // The meta data in attr1 is explicitly supposed to be nil.
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
        
         let appMetaData = "123themetadata"
         
-        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData) else {
+        guard let (_, _) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData) else {
             XCTFail()
             return
         }
@@ -1425,13 +1614,18 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
     // When a new version of a file is downloaded, do we get its new appMetaData?
     func testDownloadNewFileVersionGetAppMetaData() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // 1) Upload first version
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -1439,21 +1633,25 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         // The meta data in attr1 is explicitly supposed to be nil.
         let appMetaData1 = "123themetadata"
         
-        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData1) else {
+        guard let (_, _) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID1, fileURL: url1, appMetaData: appMetaData1) else {
             XCTFail()
             return
         }
         
         // 2) Upload second version, using API so it's like another app did it.
-        let masterVersion = getMasterVersion()
-        let fileVersion:FileVersionInt = 1
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        let appMetaData2 = AppMetaData(version: 1, contents: "OtherAppMetaData")
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: fileVersion) else {
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        
+        let fileVersion:FileVersionInt = 1
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        let appMetaData2 = AppMetaData(version: 1, contents: "OtherAppMetaData")
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: fileVersion) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // 3) Initiate the download of new version, using sync.
         SyncServer.session.eventsDesired = [.syncDone]
@@ -1481,7 +1679,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
@@ -1503,35 +1701,43 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Two download deletions in the same file group. File upload conflict. Client resolves conflict with `.rejectDownloadDeletion(.keepContentUpload))`
     func testTwoDownloadDeletionsInSameFileGroup() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Upload files
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
         let fileGroupUUID = UUID().uuidString
         
-        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID1, fileGroupUUID: fileGroupUUID, fileURL: url) else {
+        guard let (_, _) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID1, fileGroupUUID: fileGroupUUID, fileURL: url) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadSingleFileUsingSync(fileUUID: fileUUID2, fileGroupUUID: fileGroupUUID, fileURL: url) else {
+        guard let (_, _) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileUUID: fileUUID2, fileGroupUUID: fileGroupUUID, fileURL: url) else {
             XCTFail()
             return
         }
         
         // Delete them.
-        let masterVersion = getMasterVersion()
+        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
 
-        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: fileUUID1, fileVersion: 0)
+        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: fileUUID1, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete1, masterVersion: masterVersion)
-        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: fileUUID2, fileVersion: 0)
+        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: fileUUID2, fileVersion: 0, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete2, masterVersion: masterVersion)
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
 
         // Initiate an upload to create the conflict.
         
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         let expectSyncDone = self.expectation(description: "test1")
@@ -1579,18 +1785,18 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 2) Add some state to the DirectoryEntry -- and when a undeletion is marked in a uft, the other directory entries in the group (if any) can be marked as pending undeletion. Which will indicate on the next file upload, that they should be undeleted. Using `deletedOnServer` for this purpose.
                 */
                 try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-                SyncServer.session.sync()
+                SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
             
             expectConflicts.fulfill()
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 60.0, handler: nil)
         
-        guard let fileIndex = getFileIndex() else {
+        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }

@@ -26,6 +26,11 @@ class Client_SyncServer_Sync: TestCase {
     // 3/26/17; I have now turned on "-com.apple.CoreData.ConcurrencyDebug 1" (see http://stackoverflow.com/questions/31391838) as a strict measure to make sure I'm getting concurrency right with Core Data. I recently started having problems with this.
     
     func testThatSyncWithNoFilesResultsInSyncDone() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         SyncServer.session.eventsDesired = .all
 
         let syncStarted = self.expectation(description: "test1")
@@ -44,14 +49,19 @@ class Client_SyncServer_Sync: TestCase {
             }
         }
         
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(expectedFiles: [])
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [])
     }
     
     func testThatDoingSyncTwiceWithNoFilesResultsInTwoSyncDones() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         SyncServer.session.eventsDesired = .all
 
         let syncStarted1 = self.expectation(description: "test1")
@@ -59,7 +69,7 @@ class Client_SyncServer_Sync: TestCase {
         let syncDone1 = self.expectation(description: "test3")
         let syncDone2 = self.expectation(description: "test4")
         let syncDelayed = self.expectation(description: "test5")
-        
+
         var syncDoneCount = 0
         var syncStartedCount = 0
 
@@ -92,20 +102,19 @@ class Client_SyncServer_Sync: TestCase {
                 }
                 
             case .syncDelayed:
-                XCTAssert(syncStartedCount == 1 && syncDoneCount == 0)
                 syncDelayed.fulfill()
                 
             default:
-                XCTFail()
+                XCTFail("\(event)")
             }
         }
         
-        SyncServer.session.sync()
-        SyncServer.session.sync()
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(expectedFiles: [])
+        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [])
     }
     
     // TODO: *0* Do a sync with no uploads pending, but pending downloads.

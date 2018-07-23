@@ -23,9 +23,14 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testCreateSharingInvitation() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let expectation = self.expectation(description: "CreateSharingInvitation")
         
-        ServerAPI.session.createSharingInvitation(withPermission: .read) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupId: sharingGroupId) { (sharingInvitationUUID, error) in
             XCTAssert(error == nil)
             XCTAssert(sharingInvitationUUID != nil)
             expectation.fulfill()
@@ -35,13 +40,17 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testThatSameUserCannotRedeemInvitation() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         let expectation = self.expectation(description: "SharingInvitation")
 
-        ServerAPI.session.createSharingInvitation(withPermission: .read) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupId: sharingGroupId) { (sharingInvitationUUID, error) in
             XCTAssert(error == nil)
             XCTAssert(sharingInvitationUUID != nil)
-            
-            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!) { accessToken, error in
+            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!, cloudFolderName: self.cloudFolderName) { accessToken, sharingGroupId, error in
                 XCTAssert(error != nil)
                 expectation.fulfill()
             }

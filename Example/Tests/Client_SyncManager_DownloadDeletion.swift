@@ -24,17 +24,22 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func startWithOneDownloadDeletion() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
-        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart() else {
+        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
         // Simulate another device deleting the file.
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         
-        self.doneUploads(masterVersion: masterVersion, expectedNumberUploads: 1)
+        self.doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
         // Now, see if `SyncManager.session.start` finds the download deletion...
         
@@ -55,7 +60,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         let expectation2 = self.expectation(description: "start")
         
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(calledShouldDoDeletions)
             expectation2.fulfill()
         }
@@ -68,13 +73,18 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testStartWithTwoDownloadDeletions() {
-        // Uses SyncManager.session.start so we have the file in our local Directory after download.
-        guard let (file1, _) = uploadAndDownloadOneFileUsingStart() else {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
             XCTFail()
             return
         }
         
-        guard let (file2, masterVersion) = uploadAndDownloadOneFileUsingStart() else {
+        // Uses SyncManager.session.start so we have the file in our local Directory after download.
+        guard let (file1, _) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (file2, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
@@ -83,13 +93,13 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         let currDeviceUUID = deviceUUID
         deviceUUID = Foundation.UUID()
         
-        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: file1.fileUUID, fileVersion: file1.fileVersion)
+        let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: file1.fileUUID, fileVersion: file1.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete1, masterVersion: masterVersion)
 
-        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: file2.fileUUID, fileVersion: file2.fileVersion)
+        let fileToDelete2 = ServerAPI.FileToDelete(fileUUID: file2.fileUUID, fileVersion: file2.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete2, masterVersion: masterVersion)
         
-        self.doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        self.doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Now, see if `SyncManager.session.start` finds the download deletions...
         
@@ -119,7 +129,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
             }
         }
         
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(numberDeletions == 2 && firstDeletion && secondDeletion)
             expectation2.fulfill()
         }
@@ -128,25 +138,30 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testStartWithOneDownloadDeletionAndOneFileDownload() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
-        guard let (file1, masterVersion) = uploadAndDownloadOneFileUsingStart() else {
+        guard let (file1, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
             XCTFail()
             return
         }
         
         // Simulate another device deleting the file.
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file1.fileUUID, fileVersion: file1.fileVersion)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file1.fileUUID, fileVersion: file1.fileVersion, sharingGroupId: sharingGroupId)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         
         let fileUUID2 = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
         // Now, see if `SyncManager.session.start` finds the download  and deletion...
         
@@ -183,7 +198,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         
         let expectation2 = self.expectation(description: "start")
         
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(calledShouldDoDeletions)
             XCTAssert(calledShouldSaveDownloads)
             expectation2.fulfill()
@@ -193,6 +208,11 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testDownloadDeletionWithKnownDeletedFile() {
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+        
         startWithOneDownloadDeletion()
         
         // We now have an entry in the local directory which is known to be deleted.
@@ -214,7 +234,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
             XCTFail()
         }
 
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(!calledShouldDoDeletions)
             expectation.fulfill()
         }
@@ -223,7 +243,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testDownloadDeletionWhereFileWasNotInDirectoryPreviously() {
-        uploadDeletionOfOneFileWithDoneUploads()
+        guard let sharingGroupId = getFirstSharingGroupId() else {
+            XCTFail()
+            return
+        }
+
+        uploadDeletionOfOneFileWithDoneUploads(sharingGroupId: sharingGroupId)
         
         var calledShouldDoDeletions = false
         
@@ -242,7 +267,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
             XCTFail()
         }
         
-        SyncManager.session.start { (error) in
+        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
             XCTAssert(!calledShouldDoDeletions)
             expectation.fulfill()
         }
