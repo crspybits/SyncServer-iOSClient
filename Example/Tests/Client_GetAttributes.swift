@@ -44,6 +44,7 @@ class Client_GetAttributes: TestCase {
         XCTAssert(uploadedAttr.fileGroupUUID == attr.fileGroupUUID)
         XCTAssert(uploadedAttr.appMetaData == attr.appMetaData)
         XCTAssert(uploadedAttr.mimeType == attr.mimeType)
+        XCTAssert(uploadedAttr.sharingGroupId == attr.sharingGroupId)
     }
     
     func testGetAttributesForADownloadedFileWorks() {
