@@ -29,33 +29,33 @@ PODS:
   - SwiftyBeaver (1.6.0)
   - SwiftyDropbox (4.6.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (15.6.0):
+  - SyncServer (16.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 8.1)
-    - SyncServer/Lite (= 15.6.0)
-  - SyncServer-Shared (8.1.0):
+    - SyncServer-Shared (~> 8.2)
+    - SyncServer/Lite (= 16.0.0)
+  - SyncServer-Shared (8.2.0):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (15.6.0):
+  - SyncServer/Dropbox (16.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SwiftyDropbox (~> 4.3)
-    - SyncServer-Shared (~> 8.1)
-  - SyncServer/Facebook (15.6.0):
+    - SyncServer-Shared (~> 8.2)
+  - SyncServer/Facebook (16.0.0):
     - FacebookCore
     - FacebookLogin
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 8.1)
-  - SyncServer/Google (15.6.0):
+    - SyncServer-Shared (~> 8.2)
+  - SyncServer/Google (16.0.0):
     - Gloss (~> 1.2)
     - GoogleSignIn (~> 0.1)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 8.1)
-  - SyncServer/Lite (15.6.0):
+    - SyncServer-Shared (~> 8.2)
+  - SyncServer/Lite (16.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 8.1)
+    - SyncServer-Shared (~> 8.2)
 
 DEPENDENCIES:
   - SMCoreLib (from `../../Common/SMCoreLib`)
@@ -103,8 +103,8 @@ SPEC CHECKSUMS:
   SMCoreLib: 1fc2a916a45470cf41deb193bc509432b1987efc
   SwiftyBeaver: e45759613e50b522b0e6f53b1f0f14389b45ca34
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
-  SyncServer: 9aeacd0960eafa7bc74711ec3ec89adc7645120c
-  SyncServer-Shared: 66e09eda7d15ca4adec45b67e620ed3333445eba
+  SyncServer: 02ed3e9c99902fdda53f5370226e4da142522962
+  SyncServer-Shared: f3c547b7f129d97d8e1d8db3c35cb9c7bad9a8f1
 
 PODFILE CHECKSUM: 606bf04b0103a78f70a596c0ba5e5a1848a63032
 

@@ -116,8 +116,7 @@ public class SyncServerUser {
         completion:@escaping (_ result: CheckForExistingUserResult?, Error?) ->()) {
         
         // Have to do this before call to `checkCreds` because it sets up creds with the ServerAPI.
-        self.creds = creds
-        
+        ServerAPI.session.creds = creds
         Log.msg("SignInCreds: \(creds)")
         
         ServerAPI.session.checkCreds {[unowned self] (checkCredsResult, error) in
@@ -126,21 +125,18 @@ public class SyncServerUser {
             
             switch checkCredsResult {
             case .none:
-                self.creds = nil
-                
+                ServerAPI.session.creds = nil
                 // Don't sign the user out here. Callers of `checkForExistingUser` (e.g., GoogleSignIn or FacebookSignIn) can deal with this.
-                
                 Log.error("Had an error: \(String(describing: error))")
                 errorResult = error
             
             case .some(.noUser):
-                self.creds = nil
-                
+                ServerAPI.session.creds = nil
                 // Definitive result from server-- there was no user. Still, I'm not going to sign the user out here. Callers can do that.
-                
                 checkForUserResult = .noUser
                 
             case .some(.user(let syncServerUserId, let permission, let accessToken)):
+                self.creds = creds
                 checkForUserResult = .user(permission: permission, accessToken:accessToken)
                 SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
             }
