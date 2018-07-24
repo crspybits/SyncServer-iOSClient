@@ -166,19 +166,20 @@ public class SyncServerUser {
     public func addUser(creds: GenericCredentials, completion:@escaping (SharingGroupId?, Error?) ->()) {
         Log.msg("SignInCreds: \(creds)")
 
-        self.creds = creds
-        
+        ServerAPI.session.creds = creds
         ServerAPI.session.addUser(cloudFolderName: cloudFolderName) { syncServerUserId, sharingGroupId, error in
-            if error != nil {
-                self.creds = nil
+            if error == nil {
+                self.creds = creds
+                if let syncServerUserId = syncServerUserId  {
+                    SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
+                }
+            }
+            else {
                 Log.error("Error: \(String(describing: error))")
+                ServerAPI.session.creds = nil
                 Thread.runSync(onMainThread: {
                     self.showAlert(with: "Failed adding user \(creds.uiDisplayName).", and: "Error was: \(error!).")
                 })
-            }
-            
-            if let syncServerUserId = syncServerUserId  {
-                SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
             }
             
             Thread.runSync(onMainThread: {
@@ -200,9 +201,16 @@ public class SyncServerUser {
     /// Calls the server API method to redeem a sharing invitation.
     public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, Error?)->())?) {
         
-        self.creds = creds
+        ServerAPI.session.creds = creds
         
         ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: invitationCode, cloudFolderName: cloudFolderName) { accessToken, sharingGroupId, error in
+            if error == nil {
+                self.creds = creds
+            }
+            else {
+                ServerAPI.session.creds = nil
+            }
+            
             Thread.runSync(onMainThread: {
                 completion?(accessToken, sharingGroupId, error)
             })
