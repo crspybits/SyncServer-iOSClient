@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 16.1.1 (7/28/18)
+	* Fix github versioning issue.
+
 Version 16.1.0 (7/28/18)
 	* Migration- for server version 0.16.3
 		- Give all of the Directory Entry's a sharingGroupId.
