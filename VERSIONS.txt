@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 16.1.0
+Version 16.1.0 (7/28/18)
 	* Migration- for server version 0.16.3
 		- Give all of the Directory Entry's a sharingGroupId.
 		- Give any pending uploads or downloads a sharingGroupId: Download content groups, Upload trackers, Download trackers.
