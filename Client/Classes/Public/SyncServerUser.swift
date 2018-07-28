@@ -104,6 +104,7 @@ public class SyncServerUser {
             if error == nil, let sharingGroupIds = sharingGroupIds {
                 self.sharingGroupIds = sharingGroupIds
                 Log.msg("Sharing group ids: \(sharingGroupIds)")
+                Migrations.session.runAfterSharingGroupSetup()
             }
             else {
                 Log.error("Error getting sharing group ids: \(String(describing: error))")
