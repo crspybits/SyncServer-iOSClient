@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 16.2.0 (7/28/18)
+	* Adding new event: For reporting update of sharing group ids.
+
 Version 16.1.1 (7/28/18)
 	* Fix github versioning issue.
 

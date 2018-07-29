@@ -11,6 +11,9 @@ import SMCoreLib
 import SyncServer_Shared
 
 public class SyncServerUser {
+    var desiredEvents:EventDesired!
+    weak var delegate:SyncServerDelegate!
+
     public var creds:GenericCredentials? {
         didSet {
             ServerAPI.session.creds = creds
@@ -104,6 +107,7 @@ public class SyncServerUser {
             if error == nil, let sharingGroupIds = sharingGroupIds {
                 self.sharingGroupIds = sharingGroupIds
                 Log.msg("Sharing group ids: \(sharingGroupIds)")
+                EventDesired.reportEvent(.haveSharingGroupIds, mask: self.desiredEvents, delegate: self.delegate)
                 Migrations.session.runAfterSharingGroupSetup()
             }
             else {
