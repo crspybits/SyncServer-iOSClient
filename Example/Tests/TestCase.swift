@@ -832,7 +832,7 @@ class TestCase: XCTestCase {
         expectation2 = self.expectation(description: "test2")
         expectation3 = self.expectation(description: "test3")
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -911,7 +911,7 @@ class TestCase: XCTestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         

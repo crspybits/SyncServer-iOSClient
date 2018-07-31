@@ -215,7 +215,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -249,7 +249,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         updatedAttr.appMetaData = "123Foobar"
         // Uses the new app meta data upload endpoint.
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -312,7 +312,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         updatedAttr.appMetaData = "123Foobar"
         // Uses the new app meta data upload endpoint.
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         

@@ -86,7 +86,7 @@ class CoreDataTests: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
-            try! Upload.movePendingSyncToSynced()
+            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch {
@@ -104,7 +104,7 @@ class CoreDataTests: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
-            try! Upload.movePendingSyncToSynced()
+            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch {
@@ -127,7 +127,7 @@ class CoreDataTests: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
-            try! Upload.movePendingSyncToSynced()
+            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
             Upload.removeHeadSyncQueue(sharingGroupId: sharingGroupId)
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -220,7 +220,7 @@ class CoreDataTests: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupId: sharingGroupIds[0])
-            try! Upload.movePendingSyncToSynced()
+            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupIds[0])
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()

@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 17.0.0
+	* Client sync method can now throw-- to account for bad sharingGroupId parameter.
+	
 Version 16.2.0 (7/28/18)
 	* Adding new event: For reporting update of sharing group ids.
 

@@ -83,7 +83,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
                 
             case .contentUploadsCompleted:
@@ -96,7 +96,7 @@ class Client_SyncServer_StopSync: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -137,7 +137,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
                 
             case .singleFileUploadComplete:
@@ -160,7 +160,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -221,7 +221,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
                 
             default:
@@ -239,7 +239,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -294,7 +294,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
                 
             default:
@@ -317,7 +317,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -363,7 +363,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
 
             default:
@@ -373,7 +373,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.delete(fileWithUUID: attr1.fileUUID)
         try! SyncServer.session.delete(fileWithUUID: attr2.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -413,7 +413,7 @@ class Client_SyncServer_StopSync: TestCase {
                 numberOfStops += 1
 
                 TimedCallback.withDuration(1.0) {
-                    SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
                 }
                 
             case .singleFileUploadComplete:
@@ -436,7 +436,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -490,7 +490,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
     
         waitForExpectations(timeout: 10.0, handler: nil)
     
@@ -519,7 +519,7 @@ class Client_SyncServer_StopSync: TestCase {
             XCTFail()
         }
     
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         waitForExpectations(timeout: 10.0, handler: nil)
     }
 }

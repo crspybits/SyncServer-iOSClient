@@ -94,7 +94,7 @@ class Client_FileGroup: TestCase {
         updatedAttr.appMetaData = "123Foobar"
         updatedAttr.fileGroupUUID = fileGroupUUID
         try! SyncServer.session.uploadAppMetaData(attr: updatedAttr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -162,7 +162,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -204,7 +204,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -286,7 +286,7 @@ class Client_FileGroup: TestCase {
             groupDone.fulfill()
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -378,7 +378,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -455,7 +455,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -534,7 +534,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -594,7 +594,7 @@ class Client_FileGroup: TestCase {
             downloadDeletion.fulfill()
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -669,7 +669,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -733,7 +733,7 @@ class Client_FileGroup: TestCase {
             downloadAppMetaData.fulfill()
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -818,7 +818,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -921,7 +921,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -998,7 +998,7 @@ class Client_FileGroup: TestCase {
             XCTAssert(group[0].attr.fileGroupUUID == nil)
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -1077,7 +1077,7 @@ class Client_FileGroup: TestCase {
             groupDone.fulfill()
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -1156,7 +1156,7 @@ class Client_FileGroup: TestCase {
             }
         }
 
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

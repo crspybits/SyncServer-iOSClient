@@ -130,7 +130,7 @@ public class SyncServer {
         1. the 2nd and following updates must have the same mimeType as the first version of the file.
         2. If the attr.appMetaData is given as nil, and an earlier version had non-nil appMetaData, then the nil appMetaData is ignored-- i.e., the existing app meta data is not set to nil.
      
-        The sharingGroupId for a series of files up until a sync() operation must be the same. If you want to change to dealing with a different sharing group, you must call sync().
+        The sharingGroupId (in the `SyncAttributes`) for a series of files up until a sync() operation must be the same. If you want to change to dealing with a different sharing group, you must call sync().
      
         `Warning`: If you indicate that the mime type is "text/plain", and you are using Google Drive and the text contains unusual characters, you may run into problems-- e.g., downloading the files may fail.
      
@@ -501,18 +501,20 @@ public class SyncServer {
     }
     
     /**
-        If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued, and will wait until after the current sync is done, and try again.
+        If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued (if any), and will wait until after the current sync is done, and try again.
      
         If a stopSync is currently pending, then this call will be ignored.
      
         Non-blocking in all cases.
     */
-    public func sync(sharingGroupId: SharingGroupId) {
-        sync(sharingGroupId:sharingGroupId, completion:nil)
+    public func sync(sharingGroupId: SharingGroupId) throws {
+        try sync(sharingGroupId:sharingGroupId, completion:nil)
     }
     
-    func sync(sharingGroupId: SharingGroupId, completion:(()->())?) {
+    func sync(sharingGroupId: SharingGroupId, completion:(()->())?) throws {
         var doStart = true
+        
+        var errorToThrow: Error?
         
         Synchronized.block(self) {
             // If we're in the process of stopping synchronization, ignore sync attempts.
@@ -523,9 +525,13 @@ public class SyncServer {
             
             // 5/24/18; The positioning of this block of code has given me some consternation. It *must* come before block [2] below-- because the `sync` operation must do a sync, and `movePendingSyncToSynced` is core to what the sync operation is-- any delay aspect just doesn't trigger it with the `start` operation. HOWEVER, I found that https://github.com/crspybits/SharedImages/issues/101 was due to a deadlock of performAndWait calls. So, I've ended up with a rather different means of dealing with Core Data synchronization in the form of `CoreDataSync` used below.
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                // TODO: *0* Need an error reporting mechanism. These should not be `try!`
-                if try! Upload.pendingSync().uploadFileTrackers.count > 0  {
-                    try! Upload.movePendingSyncToSynced()
+                do {
+                    if try Upload.pendingSync().uploadFileTrackers.count > 0  {
+                        try Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
+                    }
+                } catch (let error) {
+                    errorToThrow = error
+                    return
                 }
             }
             
@@ -538,6 +544,10 @@ public class SyncServer {
             else {
                 syncOperating = true
             }
+        }
+        
+        if errorToThrow != nil {
+            throw errorToThrow!
         }
         
         if doStart {
@@ -879,8 +889,8 @@ public class SyncServer {
 
     // TODO: *2* This is incomplete. Needs more work.
     /// This is intended for development/debug only. This enables you do a consistency check between your local files and SyncServer meta data. Does a sync first to ensure files are synchronized.
-    public func consistencyCheck(sharingGroupId: SharingGroupId, localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) {
-        sync(sharingGroupId: sharingGroupId) {
+    public func consistencyCheck(sharingGroupId: SharingGroupId, localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) throws {
+        try sync(sharingGroupId: sharingGroupId) {
             // TODO: *2* Check for errors in sync.
             Consistency.check(sharingGroupId: sharingGroupId, localFiles: localFiles, repair: repair, callback: completion)
         }

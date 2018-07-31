@@ -101,7 +101,7 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -185,7 +185,7 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr)
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -319,8 +319,8 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -429,7 +429,7 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         if copy {
             try! SyncServer.session.uploadCopy(localFile: url2, withAttributes: attr2)
@@ -438,7 +438,7 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
@@ -517,7 +517,7 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         

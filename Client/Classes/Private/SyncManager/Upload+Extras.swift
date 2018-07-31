@@ -25,12 +25,22 @@ extension Upload {
     }
     
     // Must have uploads in `pendingSync`. This does a `saveContext`.
-    class func movePendingSyncToSynced() throws {
-        assert(Singleton.get().pendingSync != nil)
-        assert(Singleton.get().pendingSync!.uploads!.count > 0)
+    // The pending queue must have uploads for the sharingGroupId (only).
+    class func movePendingSyncToSynced(sharingGroupId: SharingGroupId) throws {
+        guard let pendingQueue = Singleton.get().pendingSync else {
+            assert(false)
+            return
+        }
+
+        assert(pendingQueue.uploads!.count > 0)
+        
+        let filtered = pendingQueue.uploadFileTrackers.filter {$0.sharingGroupId == sharingGroupId}
+        guard filtered.count == pendingQueue.uploadFileTrackers.count else {
+            throw SyncServerError.sharingGroupIdInconsistent
+        }
         
         let uploadQueues = synced()
-        uploadQueues.addToQueuesOverride(Singleton.get().pendingSync!)
+        uploadQueues.addToQueuesOverride(pendingQueue)
         
         // This does a `saveContext`, so don't need to do that again.
         try createNewPendingSync()

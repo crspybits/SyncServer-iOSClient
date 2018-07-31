@@ -49,7 +49,7 @@ class Client_SyncServer_Sync: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
@@ -109,8 +109,8 @@ class Client_SyncServer_Sync: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         

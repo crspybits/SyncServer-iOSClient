@@ -46,7 +46,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
     }
@@ -82,7 +82,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync(sharingGroupId:sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId:sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -120,7 +120,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -163,7 +163,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         
         try! SyncServer.session.delete(fileWithUUID: deletionAttr.fileUUID)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: uploadAttr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

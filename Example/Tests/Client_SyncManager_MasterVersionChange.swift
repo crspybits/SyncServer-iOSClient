@@ -76,7 +76,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -135,7 +135,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         // 1) Do the upload of the first file.
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -172,7 +172,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // 2) Do the upload of the second file, with a simulated master version change just after the upload. This tests getting the master version update on DoneUploads.
 
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -218,7 +218,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -270,7 +270,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             XCTFail("\(error)")
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -362,7 +362,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

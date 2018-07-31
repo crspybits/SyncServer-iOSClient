@@ -112,7 +112,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             let url = urls[Int(index)]
             
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 20.0, handler: nil)
@@ -226,7 +226,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -278,7 +278,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
 
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -341,7 +341,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -423,7 +423,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         for _ in 1...numberUploads {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -514,7 +514,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         for _ in 1...numberUploadsToDo {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -628,7 +628,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         attr.appMetaData = "Some app meta data"
         
         try! SyncServer.session.uploadAppMetaData(attr: attr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -720,7 +720,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -779,7 +779,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -943,13 +943,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             for _ in 1...numberFileUploads {
                 let attr = SyncAttributes(fileUUID: file.fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-                SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
         if uploadDeletion {
             try! SyncServer.session.delete(fileWithUUID: file.fileUUID)
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
@@ -1161,7 +1161,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 attr.appMetaData = "foobar\(index)"
                 try! SyncServer.session.uploadAppMetaData(attr: attr)
-                SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
@@ -1169,13 +1169,13 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             for _ in 1...numberFileUploads {
                 let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
                 try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-                SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
         }
         
         if uploadDeletion {
             try! SyncServer.session.delete(fileWithUUID: fileUUID)
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         }
         
         waitForExpectations(timeout: 60.0, handler: nil)
@@ -1428,7 +1428,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -1471,7 +1471,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -1561,7 +1561,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 return
             }
             
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             
             XCTAssert(uploadConflict.conflictType == conflictTypeExpected)
             uploadConflict.resolutionCallback(resolution)
@@ -1569,7 +1569,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let attr = SyncAttributes(fileUUID: file.fileUUID, sharingGroupId: sharingGroupId, mimeType: mimeType)
         try! SyncServer.session.uploadImmutable(localFile: fileURL, withAttributes: attr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
@@ -1614,7 +1614,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
     }
@@ -1679,7 +1679,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             }
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
@@ -1785,14 +1785,14 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                 2) Add some state to the DirectoryEntry -- and when a undeletion is marked in a uft, the other directory entries in the group (if any) can be marked as pending undeletion. Which will indicate on the next file upload, that they should be undeleted. Using `deletedOnServer` for this purpose.
                 */
                 try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-                SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             }
             
             expectConflicts.fulfill()
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 60.0, handler: nil)
         

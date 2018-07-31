@@ -56,7 +56,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
 
@@ -147,10 +147,10 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -196,7 +196,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         // The file will never actually make it to the server-- since we delete it before sync'ing.
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -302,7 +302,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         do {
             try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
@@ -340,7 +340,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         do {
             try SyncServer.session.delete(fileWithUUID: attr.fileUUID)
@@ -439,11 +439,11 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         try! SyncServer.session.delete(fileWithUUID: attr1.fileUUID)
         try! SyncServer.session.delete(fileWithUUID: attr2.fileUUID)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -507,10 +507,10 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         try! SyncServer.session.delete(filesWithUUIDs: [attr1.fileUUID, attr2.fileUUID])
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -571,7 +571,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         var gotError = false
         do {
@@ -582,7 +582,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         XCTAssert(gotError)
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

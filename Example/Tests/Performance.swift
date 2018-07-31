@@ -74,7 +74,7 @@ class Performance: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: Double(N) * 30.0, handler: nil)
     }
@@ -249,7 +249,7 @@ class Performance: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         recursiveFileIndex()
         

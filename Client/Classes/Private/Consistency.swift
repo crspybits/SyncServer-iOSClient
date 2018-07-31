@@ -136,7 +136,7 @@ class Consistency {
 
         // A bit odd calling back up to the SyncServer, but sync will not call back down to us.
         // TODO: *3* Should use delegation here or a callback. Cleaner.
-        SyncServer.session.sync(sharingGroupId: sharingGroupId) {
+        try SyncServer.session.sync(sharingGroupId: sharingGroupId) {
             completion()
         }
     }

@@ -110,7 +110,7 @@ class Client_SyncServer_Download: TestCase {
         Log.msg("After assignment to shouldSaveDownload")
         
         // Next, initiate the download using .sync()
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         

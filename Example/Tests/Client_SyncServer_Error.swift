@@ -38,7 +38,7 @@ class Client_SyncServer_Error: TestCase {
             errorExp.fulfill()
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 40.0, handler: nil)
     }
@@ -74,7 +74,7 @@ class Client_SyncServer_Error: TestCase {
             errorExp.fulfill()
         }
         
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 40.0, handler: nil)
         
@@ -109,7 +109,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             
             waitForExpectations(timeout: 10.0, handler: nil)
         }
@@ -155,7 +155,7 @@ class Client_SyncServer_Error: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 50.0, handler: nil)
 
@@ -190,7 +190,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             
             waitForExpectations(timeout: 20.0, handler: nil)
         }
@@ -249,7 +249,7 @@ class Client_SyncServer_Error: TestCase {
         }
 
         // 1) Get the download error.
-        SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         waitForExpectations(timeout: 50.0, handler: nil)
 
         if retry {
@@ -279,7 +279,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
             
             waitForExpectations(timeout: 20.0, handler: nil)
         }
