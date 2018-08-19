@@ -137,6 +137,7 @@ public class GoogleSyncServerSignIn : NSObject, GenericSignIn {
         
         // "Per-file access to files created or opened by the app"
         // GIDSignIn.sharedInstance().scopes.append("https://www.googleapis.com/auth/drive.file")
+        // I've also considered the Application Data Folder scope, but users cannot access the files in that-- which is against the goals in SyncServer.
         
         // "Full, permissive scope to access all of a user's files."
         GIDSignIn.sharedInstance().scopes.append("https://www.googleapis.com/auth/drive")
