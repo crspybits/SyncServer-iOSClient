@@ -27,7 +27,8 @@ class Client_SyncServer_Download: TestCase {
     // TODO: *1* Other download test cases using .sync()
     
     func testDownloadByDifferentDeviceUUIDThanUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -37,7 +38,8 @@ class Client_SyncServer_Download: TestCase {
     
     // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
     func testDownloadTwoFilesBackToBack() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -118,7 +120,8 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testDownloadWithMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -128,7 +131,8 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testThatResetWorksAfterDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -142,17 +146,19 @@ class Client_SyncServer_Download: TestCase {
             XCTFail("\(error)")
         }
         
-        guard let sharingGroupIds = getSharingGroupIds() else {
+        guard let sharingGroups = getSharingGroups() else {
             XCTFail()
             return
         }
         
+        let sharingGroupIds = sharingGroups.filter {$0.sharingGroupId != nil}.map {$0.sharingGroupId!}
         assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     // TODO: *2* This test typically fails when run as a group with other tests. Why?
     func testGetStats() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

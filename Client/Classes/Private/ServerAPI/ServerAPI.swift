@@ -18,7 +18,7 @@ protocol ServerAPIDelegate : class {
     
 #if DEBUG
     func doneUploadsRequestTestLockSync(forServerAPI: ServerAPI) -> TimeInterval?
-    func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval?
+    func indexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval?
 #endif
 }
 
@@ -170,7 +170,7 @@ class ServerAPI {
     
     enum CheckCredsResult {
         case noUser
-        case user(UserId, permission:Permission, accessToken:String?)
+        case user(UserId, accessToken:String?)
     }
     
     // Checks the creds of the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil). Because this method uses an unauthorized (401) http status code to indicate that the user doesn't exist, it will not do retries in the case of an error.
@@ -187,46 +187,13 @@ class ServerAPI {
                 result = .noUser
             }
             else if httpStatus == HTTPStatus.ok.rawValue {
-                guard let checkCredsResponse = CheckCredsResponse(json: response!),
-                    let permission = checkCredsResponse.permission else {
+                guard let checkCredsResponse = CheckCredsResponse(json: response!) else {
                     completion?(nil, .badCheckCreds)
                     return
                 }
                 
                 let accessToken = response?[ServerConstants.httpResponseOAuth2AccessTokenKey] as? String
-                result = .user(checkCredsResponse.userId, permission: permission, accessToken: accessToken)
-            }
-            
-            if result == nil {
-                if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
-                    completion?(nil, errorResult)
-                }
-                else {
-                    completion?(nil, .unknownServerError)
-                }
-            }
-            else {
-                completion?(result, nil)
-            }
-        }
-    }
-    
-    public func getSharingGroups(completion:((_ sharingGroupIds:[SharingGroupId]?, SyncServerError?)->(Void))?) {
-        let endpoint = ServerEndpoints.getSharingGroups
-        let url = makeURL(forEndpoint: endpoint)
-        
-        sendRequestUsing(method: endpoint.method, toURL: url, retryIfError: false) { (response, httpStatus, error) in
-
-            var result:[SharingGroupId]?
-
-            if httpStatus == HTTPStatus.ok.rawValue {
-                guard let getSharingGroupsResponse = GetSharingGroupsResponse(json: response!),
-                    let sharingGroupIds = getSharingGroupsResponse.sharingGroupIds else {
-                    completion?(nil, .unknownServerError)
-                    return
-                }
-                
-                result = sharingGroupIds
+                result = .user(checkCredsResponse.userId, accessToken: accessToken)
             }
             
             if result == nil {
@@ -254,41 +221,47 @@ class ServerAPI {
     }
     
     // MARK: Files
-        
-    func fileIndex(sharingGroupId: SharingGroupId, completion:((_ fileIndex: [FileInfo]?, _ masterVersion:MasterVersionInt?, SyncServerError?)->(Void))?) {
     
-        let endpoint = ServerEndpoints.fileIndex
+    struct IndexResult {
+        let fileIndex: [FileInfo]?
+        let masterVersion: MasterVersionInt?
+        let sharingGroups:[SharingGroup]
+    }
+    
+    func index(sharingGroupId: SharingGroupId?, completion:((Result<IndexResult>)->())?) {
+        let endpoint = ServerEndpoints.index
         var params = [String : Any]()
         
         params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
         
 #if DEBUG
-        if let serverSleep = delegate?.fileIndexRequestServerSleep(forServerAPI: self) {
-            params[FileIndexRequest.testServerSleepKey] = Int32(serverSleep)
+        if let serverSleep = delegate?.indexRequestServerSleep(forServerAPI: self) {
+            params[IndexRequest.testServerSleepKey] = Int32(serverSleep)
         }
 #endif
         
-        guard let fileIndexRequest = FileIndexRequest(json: params) else {
-            completion?(nil, nil, .couldNotCreateRequest)
+        guard let indexRequest = IndexRequest(json: params) else {
+            completion?(.error(SyncServerError.couldNotCreateRequest))
             return
         }
 
-        let urlParameters = fileIndexRequest.urlParameters()
+        let urlParameters = indexRequest.urlParameters()
         let url = makeURL(forEndpoint: endpoint, parameters: urlParameters)
         
         sendRequestUsing(method: endpoint.method, toURL: url) { (response,  httpStatus, error) in
             let resultError = self.checkForError(statusCode: httpStatus, error: error)
             
             if resultError == nil {
-                if let fileIndexResponse = FileIndexResponse(json: response!) {
-                    completion?(fileIndexResponse.fileIndex, fileIndexResponse.masterVersion, nil)
+                if let indexResponse = IndexResponse(json: response!) {
+                    let result = IndexResult(fileIndex: indexResponse.fileIndex, masterVersion: indexResponse.masterVersion, sharingGroups: indexResponse.sharingGroups)
+                    completion?(.success(result))
                 }
                 else {
-                    completion?(nil, nil, .couldNotCreateResponse)
+                    completion?(.error(SyncServerError.couldNotCreateResponse))
                 }
             }
             else {
-                completion?(nil, nil, resultError)
+                completion?(.error(resultError!))
             }
         }
     }
@@ -406,7 +379,7 @@ class ServerAPI {
         }
         
         var params = [String : Any]()
-        params[DoneUploadsRequest.masterVersionKey] = serverMasterVersion
+        params[ServerEndpoint.masterVersionKey] = serverMasterVersion
         params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
         
 #if DEBUG
@@ -431,7 +404,7 @@ class ServerAPI {
                 if let numberUploads = response?[DoneUploadsResponse.numberUploadsTransferredKey] as? Int64 {
                     completion?(DoneUploadsResult.success(numberUploadsTransferred:numberUploads), nil)
                 }
-                else if let masterVersionUpdate = response?[DoneUploadsResponse.masterVersionUpdateKey] as? Int64 {
+                else if let masterVersionUpdate = response?[ServerEndpoint.masterVersionUpdateKey] as? Int64 {
                     completion?(DoneUploadsResult.serverMasterVersionUpdate(masterVersionUpdate), nil)
                 } else {
                     completion?(nil, .noExpectedResultKey)
@@ -755,7 +728,7 @@ class ServerAPI {
         case serverMasterVersionUpdate(Int64)
     }
 
-    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupId: SharingGroupId, completion:((Result<DownloadAppMetaDataResult>)->(Void))?) {
+    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupId: SharingGroupId, completion:((Result<DownloadAppMetaDataResult>)->())?) {
     
         let endpoint = ServerEndpoints.downloadAppMetaData
         
@@ -788,6 +761,122 @@ class ServerAPI {
                 else {
                     completion?(.error(SyncServerError.couldNotCreateResponse))
                 }
+            }
+        }
+    }
+    
+    // MARK: Sharing groups
+    
+    public func createSharingGroup(sharingGroupName: String?, completion:@escaping ((Result<SharingGroupId>)->())) {
+
+        guard let request = CreateSharingGroupRequest(json: [
+            CreateSharingGroupRequest.sharingGroupNameKey: sharingGroupName as Any
+        ]), let parameters = request.urlParameters() else {
+            completion(.error(SyncServerError.couldNotCreateRequest))
+            return
+        }
+
+        let endpoint = ServerEndpoints.createSharingGroup
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL, retryIfError: false) { (response, httpStatus, error) in
+
+            if httpStatus == HTTPStatus.ok.rawValue, let response = response,
+                let createResponse = CreateSharingGroupResponse(json: response),
+                let sharingGroupId = createResponse.sharingGroupId {
+                completion(.success(sharingGroupId))
+            }
+            else if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
+                completion(.error(errorResult))
+            }
+            else {
+                completion(.error(SyncServerError.unknownServerError))
+            }
+        }
+    }
+
+    // If the result is non-nil, that means there was a master version update.
+    public func removeSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+
+        guard let request = RemoveSharingGroupRequest(json: [
+            ServerEndpoint.masterVersionKey: masterVersion,
+            ServerEndpoint.sharingGroupIdKey: sharingGroupId
+        ]), let parameters = request.urlParameters() else {
+            completion(.error(SyncServerError.couldNotCreateRequest))
+            return
+        }
+        
+        let endpoint = ServerEndpoints.removeSharingGroup
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL, retryIfError: false) { (response, httpStatus, error) in
+
+            if httpStatus == HTTPStatus.ok.rawValue, let response = response,
+                let removeResponse = RemoveSharingGroupResponse(json: response) {
+                completion(.success(removeResponse.masterVersionUpdate))
+            }
+            else if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
+                completion(.error(errorResult))
+            }
+            else {
+                completion(.error(SyncServerError.unknownServerError))
+            }
+        }
+    }
+    
+    public func updateSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, sharingGroupName: String, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+        
+        guard let request = UpdateSharingGroupRequest(json: [
+            ServerEndpoint.masterVersionKey: masterVersion,
+            ServerEndpoint.sharingGroupIdKey: sharingGroupId,
+            UpdateSharingGroupRequest.sharingGroupNameKey: sharingGroupName
+        ]), let parameters = request.urlParameters() else {
+            completion(.error(SyncServerError.couldNotCreateRequest))
+            return
+        }
+        
+        let endpoint = ServerEndpoints.updateSharingGroup
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL, retryIfError: false) { (response, httpStatus, error) in
+
+            if httpStatus == HTTPStatus.ok.rawValue, let response = response,
+                let updateResponse = UpdateSharingGroupResponse(json: response) {
+                completion(.success(updateResponse.masterVersionUpdate))
+            }
+            else if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
+                completion(.error(errorResult))
+            }
+            else {
+                completion(.error(SyncServerError.unknownServerError))
+            }
+        }
+    }
+    
+    public func removeUserFromSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+        
+        guard let request = RemoveUserFromSharingGroupRequest(json: [
+            ServerEndpoint.masterVersionKey: masterVersion,
+            ServerEndpoint.sharingGroupIdKey: sharingGroupId
+        ]), let parameters = request.urlParameters() else {
+            completion(.error(SyncServerError.couldNotCreateRequest))
+            return
+        }
+        
+        let endpoint = ServerEndpoints.removeUserFromSharingGroup
+        let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
+        
+        sendRequestUsing(method: endpoint.method, toURL: serverURL, retryIfError: false) { (response, httpStatus, error) in
+
+            if httpStatus == HTTPStatus.ok.rawValue, let response = response,
+                let removeResponse = RemoveUserFromSharingGroupResponse(json: response) {
+                completion(.success(removeResponse.masterVersionUpdate))
+            }
+            else if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
+                completion(.error(errorResult))
+            }
+            else {
+                completion(.error(SyncServerError.unknownServerError))
             }
         }
     }

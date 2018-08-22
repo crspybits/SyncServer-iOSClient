@@ -195,7 +195,8 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testCredentialsRefreshGenerically() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -212,8 +213,14 @@ class ServerAPI_Authentication: TestCase {
         
         let expectation1 = self.expectation(description: "fileIndex")
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            XCTAssert(error != nil)
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            switch response {
+            case .success:
+                break
+            case .error(let error):
+                XCTFail("\(error)")
+            }
+
             XCTAssert(testCreds.called == true)
             expectation1.fulfill()
         }

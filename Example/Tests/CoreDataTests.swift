@@ -54,7 +54,8 @@ class CoreDataTests: TestCase {
     }
     
     func testThatPendingSyncQueueCanAddObject() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -79,7 +80,8 @@ class CoreDataTests: TestCase {
     }
     
     func testMovePendingSyncToSynced() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -97,7 +99,8 @@ class CoreDataTests: TestCase {
     }
     
     func testThatGetHeadSyncQueueWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -120,7 +123,8 @@ class CoreDataTests: TestCase {
     }
     
     func testThatRemoveHeadSyncQueueWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -139,7 +143,7 @@ class CoreDataTests: TestCase {
     }
     
     func testThatTrackingResetWorks() {
-        guard let sharingGroupIds = getSharingGroupIds() else {
+        guard let sharingGroups = getSharingGroups() else {
             XCTFail()
             return
         }
@@ -155,11 +159,12 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
+        let sharingGroupIds = sharingGroups.filter {$0.sharingGroupId != nil}.map {$0.sharingGroupId!}
         assertThereIsNoTrackingMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     func testThatPlainResetWorks() {
-        guard let sharingGroupIds = getSharingGroupIds() else {
+        guard let sharingGroups = getSharingGroups() else {
             XCTFail()
             return
         }
@@ -175,11 +180,13 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
+        let sharingGroupIds = sharingGroups.filter {$0.sharingGroupId != nil}.map {$0.sharingGroupId!}
         assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
     }
     
     func testLogAllTracking() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -213,14 +220,20 @@ class CoreDataTests: TestCase {
     }
     
     func testThatResetWorksWithObjectsInMetaData() {
-        guard let sharingGroupIds = getSharingGroupIds(), sharingGroupIds.count > 0 else {
+        guard let sharingGroups = getSharingGroups(), sharingGroups.count > 0 else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroup = sharingGroups[0]
+        guard let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            self.addObjectToPendingSync(sharingGroupId: sharingGroupIds[0])
-            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupIds[0])
+            self.addObjectToPendingSync(sharingGroupId: sharingGroupId)
+            try! Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -234,6 +247,8 @@ class CoreDataTests: TestCase {
         } catch (let error) {
             XCTFail("\(error)")
         }
+        
+        let sharingGroupIds = sharingGroups.filter {$0.sharingGroupId != nil}.map {$0.sharingGroupId!}
         
         assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
     }
@@ -372,7 +387,8 @@ class CoreDataTests: TestCase {
     }
     
     func testAddDifferentSharingGroupIdsToSameDCGFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -403,7 +419,8 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToNewFileGroup() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -434,7 +451,8 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToExistingFileGroup() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -477,7 +495,8 @@ class CoreDataTests: TestCase {
     }
     
     func testFileGroupFudgeCase() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

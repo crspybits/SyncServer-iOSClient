@@ -25,7 +25,8 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForAnUploadedFileWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -48,7 +49,8 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADownloadedFileWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -104,7 +106,8 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADeletedFileFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

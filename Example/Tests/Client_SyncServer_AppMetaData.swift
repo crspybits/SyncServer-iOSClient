@@ -26,7 +26,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Upload a file, with nil appMetaData-- make sure doesn't change current appMetaDataVersion, e.g., in the local directory entry.
     func testNilAppMetaDataDoesNotChangeLocalDirectoryAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -60,7 +61,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Upload a file, with non-nil appMetaData-- make sure updates current appMetaDataVersion, e.g., in the local directory entry.
     func testNonNilAppMetaDataChangesLocalDirectoryAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -109,7 +111,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a file with nil appMetaData-- must have nil appMetaDataVersion
     func testNilAppMetaDataOnDownloadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -136,7 +139,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a file with non-nil appMetaData-- must have non-nil appMetaDataVersion
     func testNonNilAppMetaDataOnDownloadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -164,7 +168,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a purely app meta data update-- so that I get the delegate callback.
     func testAppMetaDataOnlyDownloadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -221,7 +226,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataOnlyUploadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -281,7 +287,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testVersion1AppMetaDataOnlyUploadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -344,7 +351,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testUploadThenAppMetaDataUploadRemovesUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -372,7 +380,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadThenUploadRemovesAppMetaDataUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -401,7 +410,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadThenAppMetaDataUploadRemovesFirst() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -434,7 +444,8 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Error case: Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0FileWithAppMetaUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

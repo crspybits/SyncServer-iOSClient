@@ -25,7 +25,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsNotTriggeredForNoUploads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -52,7 +53,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForOneFileUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -88,7 +90,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -126,7 +129,8 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForFileUploadAndUploadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

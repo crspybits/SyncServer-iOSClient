@@ -21,7 +21,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWorksWithOneFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -53,7 +54,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWorksWithTwoFiles() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -94,7 +96,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testThatUploadDeletionOfOneFileWithDoneUploadsActuallyDeletes() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -103,7 +106,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWith1FileUploadAnd1UploadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -140,7 +144,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsConflict() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -216,7 +221,8 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWithDeletionChangesMasterVersion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

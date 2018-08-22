@@ -24,7 +24,8 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithNoFilesOnServer() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -44,7 +45,8 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithOneUploadedFileOnServer() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -134,7 +136,8 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithTwoUploadedFilesOnServer() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -151,7 +154,8 @@ class Client_SyncManager: TestCase {
     func testWhereMasterVersionChangesMidwayThroughTwoDownloads() {
         var numberDownloads = 0
         
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

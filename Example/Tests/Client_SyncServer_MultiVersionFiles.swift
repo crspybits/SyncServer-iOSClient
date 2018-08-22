@@ -58,7 +58,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // Make sure that different versions get uploaded each time.
     // And that the directory entry has the right version after the last upload.
     func testSequentialVersionUploadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -77,7 +78,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // Make sure that different versions get uploaded each time.
     // And that the directory entry has the right version after the last upload.
     func testConcurrentVersionUploadWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -164,7 +166,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         i.e., Use sync to upload different file versions, e.g., version 1 of file UUID X, version 3 of file UUID Y. Reset local meta data. Sync again. Should get those different file versions.
     */
     func testFileDownloadOfDifferentVersions() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -245,7 +248,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Upload delete some higher numbered file version-- will have to upload the same file several times first.
     func testUploadDeleteHigherNumberedFileVersionWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -294,7 +298,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testDownloadDeleteHigherNumberedFileVersion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -349,7 +354,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     // MARK: Conflict resolution
     
     func downloadDeletionConflict_AcceptDownloadDeletion(numberUploads:Int) {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -522,7 +528,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Deletion conflict: a file is being download deleted, but there is a pending upload for the same file. B) Choose to refuse the deletion-- do an upload undeletion.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -531,7 +538,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_2() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -541,7 +549,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // This is an error because a purely appMetaData upload cannot undelete a file-- because it can't replace the previously deleted file content.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepAppMetaDataUpload_Fails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -635,7 +644,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
     func testDownloadDeletionConflict_RefuseDownloadDeletion_RemoveUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -729,7 +739,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
     // A file is being download deleted, and there is a pending upload deletion for the same file. This should *not* report a download deletion to the delegate callback-- the client already knows about the deletion.
     func testDownloadDeletionWithPendingUploadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1182,7 +1193,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflict_Accept_FU1_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1191,7 +1203,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testFileDownloadConflict_Accept_FU2_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1200,7 +1213,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testFileDownloadConflict_Accept_FU1_UD1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1209,7 +1223,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1236,7 +1251,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     */
 
     func testFileDownloadConflict_Reject_FU1_Keep_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1245,7 +1261,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testFileDownloadConflict_Reject_FU2_Keep_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1254,7 +1271,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1263,7 +1281,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1272,7 +1291,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1281,7 +1301,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1290,7 +1311,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1299,7 +1321,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1308,7 +1331,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1317,7 +1341,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1326,7 +1351,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU2_Keep_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1335,7 +1361,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1344,7 +1371,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1353,7 +1381,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1362,7 +1391,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaData_Upload_DownloadConflict_Accept_FU1_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1371,7 +1401,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaData_Upload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1381,7 +1412,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // What happens now if you upload contents for a file, but have an app meta data download occur? i.e., in terms of conflicts?
     func testAppMetaData_FileUpload_DownloadConflict_Accept_FU1_UD0() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1390,7 +1422,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testAppMetaData_FileUpload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1400,7 +1433,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
     func testLocalDeletionDownloadedAgainBecauseUndeleted() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1486,7 +1520,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     }
     
     func testFileDownloadConflictRejectRemoveAllAndUploadNewFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1576,7 +1611,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
    // Version 1 upload of a file gets access to original appMetaData in the callback, when uploaded with nil appMetaData (which doesn't change the app meta data).
     func testCallbackHasOrignalAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1621,7 +1657,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // When a new version of a file is downloaded, do we get its new appMetaData?
     func testDownloadNewFileVersionGetAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1701,7 +1738,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // Two download deletions in the same file group. File upload conflict. Client resolves conflict with `.rejectDownloadDeletion(.keepContentUpload))`
     func testTwoDownloadDeletionsInSameFileGroup() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

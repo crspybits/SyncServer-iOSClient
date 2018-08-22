@@ -291,7 +291,7 @@ public class DropboxSyncServerSignIn : GenericSignIn {
                         Log.msg("signUserOut: DropboxSignIn: noUser in checkForExistingUser")
                     
                     case .user:
-                        self.delegate?.userActionOccurred(action: .existingUserSignedIn(nil), signIn: self)
+                        self.delegate?.userActionOccurred(action: .existingUserSignedIn, signIn: self)
                         self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                         self.signInOutButton?.buttonShowing = .signOut
                     }

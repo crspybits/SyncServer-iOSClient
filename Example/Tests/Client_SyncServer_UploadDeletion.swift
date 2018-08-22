@@ -80,7 +80,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionWorksWhenWaitUntilAfterUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -89,7 +90,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -169,7 +171,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
 
     func testUploadImmediatelyFollowedByDeletionWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -214,7 +217,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionImmediatelyFollowedByFileUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -235,7 +239,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionImmediatelyFollowedByAppMetaDataUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -258,7 +263,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatDeletionWithSyncFollowedByFileUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -277,7 +283,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     // Delete, sync, upload in immediate succession -- of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByFileUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -315,7 +322,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     // Delete, sync, delete in immediate succession -- second delete of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByDeleteFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -352,7 +360,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -382,7 +391,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -400,7 +410,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleFileDeletionWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -468,7 +479,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleSimultaneousFileDeletionWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -535,7 +547,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

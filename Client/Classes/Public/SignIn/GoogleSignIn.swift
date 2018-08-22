@@ -270,9 +270,9 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                             self.signUserOut()
                             Log.msg("signUserOut: GoogleSignIn: noUser")
 
-                        case .user(permission: let permission, _):
+                        case .user(_):
                             self.delegate?.userActionOccurred(action:
-                                .existingUserSignedIn(permission), signIn: self)
+                                .existingUserSignedIn, signIn: self)
                             self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                         }
                     }

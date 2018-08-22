@@ -172,9 +172,9 @@ public class FacebookSyncServerSignIn : GenericSignIn {
                         self.signUserOut()
                         Log.msg("signUserOut: FacebookSignIn: noUser in checkForExistingUser")
                     
-                    case .user(permission: let permission, accessToken: let accessToken):
+                    case .user(accessToken: let accessToken):
                         Log.msg("Sharing user signed in: access token: \(String(describing: accessToken))")
-                        self.delegate?.userActionOccurred(action: .existingUserSignedIn(permission), signIn: self)
+                        self.delegate?.userActionOccurred(action: .existingUserSignedIn, signIn: self)
                         self.managerDelegate?.signInStateChanged(to: .signedIn, for: self)
                     }
                 }

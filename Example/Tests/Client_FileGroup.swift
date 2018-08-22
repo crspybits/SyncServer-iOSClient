@@ -24,7 +24,8 @@ class Client_FileGroup: TestCase {
     
     // Upload a file with nil group UUID for v0, and try to upload a non-nil for v1; should fail
     func testUploadNonNilGroupUUIDAfterNilFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -44,7 +45,8 @@ class Client_FileGroup: TestCase {
     
     // Upload a file with non-nil group UUID for v0, and try to upload a different non-nil group UUID for v1; should fail
     func testUploadDifferentNonNilGroupUUIDAfterNonNilFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -64,7 +66,8 @@ class Client_FileGroup: TestCase {
     
     // appMetaData upload of a file with a non-nil group-UUID for v1, where it's the same as previous-- should work
     func testAppMetaDataUploadWithSameNonNilGroupUUIDWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -101,7 +104,8 @@ class Client_FileGroup: TestCase {
     
     // appMetaData upload of a file with a non-nil group-UUID for v1, where it's different than previous-- should fail.
     func testAppMetaDataUploadWithDifferentNonNilGroupUUIDFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -129,7 +133,8 @@ class Client_FileGroup: TestCase {
     
     // When a file is downloaded for the first time and it has a group UUID, make sure the group UUID is stored in the directory.
     func testFirstDownloadStoresFileGroupUUID() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -179,7 +184,8 @@ class Client_FileGroup: TestCase {
     
     // Download v1 of a file as the first time a file is downloaded, and make sure the group UUID makes it into the directory.
     func testV1DownloadStoresFileGroupUUID() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -223,7 +229,8 @@ class Client_FileGroup: TestCase {
     
     // Download a group of files-- i.e., a collection of files with the same group UUID. The delegate callback should be called for exactly this group of files.
     func testDownloadGroupOfFilesWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -293,7 +300,8 @@ class Client_FileGroup: TestCase {
     
     // Download a group of files-- i.e., a collection of files with the same group UUID. The delegate callback should be called for exactly this group of files. Include another file-- not in this group UUID-- delegate should get called separately for this.
     func testDownloadGroupOfFilesWithSeparateFileWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -385,7 +393,8 @@ class Client_FileGroup: TestCase {
     
     // Downloading groups, with specific group UUID's, with just one file in them should work.
     func testSingleGroupSizeWithGroupUUIDs() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -462,7 +471,8 @@ class Client_FileGroup: TestCase {
     
     // You should get the same effect when not giving a group UUID for the downloaded file-- it should act as a group of size 1.
     func testSingleGroupSizeWithoutGroupUUIDs() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -540,7 +550,8 @@ class Client_FileGroup: TestCase {
     }
     
     func testGroupWithOnlyADownloadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -600,7 +611,8 @@ class Client_FileGroup: TestCase {
     }
     
     func testGroupWithTwoDeletionWithSameGroupUUID() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -675,7 +687,8 @@ class Client_FileGroup: TestCase {
     }
     
     func testGroupWithOnlyAnAppMetaDataUpdate() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -739,7 +752,8 @@ class Client_FileGroup: TestCase {
     }
     
     func testGroupWithTwoAppMetaDataUpdatesWithSameGroupUUID() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -825,7 +839,8 @@ class Client_FileGroup: TestCase {
     
     // A download group with a version update, appMetaData download, and a deletion.
     func testGroupWithVersionUpdateAppMetaDataDownloadAndDeletions() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -928,7 +943,8 @@ class Client_FileGroup: TestCase {
     
     // Two separate groups with deletions-- nil group UUID in each case.
     func testTwoGroupsWithDeletionsWithNilGroupId() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1005,7 +1021,8 @@ class Client_FileGroup: TestCase {
     
     // A group with a larger numbers of operations-- e.g., with 10 downloads.
     func testFileGroupWithLargerNumberOfOperations() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -1084,7 +1101,8 @@ class Client_FileGroup: TestCase {
     
     // Make sure the files have their expected contents.
     func testDownloadAGroupWithATextFileAndImageWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

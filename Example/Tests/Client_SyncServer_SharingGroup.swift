@@ -58,7 +58,8 @@ class Client_SyncServer_SharingGroup: TestCase {
     }
     
     func testMultipleSharingGroupsUploadImmutableFileBeforeSyncFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -68,7 +69,8 @@ class Client_SyncServer_SharingGroup: TestCase {
     }
     
     func testMultipleSharingGroupsUploadCopyFileBeforeSyncFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -78,7 +80,8 @@ class Client_SyncServer_SharingGroup: TestCase {
     }
 
     func testMultipleSharingGroupsUploadAppMetaDataBeforeSyncFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

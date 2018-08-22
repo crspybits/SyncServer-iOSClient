@@ -24,7 +24,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func startWithOneDownloadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -73,7 +74,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testStartWithTwoDownloadDeletions() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -138,7 +140,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testStartWithOneDownloadDeletionAndOneFileDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -208,7 +211,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testDownloadDeletionWithKnownDeletedFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -243,7 +247,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testDownloadDeletionWhereFileWasNotInDirectoryPreviously() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

@@ -105,22 +105,22 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
-    func getFirstSharingGroupId() -> SharingGroupId? {
-        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds, sharingGroupIds.count > 0 else {
+    func getFirstSharingGroup() -> SharingGroup? {
+        guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0 else {
             XCTFail()
             return nil
         }
         
-        return sharingGroupIds[0]
+        return sharingGroups[0]
     }
     
-    func getSharingGroupIds() -> [SharingGroupId]? {
-        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds else {
+    func getSharingGroups() -> [SharingGroup]? {
+        guard let sharingGroups = SyncServerUser.session.sharingGroups else {
             XCTFail()
             return nil
         }
         
-        return sharingGroupIds
+        return sharingGroups
     }
     
     @discardableResult
@@ -235,11 +235,11 @@ class TestCase: XCTestCase {
 
         var serverMasterVersion:MasterVersionInt?
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            if error == nil && masterVersion != nil && masterVersion! >= 0 {
-                serverMasterVersion = masterVersion
-            }
-            else {
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            switch response {
+            case .success(let result):
+                serverMasterVersion = result.masterVersion
+            case .error:
                 XCTFail()
             }
             
@@ -257,14 +257,17 @@ class TestCase: XCTestCase {
         
         var fileInfoResult: [FileInfo]?
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            XCTAssert(error == nil)
-            XCTAssert(masterVersion! >= 0)
-            
-            fileInfoResult = fileIndex
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            switch response {
+            case .success(let result):
+                fileInfoResult = result.fileIndex
+            case .error:
+                XCTFail()
+                return
+            }
             
             for (fileUUID, fileSize) in expectedFiles {
-                let result = fileIndex?.filter { file in
+                let result = fileInfoResult?.filter { file in
                     file.fileUUID == fileUUID
                 }
                 
@@ -283,8 +286,8 @@ class TestCase: XCTestCase {
                 }
             }
             
-            for curr in 0..<fileIndex!.count {
-                callback?(fileIndex![curr])
+            for curr in 0..<fileInfoResult!.count {
+                callback?(fileInfoResult![curr])
             }
             
             expectation1.fulfill()
@@ -482,18 +485,19 @@ class TestCase: XCTestCase {
         
         var numberDeletions:Int!
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            
-            XCTAssert(error == nil)
-            XCTAssert(masterVersion! >= 0)
-            
-            if actualDeletion {
-                filesToDelete = fileIndex
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            switch response {
+            case .success(let result):
+                if actualDeletion {
+                    filesToDelete = result.fileIndex
+                }
+                else {
+                    filesToDelete =  result.fileIndex!.filter({$0.deleted! == false})
+                }
+            case .error:
+                XCTFail()
             }
-            else {
-                filesToDelete = fileIndex!.filter({$0.deleted! == false})
-            }
-            
+
             numberDeletions = filesToDelete?.count
             
             recursiveRemoval(indexToRemove: 0)
@@ -847,13 +851,18 @@ class TestCase: XCTestCase {
         }
 
         if removeServerFiles {
-            guard let sharingGroupIds = getSharingGroupIds() else {
+            guard let sharingGroups = getSharingGroups() else {
                 XCTFail()
                 return
             }
         
-            sharingGroupIds.forEach { sharingGroupId in
-                removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId, actualDeletion:actualDeletion)
+            sharingGroups.forEach { sharingGroup in
+                if let sharingGroupId = sharingGroup.sharingGroupId {
+                    removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId, actualDeletion:actualDeletion)
+                }
+                else {
+                    XCTFail()
+                }
             }
         }
     }
@@ -988,7 +997,7 @@ extension TestCase : ServerAPIDelegate {
         return testLockSync
     }
     
-    func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval? {
+    func indexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval? {
         return fileIndexServerSleep
     }
     

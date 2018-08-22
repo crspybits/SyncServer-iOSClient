@@ -9,6 +9,7 @@
 import Foundation
 import SMCoreLib
 import SyncServer_Shared
+import Gloss
 
 public class SyncServerUser {
     var desiredEvents:EventDesired!
@@ -21,7 +22,7 @@ public class SyncServerUser {
                 setupSharingGroups()
             }
             else {
-                sharingGroupIds = nil
+                sharingGroups = nil
             }
         }
     }
@@ -39,28 +40,41 @@ public class SyncServerUser {
         }
     }
     
-    static let sharingGroupIds = SMPersistItemData(name: "SyncServerUser.sharingGroupIds", initialDataValue: Data(), persistType: .userDefaults)
+    // Keeping this comment so I know the user defaults key used for it.
+    // static let sharingGroupIds = SMPersistItemData(name: "SyncServerUser.sharingGroupIds", initialDataValue: Data(), persistType: .userDefaults)
+    static let sharingGroups = SMPersistItemData(name: "SyncServerUser.sharingGroups", initialDataValue: Data(), persistType: .userDefaults)
     
     /// This is set at app launch, and is an error if a user is signed in and there are no sharingGroupIds.
-    public internal(set) var sharingGroupIds: [SharingGroupId]? {
+    public internal(set) var sharingGroups: [SharingGroup]? {
         get {
-            if SyncServerUser.sharingGroupIds.dataValue == Data() {
+            if SyncServerUser.sharingGroups.dataValue == Data() {
                 return nil
             }
             else {
-                let ids = NSKeyedUnarchiver.unarchiveObject(with: SyncServerUser.sharingGroupIds.dataValue) as? [SharingGroupId]
-                return ids
+                guard let dicts = NSKeyedUnarchiver.unarchiveObject(with: SyncServerUser.sharingGroups.dataValue) as? [Gloss.JSON] else {
+                    return nil
+                }
+                let result = dicts.compactMap {SharingGroup(json: $0)}
+                
+                if dicts.count == result.count {
+                    return result
+                }
+                else {
+                    return nil
+                }
             }
         }
+        
         set {
             var newArchive:Data!
             if newValue == nil {
                 newArchive = Data()
             }
             else {
-                newArchive = NSKeyedArchiver.archivedData(withRootObject: newValue!)
+                let plist = newValue!.toJSONArray()
+                newArchive = NSKeyedArchiver.archivedData(withRootObject: plist as Any)
             }
-            SyncServerUser.sharingGroupIds.dataValue = newArchive
+            SyncServerUser.sharingGroups.dataValue = newArchive
         }
     }
     
@@ -87,7 +101,7 @@ public class SyncServerUser {
     
     public enum CheckForExistingUserResult {
         case noUser
-        case user(permission:Permission, accessToken:String?)
+        case user(accessToken:String?)
     }
     
     fileprivate func showAlert(with title:String, and message:String? = nil) {
@@ -103,15 +117,14 @@ public class SyncServerUser {
     }
     
     private func setupSharingGroups() {
-        ServerAPI.session.getSharingGroups { sharingGroupIds, error in
-            if error == nil, let sharingGroupIds = sharingGroupIds {
-                self.sharingGroupIds = sharingGroupIds
-                Log.msg("Sharing group ids: \(sharingGroupIds)")
+        ServerAPI.session.index(sharingGroupId: nil) { response in
+            switch response {
+            case .success(let result):
+                self.sharingGroups = result.sharingGroups
                 EventDesired.reportEvent(.haveSharingGroupIds, mask: self.desiredEvents, delegate: self.delegate)
-                Migrations.session.runAfterSharingGroupSetup()
-            }
-            else {
-                Log.error("Error getting sharing group ids: \(String(describing: error))")
+                
+            case .error(let error):
+                Log.error("Error setting up sharing groups: \(error)")
             }
         }
     }
@@ -140,9 +153,9 @@ public class SyncServerUser {
                 // Definitive result from server-- there was no user. Still, I'm not going to sign the user out here. Callers can do that.
                 checkForUserResult = .noUser
                 
-            case .some(.user(let syncServerUserId, let permission, let accessToken)):
+            case .some(.user(let syncServerUserId, let accessToken)):
                 self.creds = creds
-                checkForUserResult = .user(permission: permission, accessToken:accessToken)
+                checkForUserResult = .user(accessToken:accessToken)
                 SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
             }
             
@@ -236,7 +249,7 @@ extension SyncServerUser : ServerAPIDelegate {
         return nil
     }
     
-    func fileIndexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval? {
+    func indexRequestServerSleep(forServerAPI: ServerAPI) -> TimeInterval? {
         return nil
     }
 #endif

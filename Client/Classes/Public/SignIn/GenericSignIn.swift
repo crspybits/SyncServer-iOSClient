@@ -38,7 +38,7 @@ public enum UserActionNeeded {
 public enum UserActionOccurred {
     case userSignedOut
     case userNotFoundOnSignInAttempt
-    case existingUserSignedIn(Permission?)
+    case existingUserSignedIn
     case sharingUserCreated(sharingGroupId: SharingGroupId)
     case owningUserCreated(sharingGroupId: SharingGroupId)
 }

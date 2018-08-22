@@ -26,7 +26,8 @@ class Client_SyncServer_Sync: TestCase {
     // 3/26/17; I have now turned on "-com.apple.CoreData.ConcurrencyDebug 1" (see http://stackoverflow.com/questions/31391838) as a strict measure to make sure I'm getting concurrency right with Core Data. I recently started having problems with this.
     
     func testThatSyncWithNoFilesResultsInSyncDone() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -57,7 +58,8 @@ class Client_SyncServer_Sync: TestCase {
     }
     
     func testThatDoingSyncTwiceWithNoFilesResultsInTwoSyncDones() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

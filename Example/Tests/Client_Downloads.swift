@@ -65,7 +65,8 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfZeroFilesWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -79,7 +80,8 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfSingleFileWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -102,7 +104,8 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfTwoFilesWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -130,7 +133,8 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithNoFilesOnServer() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -153,7 +157,8 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithOneFileNotDownloadedOnServer() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -207,7 +212,8 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithMasterVersionUpdate() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -264,7 +270,8 @@ class Client_Downloads: TestCase {
     }
     
     func testThatNextWithOneFileMarksGroupAsCompleted() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -308,7 +315,8 @@ class Client_Downloads: TestCase {
     }
     
     func testNextImmediatelyFollowedByNextIndicatesDownloadAlreadyOccurring() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -379,7 +387,8 @@ class Client_Downloads: TestCase {
     }
     
     func testOnlyCheckWhenNoFiles() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -388,7 +397,8 @@ class Client_Downloads: TestCase {
     }
     
     func testOnlyCheckWhenOneFileForDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -411,7 +421,8 @@ class Client_Downloads: TestCase {
     }
     
     func testOnlyCheckWhenOneFileForDownloadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

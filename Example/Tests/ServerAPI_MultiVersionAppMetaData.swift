@@ -23,7 +23,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testMakeSureAppMetaDataVersionIsInFileIndex() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -61,7 +62,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testUploadInitialAppMetaDataWithEndpointWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -114,7 +116,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -132,7 +135,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -158,7 +162,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testUploadAppMetaDataMultipleVersionWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -214,7 +219,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithNilVersionFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -239,7 +245,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
 
     func testDownloadAppMetaDataWithVersion0Works() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -270,7 +277,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithVersion1Works() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -323,7 +331,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadWithBadMasterVersionFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -349,7 +358,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testAppMetaDataDownloadWithBadMasterVersionFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -372,7 +382,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     
     // Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0OfFileUsingAppMetaDataUploadFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

@@ -23,7 +23,8 @@ class ServerAPI_DownloadFile: TestCase {
     }
     
     func testDownloadTextFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -32,7 +33,8 @@ class ServerAPI_DownloadFile: TestCase {
     }
     
     func testDownloadTextFileWithAppMetaData() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -43,7 +45,8 @@ class ServerAPI_DownloadFile: TestCase {
     
     // TODO: These downloads should really be with *different* files-- similar size would be good, but different files.
     func testThatParallelDownloadsWork() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

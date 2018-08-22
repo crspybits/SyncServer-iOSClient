@@ -22,7 +22,8 @@ class ServerAPI_GetUploads: TestCase {
     }
     
     func testGetUploads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

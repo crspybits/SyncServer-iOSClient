@@ -100,14 +100,14 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     }
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
-        guard let sharingGroupIds = SyncServerUser.session.sharingGroupIds, sharingGroupIds.count > 0 else {
-            Log.error("No sharing group ids!")
+        guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0, let sharingGroupId = sharingGroups[0].sharingGroupId else {
+            Log.error("No sharing groups!")
             return
         }
         
         Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
                 
-            SyncServerUser.session.createSharingInvitation(withPermission: .admin, sharingGroupId: sharingGroupIds[0]) { (invitationUUID, error)  in
+            SyncServerUser.session.createSharingInvitation(withPermission: .admin, sharingGroupId: sharingGroupId) { (invitationUUID, error)  in
                 guard error == nil else {
                     Thread.runSync(onMainThread: {
                         Alert.show(message: "Error: Could not create sharing invitation: \(error!)")
@@ -156,7 +156,7 @@ extension ViewController : GenericSignInDelegate {
         case .userNotFoundOnSignInAttempt:
             Log.error("User not found on sign in attempt")
 
-        case .existingUserSignedIn(_):
+        case .existingUserSignedIn:
             break
             
         case .owningUserCreated:

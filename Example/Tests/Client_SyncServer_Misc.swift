@@ -23,14 +23,42 @@ class Client_SyncServer_Misc: XCTestCase {
         super.tearDown()
     }
     
-    func testSharingGroupIdsSetToNilWorks() {
-        SyncServerUser.session.sharingGroupIds = nil
-        XCTAssert(SyncServerUser.session.sharingGroupIds == nil)
+    func testSharingGroupsSetToNilWorks() {
+        SyncServerUser.session.sharingGroups = nil
+        XCTAssert(SyncServerUser.session.sharingGroups == nil)
     }
     
     func testSharingGroupIdsSetToValidListWorks() {
-        let sharingGroupIds:[SharingGroupId] = [1, 2, 3]
-        SyncServerUser.session.sharingGroupIds = sharingGroupIds
-        XCTAssert(SyncServerUser.session.sharingGroupIds == sharingGroupIds)
+        let sgu1 = SharingGroupUser(json: [:])!
+        sgu1.name = "Chris"
+        sgu1.userId = 2
+        let sg1 = SharingGroup(json: [:])!
+        sg1.deleted = false
+        sg1.masterVersion = 1
+        sg1.permission = .admin
+        sg1.sharingGroupId = 1
+        sg1.sharingGroupUsers = [sgu1]
+    
+        SyncServerUser.session.sharingGroups = [sg1]
+        
+        guard let sgs = SyncServerUser.session.sharingGroups, sgs.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        let result1 = sgs[0]
+        XCTAssert(result1.deleted == sg1.deleted)
+        XCTAssert(result1.masterVersion == sg1.masterVersion)
+        XCTAssert(result1.permission == sg1.permission)
+        XCTAssert(result1.sharingGroupId == sg1.sharingGroupId)
+
+        guard let sgus = result1.sharingGroupUsers, sgus.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        let result2 = sgus[0]
+        XCTAssert(result2.name == sgu1.name)
+        XCTAssert(result2.userId == sgu1.userId)
     }
 }

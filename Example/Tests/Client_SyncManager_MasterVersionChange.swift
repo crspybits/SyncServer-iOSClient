@@ -28,7 +28,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     
     // Demonstrate that we can "recover" from a master version change during upload. This "recovery" is really just the client side work necessary to deal with our lazy synchronization process.
     func testMasterVersionChangeDuringUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -101,7 +102,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     }
     
     func testMasterVersionChangeOccuringOnDoneUploads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -190,7 +192,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     }
 
     func testMasterVersionUpdateOnUploadDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -276,7 +279,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     }
 
     func testMasterVersionChangeDuringDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

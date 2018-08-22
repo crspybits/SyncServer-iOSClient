@@ -23,20 +23,17 @@ class ServerAPI_FileIndex: TestCase {
     }
     
     @discardableResult
-    func getFileIndexAndMasterVersion(sharingGroupId: SharingGroupId) -> (fileIndex: [FileInfo], masterVersion:MasterVersionInt)?  {
-        var result:(fileIndex: [FileInfo], masterVersion:MasterVersionInt)?
+    func getFileIndexAndMasterVersion(sharingGroupId: SharingGroupId) -> ServerAPI.IndexResult?  {
+        var indexResult:ServerAPI.IndexResult?
         
         let expectation = self.expectation(description: "file index")
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            XCTAssert(error == nil)
-            XCTAssert(masterVersion! >= 0)
-            
-            if let fileIndex = fileIndex, let masterVersion = masterVersion, masterVersion >= 0 {
-                result = (fileIndex, masterVersion)
-            }
-            else {
-                XCTFail()
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            switch response {
+            case .success(let result):
+                indexResult = result
+            case .error(let error):
+                XCTFail("\(error)")
             }
             
             expectation.fulfill()
@@ -44,11 +41,12 @@ class ServerAPI_FileIndex: TestCase {
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        return result
+        return indexResult
     }
     
     func testFileIndex() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -58,12 +56,14 @@ class ServerAPI_FileIndex: TestCase {
     
     // Added this due some debugging of a problem I was doing on 1/16/18.
     func testFileIndexFollowedByUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
         
-        guard let (_, masterVersion) = getFileIndexAndMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let result = getFileIndexAndMasterVersion(sharingGroupId: sharingGroupId),
+            let masterVersion = result.masterVersion else {
             XCTFail()
             return
         }

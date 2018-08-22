@@ -23,7 +23,8 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testCreateSharingInvitation() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -40,7 +41,8 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testThatSameUserCannotRedeemInvitation() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

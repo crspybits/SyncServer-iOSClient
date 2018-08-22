@@ -80,7 +80,8 @@ class Performance: TestCase {
     }
     
     func test10SmallTextFileDownloads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -89,7 +90,8 @@ class Performance: TestCase {
     }
     
     func test10_120K_ImageFileDownloads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -99,7 +101,8 @@ class Performance: TestCase {
  
     // 5/27/17; I've been having problems with large-ish downloads. E.g., See https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
     func test10SmallerImageFileDownloads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -108,7 +111,8 @@ class Performance: TestCase {
     }
     
     func test10LargeImageFileDownloads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -124,7 +128,8 @@ class Performance: TestCase {
     
     // TODO: *0* Change this to not allow retries at the ServerAPI or networking level. i.e., so that it fails if a retry was to be required.
     func test10SmallTextFileDownloadsInterspersed() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -133,7 +138,8 @@ class Performance: TestCase {
     }
     
     func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -182,7 +188,8 @@ class Performance: TestCase {
     // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39
     // This test case did *not* reproduce the issue.
     func testFileIndexWhileDownloadingImages() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -220,16 +227,19 @@ class Performance: TestCase {
         var downloadCount = 0
         
         func recursiveFileIndex() {
-            ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-                XCTAssert(error == nil)
-                XCTAssert(masterVersion! >= 0)
-                
-                if downloadCount < Int(N) {
-                    DispatchQueue.global().async {
-                        recursiveFileIndex()
+            ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+                switch response {
+                case .success:
+                    if downloadCount < Int(N) {
+                        DispatchQueue.global().async {
+                            recursiveFileIndex()
+                        }
                     }
-                }
-                else {
+                    else {
+                        fileIndexExp.fulfill()
+                    }
+                case .error(let error):
+                    XCTFail("\(error)")
                     fileIndexExp.fulfill()
                 }
             }

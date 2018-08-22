@@ -30,7 +30,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
 
     // Uploading version 1 of file with nil app meta data doesn't reset app meta data.
     func testAppMetaDataNotChangedWithNilValue() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -68,7 +69,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadTextFileVersion1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -77,7 +79,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testThatUploadingNonConsecutiveFileVersionFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -144,7 +147,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     
     // Upload deletion
     func testUploadDeleteFileVersion1() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -153,7 +157,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadAfterUploadDeleteOfVersion1Fails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -172,7 +177,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
 
     func testUploadAndDownloadTextFileVersion5Works() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -181,7 +187,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadAndDownloadImageFileVersion2Works() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -194,7 +201,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadUndeletionVersion1Works() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -260,7 +268,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         Let's try having one of each of these and then do a DoneUploads.
     */
     func testDifferentTypesOfUploadAtSameTime() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

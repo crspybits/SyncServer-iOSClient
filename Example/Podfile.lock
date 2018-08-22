@@ -6,17 +6,17 @@ PODS:
   - Bolts/AppLinks (1.9.0):
     - Bolts/Tasks
   - Bolts/Tasks (1.9.0)
-  - FacebookCore (0.3.1):
+  - FacebookCore (0.3.2):
     - Bolts (~> 1.8)
-    - FBSDKCoreKit (~> 4.33)
-  - FacebookLogin (0.3.1):
+    - FBSDKCoreKit (~> 4.35)
+  - FacebookLogin (0.3.2):
     - Bolts (~> 1.8)
-    - FacebookCore (~> 0.3.1)
-    - FBSDKCoreKit (~> 4.33)
-    - FBSDKLoginKit (~> 4.33)
-  - FBSDKCoreKit (4.34.0):
+    - FacebookCore (~> 0.3.2)
+    - FBSDKCoreKit (~> 4.35)
+    - FBSDKLoginKit (~> 4.35)
+  - FBSDKCoreKit (4.35.0):
     - Bolts (~> 1.7)
-  - FBSDKLoginKit (4.34.0):
+  - FBSDKLoginKit (4.35.0):
     - FBSDKCoreKit
   - Gloss (1.2.4)
   - GoogleSignIn (0.1.2)
@@ -29,30 +29,30 @@ PODS:
   - SwiftyBeaver (1.6.0)
   - SwiftyDropbox (4.6.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (16.0.0):
+  - SyncServer (17.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 8.2)
-    - SyncServer/Lite (= 16.0.0)
+    - SyncServer/Lite (= 17.0.0)
   - SyncServer-Shared (8.2.0):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (16.0.0):
+  - SyncServer/Dropbox (17.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SwiftyDropbox (~> 4.3)
     - SyncServer-Shared (~> 8.2)
-  - SyncServer/Facebook (16.0.0):
+  - SyncServer/Facebook (17.0.0):
     - FacebookCore
     - FacebookLogin
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 8.2)
-  - SyncServer/Google (16.0.0):
+  - SyncServer/Google (17.0.0):
     - Gloss (~> 1.2)
     - GoogleSignIn (~> 0.1)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 8.2)
-  - SyncServer/Lite (16.0.0):
+  - SyncServer/Lite (17.0.0):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 8.2)
@@ -92,10 +92,10 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
-  FacebookCore: 33078ef1d7d76b73f7e8c990dca7d3ea6db8d22f
-  FacebookLogin: 6f15bf4fefd7a8865abbfa8fcd7f3dfd87aa275f
-  FBSDKCoreKit: 0ff57f093b85c8c9d5aba697d3edf68a8960ce78
-  FBSDKLoginKit: 8c78f57a145afb756e4755e69195ebe08a42466e
+  FacebookCore: fe93222bb70346730ef33b061d493e9e7a7cb1f5
+  FacebookLogin: a4e225974791c82836765a294582b4778baffc07
+  FBSDKCoreKit: 1a5b2e3ceb5ca827a53c54aa5f4a3480efff80d2
+  FBSDKLoginKit: 00a3d65d1226852f9d76dcddff01981e5e6d9c38
   Gloss: 4e036074610fdb993abcb958ebcd7332588e2333
   GoogleSignIn: c9fa579a8da31ea46b82627c259ccb2b1bf22bab
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
@@ -103,7 +103,7 @@ SPEC CHECKSUMS:
   SMCoreLib: 1fc2a916a45470cf41deb193bc509432b1987efc
   SwiftyBeaver: e45759613e50b522b0e6f53b1f0f14389b45ca34
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
-  SyncServer: 02ed3e9c99902fdda53f5370226e4da142522962
+  SyncServer: ddd0b72afd588ce0db9b723d161b4382a34da1a3
   SyncServer-Shared: f3c547b7f129d97d8e1d8db3c35cb9c7bad9a8f1
 
 PODFILE CHECKSUM: 606bf04b0103a78f70a596c0ba5e5a1848a63032

@@ -23,7 +23,8 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionActuallyUploadsTheDeletion() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -32,7 +33,8 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testThatTwoUploadDeletionsOfTheSameFileWork() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -68,7 +70,8 @@ class ServerAPI_UploadDeletion: TestCase {
     // TODO: *0* Do an upload deletion, then a second upload deletion with the same file-- make sure the 2nd one fails.
     
     func testThatActualDeletionInDebugWorks() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -99,7 +102,8 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testDeleteAllServerFiles() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -124,14 +128,19 @@ class ServerAPI_UploadDeletion: TestCase {
         // for the file upload
         doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
         
-        guard let sharingGroupIds = getSharingGroupIds() else {
+        guard let sharingGroups = getSharingGroups() else {
             XCTFail()
             return
         }
     
-        sharingGroupIds.forEach { sharingGroupId in
-            removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId)
-            getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []) { fileInfo in
+        sharingGroups.forEach { sharingGroup in
+            if let sharingGroupId = sharingGroup.sharingGroupId {
+                removeAllServerFilesInFileIndex(sharingGroupId: sharingGroupId)
+                getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []) { fileInfo in
+                    XCTFail()
+                }
+            }
+            else {
                 XCTFail()
             }
         }

@@ -24,7 +24,8 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func testSyncFailure() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -44,7 +45,8 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func syncFailureAfterOtherClientUpload(retry:Bool = false) {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -124,7 +126,8 @@ class Client_SyncServer_Error: TestCase {
     }
 
     private func failureAfterOneUpload(retry:Bool = false) {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -286,7 +289,8 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func testFailureAfterOneDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -295,7 +299,8 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func testFailureAfterOneDownloadWithRetry() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

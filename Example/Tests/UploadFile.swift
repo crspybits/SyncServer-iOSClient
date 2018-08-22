@@ -22,7 +22,8 @@ class ServerAPI_UploadFile: TestCase {
     }
     
     func testUploadTextFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -37,7 +38,8 @@ class ServerAPI_UploadFile: TestCase {
     }
     
     func testUploadJPEGFile() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -52,7 +54,8 @@ class ServerAPI_UploadFile: TestCase {
     }
     
     func testUploadTextFileWithNoAuthFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -64,7 +67,8 @@ class ServerAPI_UploadFile: TestCase {
     
     // This should not fail because the second attempt doesn't add a second upload deletion-- the second attempt is to allow for recovery/retries.
     func testUploadTwoFilesWithSameUUIDFails() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -83,7 +87,8 @@ class ServerAPI_UploadFile: TestCase {
     }
     
     func testParallelUploadsWork() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -108,7 +113,8 @@ class ServerAPI_UploadFile: TestCase {
     
     // The creation date of the file is established by the server, and should fall between the server date/time before the upload and the server date/time after the upload.
     func testThatCreationDateOfFileIsReasonable() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -164,7 +170,8 @@ class ServerAPI_UploadFile: TestCase {
 
     // Upload a file with groupUUID, make sure you get it with a file index.
     func testUploadWithFileGroupUUID() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

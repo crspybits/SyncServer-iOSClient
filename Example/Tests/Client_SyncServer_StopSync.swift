@@ -49,7 +49,8 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect it to occur normally.
      */
     func testStopSyncBeforeUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -106,7 +107,8 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect second to occur normally.
     */
     func testStopSyncBetweenTwoUploads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -170,7 +172,8 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect download to occur normally.
     */
     func testStopSyncBeforeDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -249,7 +252,8 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect 2nd download to occur normally.
     */
     func testStopSyncBetweenTwoDownloads() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -327,7 +331,8 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect 2nd to occur normally.
     */
     func testStopSyncBetweenTwoUploadDeletions() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -382,7 +387,8 @@ class Client_SyncServer_StopSync: TestCase {
      Allow upload. Call it before second upload. Restart. Should eventually get both uploads done.
     */
     func testTwoStopSyncs() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -444,7 +450,8 @@ class Client_SyncServer_StopSync: TestCase {
     /* Call stop sync after 1 of 2 downloads. After stopping, upload delete remaining file. Call sync again. We should get a master version update.
     */
    func testStopSyncWithMasterVersionChange() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

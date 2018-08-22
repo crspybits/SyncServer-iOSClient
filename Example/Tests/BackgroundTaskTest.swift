@@ -42,7 +42,8 @@ class BackgroundTaskTest: TestCase {
     }
     
     func testUploadAndStartDownloadThenCrash() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -113,7 +114,8 @@ class BackgroundTaskTest: TestCase {
     
     // After the first test, wait a minute or two for the download to finish in the background. Then, the defining expectation with this test is that the NetworkCached object will be used. Search through the console log output for "Using cached download result".
     func testRestartDownload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -154,7 +156,8 @@ class BackgroundTaskTest: TestCase {
     }
     
     func testCrashDuringUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }
@@ -199,7 +202,8 @@ class BackgroundTaskTest: TestCase {
     
     // Search through the console log output for "Using cached upload result".
     func testRestartUpload() {
-        guard let sharingGroupId = getFirstSharingGroupId() else {
+        guard let sharingGroup = getFirstSharingGroup(),
+            let sharingGroupId = sharingGroup.sharingGroupId else {
             XCTFail()
             return
         }

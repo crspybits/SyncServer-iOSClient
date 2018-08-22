@@ -30,14 +30,23 @@ class Download {
         
         Log.msg("Download.onlyCheckForDownloads")
         
-        ServerAPI.session.fileIndex(sharingGroupId: sharingGroupId) { (fileIndex, masterVersion, error) in
-            guard error == nil else {
-                completion?(.error(error!))
+        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            var indexResult:ServerAPI.IndexResult!
+            switch response {
+            case .success(let result):
+                indexResult = result
+            case .error(let error):
+                completion?(.error(SyncServerError.otherError(error)))
+                return
+            }
+            
+            guard let fileIndex = indexResult.fileIndex, let masterVersion = indexResult.masterVersion else {
+                completion?(.error(SyncServerError.generic("Could not get file index or master version.")))
                 return
             }
             
             // Make sure the mime types we get back from the server are known to the client.
-            for file in fileIndex! {
+            for file in fileIndex {
                 guard let fileMimeTypeString = file.mimeType,
                     let _ = MimeType(rawValue: fileMimeTypeString) else {
                         Log.error("Unknown mime type from server: \(String(describing: file.mimeType))")
@@ -51,7 +60,7 @@ class Download {
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
                     let downloadSet =
-                        try Directory.session.checkFileIndex(serverFileIndex: fileIndex!)
+                        try Directory.session.checkFileIndex(serverFileIndex: fileIndex)
                     completionResult =
                         .checkResult(downloadSet: downloadSet, masterVersion)
                 } catch (let error) {
