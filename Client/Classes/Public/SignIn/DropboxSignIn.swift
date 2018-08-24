@@ -322,7 +322,7 @@ public class DropboxSyncServerSignIn : GenericSignIn {
                 return
             }
             
-            SyncServerUser.session.addUser(creds: creds) {[unowned self] sharingGroupId, error  in
+            SyncServerUser.session.addUser(creds: creds, sharingGroupName: nil) {[unowned self] sharingGroupId, error  in
                 if error == nil, let sharingGroupId = sharingGroupId {
                     self.successCreatingOwningUser(sharingGroupId: sharingGroupId)
                 }

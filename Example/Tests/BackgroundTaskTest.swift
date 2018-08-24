@@ -41,6 +41,14 @@ class BackgroundTaskTest: TestCase {
         super.tearDown()
     }
     
+    /* Testing procedure, on the simulator (so I can access files):
+        1) Run this test; it will crash. Let the download complete from the server without resetting Xcode.
+        2) Stop the app in Xcode.
+        3) Using the path given in the top of the console log, e.g.,
+            /Users/chris/Library/Developer/CoreSimulator/Devices/1583F915-F527-4166-B898-B3F83C5AA889/data/Containers/Data/Application/635B24D5-0C74-440C-AD98-552CE245CB42/Documents
+            Open a terminal window and look at debugging.txt
+            Look for "Using cached download result"
+    */
     func testUploadAndStartDownloadThenCrash() {
         guard let sharingGroup = getFirstSharingGroup(),
             let sharingGroupId = sharingGroup.sharingGroupId else {
@@ -98,6 +106,7 @@ class BackgroundTaskTest: TestCase {
                 // We need to give the download a moment to actually start. At this exact point in the code, it hasn't actually yet started.
                 DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                     let x:Int! = nil
+                    SyncServer.backgroundTest.boolValue = true
                     print("\(x!)")
                 }
 
@@ -111,50 +120,8 @@ class BackgroundTaskTest: TestCase {
         
         waitForExpectations(timeout: 60.0, handler: nil)
     }
-    
-    // After the first test, wait a minute or two for the download to finish in the background. Then, the defining expectation with this test is that the NetworkCached object will be used. Search through the console log output for "Using cached download result".
-    func testRestartDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
-            XCTFail()
-            return
-        }
-        
-        SyncServer.session.eventsDesired = [.syncDone]
-        SyncServer.session.delegate = self
-        
-        let done = self.expectation(description: "done")
-        let saveDownload = self.expectation(description: "saveDownload")
-        
-        syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file = group[0].type {
-                saveDownload.fulfill()
-            }
-            else {
-                XCTFail()
-            }
-        }
-        
-        syncServerErrorOccurred = { error in
-            XCTFail()
-        }
-        
-        syncServerEventOccurred = {event in
-            switch event {
-            case .syncDone:
-                done.fulfill()
-                
-            default:
-                XCTFail()
-            }
-        }
-        
-        // Re-initiate the download.
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        
-        waitForExpectations(timeout: 10.0, handler: nil)
-    }
-    
+
+    // Same procedure as above, but output: "Using cached upload result"
     func testCrashDuringUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
             let sharingGroupId = sharingGroup.sharingGroupId else {
@@ -186,6 +153,7 @@ class BackgroundTaskTest: TestCase {
                 // We need to give the upload a moment to actually start. At this exact point in the code, it hasn't actually yet started.
                 DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                     let x:Int! = nil
+                    SyncServer.backgroundTest.boolValue = true
                     print("\(x!)")
                 }
             
@@ -195,42 +163,6 @@ class BackgroundTaskTest: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        
-        waitForExpectations(timeout: 20.0, handler: nil)
-    }
-    
-    // Search through the console log output for "Using cached upload result".
-    func testRestartUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
-            XCTFail()
-            return
-        }
-        
-        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted]
-        SyncServer.session.delegate = self
-
-        let done = self.expectation(description: "done")
-        let uploaded = self.expectation(description: "uploaded")
-        
-        syncServerErrorOccurred = {error in
-            XCTFail()
-        }
-        
-        syncServerEventOccurred = {event in
-            switch event {
-            case .syncDone:
-                done.fulfill()
-                
-            case .contentUploadsCompleted:
-                uploaded.fulfill()
-            
-            default:
-                XCTFail()
-            }
-        }
-        
         try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
         
         waitForExpectations(timeout: 20.0, handler: nil)

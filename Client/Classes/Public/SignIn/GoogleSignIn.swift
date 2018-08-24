@@ -293,7 +293,7 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                 }
 
             case .createOwningUser:
-                SyncServerUser.session.addUser(creds: creds) {[unowned self] sharingGroupId, error in
+                SyncServerUser.session.addUser(creds: creds, sharingGroupName: nil) {[unowned self] sharingGroupId, error in
                     if error == nil, let sharingGroupId = sharingGroupId {
                         self.successCreatingOwningUser(sharingGroupId: sharingGroupId)
                     }

@@ -105,6 +105,93 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    func createSharingGroup(sharingGroupName: String?) -> SharingGroupId? {
+        let expectation = self.expectation(description: "test")
+
+        var sharingGroupIdResult:SharingGroupId?
+        
+        ServerAPI.session.createSharingGroup(sharingGroupName: sharingGroupName) { response in
+            switch response {
+            case .success(let result):
+                sharingGroupIdResult = result
+            case .error:
+                XCTFail()
+            }
+            
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 40.0, handler: nil)
+        
+        return sharingGroupIdResult
+    }
+    
+    // nil is the expected result
+    func updateSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, sharingGroupName: String) -> MasterVersionInt? {
+        let expectation = self.expectation(description: "test")
+
+        var masterVersionUpdate:MasterVersionInt?
+        
+        ServerAPI.session.updateSharingGroup(sharingGroupId: sharingGroupId, masterVersion: masterVersion, sharingGroupName: sharingGroupName) { response in
+            switch response {
+            case .success(let result):
+                masterVersionUpdate = result
+            case .error:
+                XCTFail()
+            }
+            
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 40.0, handler: nil)
+        
+        return masterVersionUpdate
+    }
+    
+    // nil is the expected result
+    func removeSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt) -> MasterVersionInt? {
+        let expectation = self.expectation(description: "test")
+
+        var masterVersionUpdate:MasterVersionInt?
+        
+        ServerAPI.session.removeSharingGroup(sharingGroupId: sharingGroupId, masterVersion: masterVersion) { response in
+            switch response {
+            case .success(let result):
+                masterVersionUpdate = result
+            case .error:
+                XCTFail()
+            }
+            
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 40.0, handler: nil)
+        
+        return masterVersionUpdate
+    }
+    
+    // nil is the expected result
+    func removeUserFromSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt) -> MasterVersionInt? {
+        let expectation = self.expectation(description: "test")
+
+        var masterVersionUpdate:MasterVersionInt?
+        
+        ServerAPI.session.removeUserFromSharingGroup(sharingGroupId: sharingGroupId, masterVersion: masterVersion) { response in
+            switch response {
+            case .success(let result):
+                masterVersionUpdate = result
+            case .error:
+                XCTFail()
+            }
+            
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 40.0, handler: nil)
+        
+        return masterVersionUpdate
+    }
+    
     func getFirstSharingGroup() -> SharingGroup? {
         guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0 else {
             XCTFail()
@@ -162,7 +249,8 @@ class TestCase: XCTestCase {
             return nil
         }
     
-        guard let fileIndex:[FileInfo] = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let getFileResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex:[FileInfo] = getFileResult.fileIndex else {
             XCTFail()
             return nil
         }
@@ -252,22 +340,22 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(sharingGroupId: SharingGroupId, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> [FileInfo]? {
+    func getFileIndex(sharingGroupId: SharingGroupId? = nil, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> ServerAPI.IndexResult? {
         let expectation1 = self.expectation(description: "fileIndex")
         
-        var fileInfoResult: [FileInfo]?
+        var fileInfoResult: ServerAPI.IndexResult?
         
         ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
             switch response {
             case .success(let result):
-                fileInfoResult = result.fileIndex
+                fileInfoResult = result
             case .error:
                 XCTFail()
                 return
             }
             
             for (fileUUID, fileSize) in expectedFiles {
-                let result = fileInfoResult?.filter { file in
+                let result = fileInfoResult?.fileIndex?.filter { file in
                     file.fileUUID == fileUUID
                 }
                 
@@ -286,8 +374,10 @@ class TestCase: XCTestCase {
                 }
             }
             
-            for curr in 0..<fileInfoResult!.count {
-                callback?(fileInfoResult![curr])
+            if let fileIndex = fileInfoResult?.fileIndex {
+                for curr in 0..<fileIndex.count {
+                    callback?(fileIndex[curr])
+                }
             }
             
             expectation1.fulfill()

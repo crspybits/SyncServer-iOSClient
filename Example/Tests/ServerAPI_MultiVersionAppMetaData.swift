@@ -45,7 +45,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         }
         doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -99,7 +100,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         }
         doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -202,7 +204,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         }
         doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -314,7 +317,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         
         XCTAssert(appMetaData2.contents == appMetaDataContents)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }

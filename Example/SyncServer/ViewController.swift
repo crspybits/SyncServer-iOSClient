@@ -23,7 +23,9 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        SyncServer.session.delegate = self
+        SyncServer.session.eventsDesired = [.haveSharingGroupIds]
+        
         googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
         SetupSignIn.session.googleSignIn.delegate = self
         
@@ -180,6 +182,30 @@ extension ViewController : SyncServerDelegate {
     
     func syncServerEventOccurred(event: SyncEvent) {
         syncServerEventOccurred?(event)
+        
+        switch event {
+        case .haveSharingGroupIds:
+            if SyncServer.backgroundTest.boolValue {
+                SyncServer.backgroundTest.boolValue = false
+                
+                guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0 else {
+                    Log.error("Failed getting sharing groups1")
+                    return
+                }
+                
+                let sharingGroup = sharingGroups[0]
+                
+                guard let sharingGroupId = sharingGroup.sharingGroupId else {
+                    Log.error("Failed getting sharing groups id")
+                    return
+                }
+                
+                try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            }
+            
+        default:
+            break
+        }
     }
     
     func syncServerErrorOccurred(error:SyncServerError) {

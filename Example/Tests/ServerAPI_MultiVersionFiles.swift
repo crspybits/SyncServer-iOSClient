@@ -333,7 +333,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, appMetaData: nil, fileSize: fileSize2)
         
         // C) Make sure the deleted file was deleted.
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }

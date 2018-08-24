@@ -1834,7 +1834,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         waitForExpectations(timeout: 60.0, handler: nil)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }

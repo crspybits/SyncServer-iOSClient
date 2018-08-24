@@ -53,7 +53,7 @@ class ServerAPI_Authentication: TestCase {
         let expectation = self.expectation(description: "authentication")
         ServerNetworking.session.delegate = nil
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error != nil)
             expectation.fulfill()
         }
@@ -68,7 +68,7 @@ class ServerAPI_Authentication: TestCase {
         
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
             XCTAssert(sharingGroupId != nil)
@@ -88,7 +88,7 @@ class ServerAPI_Authentication: TestCase {
 
         Log.msg("deviceUUID1: \(self.deviceUUID)")
 
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
             XCTAssert(sharingGroupId != nil)
@@ -115,7 +115,7 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let expectation = self.expectation(description: "authentication")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
             XCTAssert(sharingGroupId != nil)
@@ -144,7 +144,7 @@ class ServerAPI_Authentication: TestCase {
         let addUserExpectation = self.expectation(description: "addUser")
         let removeUserExpectation = self.expectation(description: "removeUser")
         
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
             XCTAssert(sharingGroupId != nil)
@@ -171,7 +171,7 @@ class ServerAPI_Authentication: TestCase {
         let removeUserExpectation = self.expectation(description: "removeUser")
         let addUserExpectation2 = self.expectation(description: "addUser2")
 
-        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
             XCTAssert(error == nil)
             XCTAssert(userId != nil)
             XCTAssert(sharingGroupId != nil)
@@ -182,7 +182,7 @@ class ServerAPI_Authentication: TestCase {
                 removeUserExpectation.fulfill()
                 
                 // Because we don't want to leave tests in a state where we don't have the user we need.
-                ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+                ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
                     XCTAssert(error == nil)
                     XCTAssert(userId != nil)
                     XCTAssert(sharingGroupId != nil)
@@ -217,8 +217,9 @@ class ServerAPI_Authentication: TestCase {
             switch response {
             case .success:
                 break
-            case .error(let error):
-                XCTFail("\(error)")
+            case .error:
+                // Not checking for an error here-- this is just checking for a creds refresh.
+                break
             }
 
             XCTAssert(testCreds.called == true)
@@ -232,13 +233,49 @@ class ServerAPI_Authentication: TestCase {
             
             let addUserExpectation = self.expectation(description: "addUser")
             
-            ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName) { userId, sharingGroupId, error in
+            ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: nil) { userId, sharingGroupId, error in
                 XCTAssert(error == nil)
                 XCTAssert(userId != nil)
                 addUserExpectation.fulfill()
             }
             
             waitForExpectations(timeout: 10.0, handler: nil)
+        }
+    }
+    
+    func testAddUserWithSharingGroupName() {
+        if currTestAccountIsSharing() {
+            return
+        }
+        
+        let addUserExpectation = self.expectation(description: "addUser")
+        let sharingGroupName = "Foobar"
+        
+        ServerAPI.session.addUser(cloudFolderName: self.cloudFolderName, sharingGroupName: sharingGroupName) { userId, sharingGroupId, error in
+            XCTAssert(error == nil)
+            XCTAssert(userId != nil)
+            XCTAssert(sharingGroupId != nil)
+            addUserExpectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        
+        guard let fileIndexResult = getFileIndex(sharingGroupId: nil),
+            fileIndexResult.sharingGroups.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroup = fileIndexResult.sharingGroups[0]
+        XCTAssert(sharingGroup.sharingGroupName == sharingGroupName)
+        XCTAssert(sharingGroup.deleted == false)
+        XCTAssert(sharingGroup.masterVersion != nil)
+        XCTAssert(sharingGroup.permission == .admin)
+        XCTAssert(sharingGroup.sharingGroupId != nil)
+
+        guard let users = sharingGroup.sharingGroupUsers, users.count == 1 else {
+            XCTFail()
+            return
         }
     }
 }

@@ -124,14 +124,15 @@ class ServerAPI {
     
     // Adds the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil).
     // If the type of owning user being added needs a cloud folder name, you must give it here (e.g., Google).
-    public func addUser(cloudFolderName: String? = nil,
+    public func addUser(cloudFolderName: String? = nil, sharingGroupName: String?,
         completion:((UserId?, SharingGroupId?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.addUser
         var parameters:String?
         
         if let cloudFolderName = cloudFolderName {
             let params:[String : Any] = [
-                AddUserRequest.cloudFolderNameKey: cloudFolderName,
+                AddUserRequest.sharingGroupNameKey: sharingGroupName as Any,
+                AddUserRequest.cloudFolderNameKey: cloudFolderName
             ]
             
             guard let addUserRequest = AddUserRequest(json: params) else {
@@ -771,10 +772,12 @@ class ServerAPI {
 
         guard let request = CreateSharingGroupRequest(json: [
             CreateSharingGroupRequest.sharingGroupNameKey: sharingGroupName as Any
-        ]), let parameters = request.urlParameters() else {
+        ]) else {
             completion(.error(SyncServerError.couldNotCreateRequest))
             return
         }
+        
+        let parameters = request.urlParameters()
 
         let endpoint = ServerEndpoints.createSharingGroup
         let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)

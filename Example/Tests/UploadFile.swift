@@ -190,7 +190,8 @@ class ServerAPI_UploadFile: TestCase {
         
         doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }

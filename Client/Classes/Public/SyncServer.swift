@@ -19,6 +19,11 @@ public class SyncServer {
     private var delayedSync = false
     private var stoppingSync = false
     
+#if DEBUG
+    // Only for testing.
+    public static let backgroundTest = SMPersistItemBool(name:"SyncServer.backgroundTest", initialBoolValue:false,  persistType: .userDefaults)
+#endif
+
     private init() {
     }
     

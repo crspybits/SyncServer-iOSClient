@@ -177,11 +177,11 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to add a user.
-    public func addUser(creds: GenericCredentials, completion:@escaping (SharingGroupId?, Error?) ->()) {
+    public func addUser(creds: GenericCredentials, sharingGroupName: String?, completion:@escaping (SharingGroupId?, Error?) ->()) {
         Log.msg("SignInCreds: \(creds)")
 
         ServerAPI.session.creds = creds
-        ServerAPI.session.addUser(cloudFolderName: cloudFolderName) { syncServerUserId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: cloudFolderName, sharingGroupName: sharingGroupName) { syncServerUserId, sharingGroupId, error in
             if error == nil {
                 self.creds = creds
                 if let syncServerUserId = syncServerUserId  {

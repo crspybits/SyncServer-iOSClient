@@ -61,7 +61,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
 
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return nil
         }
@@ -157,7 +158,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -203,7 +205,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []) else {
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -459,10 +462,11 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
-            ]) else {
+            ]),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
@@ -527,10 +531,11 @@ class Client_SyncServer_UploadDeletion: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndex = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
+        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
-            ]) else {
+            ]),
+            let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
         }
