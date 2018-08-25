@@ -163,4 +163,38 @@ class ServerAPI_Sharing: TestCase {
         
         XCTAssert(fileIndexResult.sharingGroups.count - 1 == fileIndexResult2.sharingGroups.count)
     }
+
+    func testRemoveUserFromSharingGroupWorks() {
+        guard let sharingGroupId = createSharingGroup(sharingGroupName: nil) else {
+            XCTFail()
+            return
+        }
+        
+        guard let fileIndexResult1 = getFileIndex(sharingGroupId: nil) else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult1 = fileIndexResult1.sharingGroups.filter{$0.sharingGroupId == sharingGroupId}
+        guard filteredResult1.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        if let _ = removeUserFromSharingGroup(sharingGroupId: sharingGroupId, masterVersion: 0) {
+            XCTFail()
+            return
+        }
+        
+        guard let fileIndexResult2 = getFileIndex(sharingGroupId: nil) else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult2 = fileIndexResult2.sharingGroups.filter{$0.sharingGroupId == sharingGroupId}
+        guard filteredResult2.count == 0 else {
+            XCTFail()
+            return
+        }
+    }
 }

@@ -340,7 +340,7 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(sharingGroupId: SharingGroupId? = nil, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], callback:((FileInfo)->())? = nil) -> ServerAPI.IndexResult? {
+    func getFileIndex(sharingGroupId: SharingGroupId? = nil, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], errorExpected: Bool = false, callback:((FileInfo)->())? = nil) -> ServerAPI.IndexResult? {
         let expectation1 = self.expectation(description: "fileIndex")
         
         var fileInfoResult: ServerAPI.IndexResult?
@@ -348,9 +348,18 @@ class TestCase: XCTestCase {
         ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
             switch response {
             case .success(let result):
+                if errorExpected {
+                    XCTFail()
+                    expectation1.fulfill()
+                    return
+                }
                 fileInfoResult = result
+
             case .error:
-                XCTFail()
+                if !errorExpected {
+                    XCTFail()
+                }
+                expectation1.fulfill()
                 return
             }
             
@@ -383,7 +392,7 @@ class TestCase: XCTestCase {
             expectation1.fulfill()
         }
         
-        waitForExpectations(timeout: 10.0, handler: nil)
+        waitForExpectations(timeout: 30.0, handler: nil)
         
         return fileInfoResult
     }

@@ -89,4 +89,44 @@ class Client_SyncServer_SharingGroup: TestCase {
         upload(uploadCopy: true, sharingGroupId: sharingGroupId)
         upload(uploadCopy: true, sharingGroupId: sharingGroupId + 1, failureExpected: true)
     }
+    
+    
+    func testRemoveSharingGroupWithAFileWorks() {
+        guard let sharingGroupId = createSharingGroup(sharingGroupName: nil) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+            XCTFail()
+            return
+        }
+        
+        guard let fileIndexResult1 = getFileIndex(sharingGroupId: sharingGroupId),
+            let fileIndex1 = fileIndexResult1.fileIndex else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult1 = fileIndex1.filter{$0.fileUUID == attr.fileUUID}
+        guard filteredResult1.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        if let _ = removeSharingGroup(sharingGroupId: sharingGroupId, masterVersion: fileIndexResult1.masterVersion!) {
+            XCTFail()
+            return
+        }
+        
+        getFileIndex(sharingGroupId: sharingGroupId, errorExpected: true)
+        
+        guard let fileIndexResult2 = getFileIndex(sharingGroupId: nil) else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupId == sharingGroupId}
+        XCTAssert(filteredResult.count == 0)
+    }
 }
