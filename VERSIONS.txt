@@ -3,7 +3,10 @@ SyncServer-iOSClient
 Version 17.0.0
 	* Client sync method can now throw-- to account for bad sharingGroupId parameter.
 	* Updates for multiple sharing groups per user on server.
-
+		https://github.com/crspybits/SyncServer-iOSClient/issues/46
+	* Change from having sharing group id generation on server to having it on client
+		(sharingGroupUUID)
+		
 Version 16.2.0 (7/28/18)
 	* Adding new event: For reporting update of sharing group ids.
 
