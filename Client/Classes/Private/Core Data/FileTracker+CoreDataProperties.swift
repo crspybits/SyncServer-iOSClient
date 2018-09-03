@@ -2,7 +2,7 @@
 //  FileTracker+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 7/22/18.
+//  Created by Christopher G Prince on 8/27/18.
 //
 //
 
@@ -25,6 +25,7 @@ extension FileTracker {
     @NSManaged public var localURLData: NSData?
     @NSManaged public var mimeType: String?
     @NSManaged public var operationInternal: String?
+    @NSManaged public var sharingGroupUUID: String?
     @NSManaged public var sharingGroupIdInternal: NSNumber?
     @NSManaged public var statusRaw: String?
 

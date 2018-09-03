@@ -27,7 +27,7 @@ class Client_SyncServer_Sync: TestCase {
     
     func testThatSyncWithNoFilesResultsInSyncDone() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -50,16 +50,16 @@ class Client_SyncServer_Sync: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
     }
     
     func testThatDoingSyncTwiceWithNoFilesResultsInTwoSyncDones() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -111,12 +111,12 @@ class Client_SyncServer_Sync: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
     }
     
     // TODO: *0* Do a sync with no uploads pending, but pending downloads.

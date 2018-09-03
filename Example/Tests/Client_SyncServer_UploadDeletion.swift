@@ -25,8 +25,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     @discardableResult
-    func uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupId: SharingGroupId) -> (SMRelativeLocalURL, SyncAttributes)? {
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+    func uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: String) -> (SMRelativeLocalURL, SyncAttributes)? {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -56,12 +56,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
 
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
             let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return nil
@@ -82,24 +82,24 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testThatUploadDeletionWorksWhenWaitUntilAfterUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupId: sharingGroupId)
+        uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
         
@@ -150,15 +150,15 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)]),
             let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
@@ -174,14 +174,14 @@ class Client_SyncServer_UploadDeletion: TestCase {
 
     func testUploadImmediatelyFollowedByDeletionWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         // Include events other than syncDone just as a means of ensuring they don't occur.
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete, .uploadDeletionsCompleted, .singleUploadDeletionComplete]
@@ -201,11 +201,11 @@ class Client_SyncServer_UploadDeletion: TestCase {
         // The file will never actually make it to the server-- since we delete it before sync'ing.
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: []),
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: []),
             let fileIndex = fileIndexResult.fileIndex else {
             XCTFail()
             return
@@ -221,12 +221,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testDeletionImmediatelyFollowedByFileUploadFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -243,12 +243,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testDeletionImmediatelyFollowedByAppMetaDataUploadFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -267,12 +267,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testThatDeletionWithSyncFollowedByFileUploadFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (url, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupId: sharingGroupId) else {
+        guard let (url, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -287,12 +287,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     // Delete, sync, upload in immediate succession -- of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByFileUploadFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -312,7 +312,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         do {
             try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
@@ -326,12 +326,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     // Delete, sync, delete in immediate succession -- second delete of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByDeleteFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -351,7 +351,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         do {
             try SyncServer.session.delete(fileWithUUID: attr.fileUUID)
@@ -364,12 +364,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -395,12 +395,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -414,16 +414,16 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testMultipleFileDeletionWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -453,16 +453,16 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         try! SyncServer.session.delete(fileWithUUID: attr1.fileUUID)
         try! SyncServer.session.delete(fileWithUUID: attr2.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
             ]),
@@ -484,16 +484,16 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testMultipleSimultaneousFileDeletionWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -523,15 +523,15 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         try! SyncServer.session.delete(filesWithUUIDs: [attr1.fileUUID, attr2.fileUUID])
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
         // Need to make sure the file is marked as deleted on the server.
-        guard let fileIndexResult = getFileIndex(sharingGroupId: sharingGroupId, expectedFiles:
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles:
             [(fileUUID: attr1.fileUUID!, fileSize: nil),
                 (fileUUID: attr2.fileUUID!, fileSize: nil)
             ]),
@@ -553,14 +553,14 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -589,7 +589,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         var gotError = false
         do {
@@ -600,7 +600,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
         
         XCTAssert(gotError)
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

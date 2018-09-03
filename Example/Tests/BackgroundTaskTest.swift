@@ -51,7 +51,7 @@ class BackgroundTaskTest: TestCase {
     */
     func testUploadAndStartDownloadThenCrash() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -63,7 +63,7 @@ class BackgroundTaskTest: TestCase {
         let mimeType:MimeType = .jpeg
         
         // First upload a file.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -71,11 +71,11 @@ class BackgroundTaskTest: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         let expectation = self.expectation(description: "test1")
         self.deviceUUID = Foundation.UUID()
@@ -116,7 +116,7 @@ class BackgroundTaskTest: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 60.0, handler: nil)
     }
@@ -124,7 +124,7 @@ class BackgroundTaskTest: TestCase {
     // Same procedure as above, but output: "Using cached upload result"
     func testCrashDuringUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -132,7 +132,7 @@ class BackgroundTaskTest: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "Cat.jpg", toBaseURLType: .mainBundle)!
         
         let uploadFileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: uploadFileUUID, sharingGroupId: sharingGroupId, mimeType: .jpeg)
+        let attr = SyncAttributes(fileUUID: uploadFileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .jpeg)
         
         SyncServer.session.eventsDesired = [.syncDone, .willStartUploads]
         SyncServer.session.delegate = self
@@ -163,7 +163,7 @@ class BackgroundTaskTest: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

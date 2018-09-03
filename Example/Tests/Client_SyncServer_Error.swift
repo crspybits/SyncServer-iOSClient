@@ -25,7 +25,7 @@ class Client_SyncServer_Error: TestCase {
     
     func testSyncFailure() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -39,19 +39,19 @@ class Client_SyncServer_Error: TestCase {
             errorExp.fulfill()
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 40.0, handler: nil)
     }
     
     func syncFailureAfterOtherClientUpload(retry:Bool = false) {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -60,12 +60,12 @@ class Client_SyncServer_Error: TestCase {
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         ServerAPI.session.failEndpoints = true
         
@@ -76,7 +76,7 @@ class Client_SyncServer_Error: TestCase {
             errorExp.fulfill()
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 40.0, handler: nil)
         
@@ -111,7 +111,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
             
             waitForExpectations(timeout: 10.0, handler: nil)
         }
@@ -127,7 +127,7 @@ class Client_SyncServer_Error: TestCase {
 
     private func failureAfterOneUpload(retry:Bool = false) {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -136,8 +136,8 @@ class Client_SyncServer_Error: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.singleFileUploadComplete]
         let errorExp = self.expectation(description: "errorExp1")
@@ -158,7 +158,7 @@ class Client_SyncServer_Error: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 50.0, handler: nil)
 
@@ -193,7 +193,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
             
             waitForExpectations(timeout: 20.0, handler: nil)
         }
@@ -207,28 +207,28 @@ class Client_SyncServer_Error: TestCase {
         failureAfterOneUpload(retry:true)
     }
     
-    private func failureAfterOneDownload(sharingGroupId: SharingGroupId, retry:Bool = false) {
+    private func failureAfterOneDownload(sharingGroupUUID: String, retry:Bool = false) {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
         
         // The intent is to fail the next /DownloadFile/ endpoint request-- after the first one succeeds.
         var numberDownloads = 0
@@ -252,7 +252,7 @@ class Client_SyncServer_Error: TestCase {
         }
 
         // 1) Get the download error.
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         waitForExpectations(timeout: 50.0, handler: nil)
 
         if retry {
@@ -282,7 +282,7 @@ class Client_SyncServer_Error: TestCase {
                 }
             }
             
-            try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+            try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
             
             waitForExpectations(timeout: 20.0, handler: nil)
         }
@@ -290,21 +290,21 @@ class Client_SyncServer_Error: TestCase {
     
     func testFailureAfterOneDownload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        failureAfterOneDownload(sharingGroupId: sharingGroupId)
+        failureAfterOneDownload(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testFailureAfterOneDownloadWithRetry() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        failureAfterOneDownload(sharingGroupId: sharingGroupId, retry:true)
+        failureAfterOneDownload(sharingGroupUUID: sharingGroupUUID, retry:true)
     }
 }

@@ -23,12 +23,12 @@ class ServerAPI_FileIndex: TestCase {
     }
     
     @discardableResult
-    func getFileIndexAndMasterVersion(sharingGroupId: SharingGroupId) -> ServerAPI.IndexResult?  {
+    func getFileIndexAndMasterVersion(sharingGroupUUID: String) -> ServerAPI.IndexResult?  {
         var indexResult:ServerAPI.IndexResult?
         
         let expectation = self.expectation(description: "file index")
         
-        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+        ServerAPI.session.index(sharingGroupUUID: sharingGroupUUID) { response in
             switch response {
             case .success(let result):
                 indexResult = result
@@ -46,29 +46,29 @@ class ServerAPI_FileIndex: TestCase {
     
     func testFileIndex() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        getFileIndex(sharingGroupId: sharingGroupId)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID)
     }
     
     // Added this due some debugging of a problem I was doing on 1/16/18.
     func testFileIndexFollowedByUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let result = getFileIndexAndMasterVersion(sharingGroupId: sharingGroupId),
+        guard let result = getFileIndexAndMasterVersion(sharingGroupUUID: sharingGroupUUID),
             let masterVersion = result.masterVersion else {
             XCTFail()
             return
         }
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, serverMasterVersion: masterVersion)
+        _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)
     }
 }

@@ -124,19 +124,19 @@ class ServerAPI {
     
     // Adds the user specified by the creds property (or authenticationDelegate in ServerNetworking if that is nil).
     // If the type of owning user being added needs a cloud folder name, you must give it here (e.g., Google).
-    public func addUser(cloudFolderName: String? = nil, sharingGroupName: String?,
-        completion:((UserId?, SharingGroupId?, SyncServerError?)->(Void))?) {
+    public func addUser(cloudFolderName: String? = nil, sharingGroupUUID: String, sharingGroupName: String?, completion:((UserId?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.addUser
         var parameters:String?
         
         if let cloudFolderName = cloudFolderName {
             let params:[String : Any] = [
                 AddUserRequest.sharingGroupNameKey: sharingGroupName as Any,
-                AddUserRequest.cloudFolderNameKey: cloudFolderName
+                AddUserRequest.cloudFolderNameKey: cloudFolderName,
+                ServerEndpoint.sharingGroupUUIDKey: sharingGroupUUID
             ]
             
             guard let addUserRequest = AddUserRequest(json: params) else {
-                completion?(nil, nil, .couldNotCreateRequest)
+                completion?(nil, .couldNotCreateRequest)
                 return
             }
             
@@ -149,23 +149,23 @@ class ServerAPI {
             toURL: url) { (response,  httpStatus, error) in
            
             guard let response = response else {
-                completion?(nil, nil, .nilResponse)
+                completion?(nil, .nilResponse)
                 return
             }
             
             let error = self.checkForError(statusCode: httpStatus, error: error)
 
             guard error == nil else {
-                completion?(nil, nil, error)
+                completion?(nil, error)
                 return
             }
             
             guard let checkCredsResponse = AddUserResponse(json: response) else {
-                completion?(nil, nil, .badAddUser)
+                completion?(nil, .badAddUser)
                 return
             }
             
-            completion?(checkCredsResponse.userId, checkCredsResponse.sharingGroupId, nil)
+            completion?(checkCredsResponse.userId, nil)
         }
     }
     
@@ -229,11 +229,11 @@ class ServerAPI {
         let sharingGroups:[SharingGroup]
     }
     
-    func index(sharingGroupId: SharingGroupId?, completion:((Result<IndexResult>)->())?) {
+    func index(sharingGroupUUID: String?, completion:((Result<IndexResult>)->())?) {
         let endpoint = ServerEndpoints.index
         var params = [String : Any]()
         
-        params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        params[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         
 #if DEBUG
         if let serverSleep = delegate?.indexRequestServerSleep(forServerAPI: self) {
@@ -271,7 +271,7 @@ class ServerAPI {
         let localURL:URL!
         let fileUUID:String!
         let fileGroupUUID:String?
-        let sharingGroupId: SharingGroupId!
+        let sharingGroupUUID: String!
         let mimeType:MimeType!
         let deviceUUID:String!
         let appMetaData:AppMetaData?
@@ -295,7 +295,7 @@ class ServerAPI {
             UploadFileRequest.mimeTypeKey: file.mimeType.rawValue,
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion,
-            ServerEndpoint.sharingGroupIdKey: file.sharingGroupId
+            ServerEndpoint.sharingGroupUUIDKey: file.sharingGroupUUID
         ]
         
         if file.fileVersion == 0 {
@@ -369,7 +369,7 @@ class ServerAPI {
     }
     
     // I'm providing a numberOfDeletions parameter here because the duration of these requests varies, if we're doing deletions, based on the number of items we're deleting.
-    func doneUploads(serverMasterVersion:MasterVersionInt!, sharingGroupId: SharingGroupId, numberOfDeletions:UInt = 0, completion:((DoneUploadsResult?, SyncServerError?)->(Void))?) {
+    func doneUploads(serverMasterVersion:MasterVersionInt!, sharingGroupUUID: String, numberOfDeletions:UInt = 0, completion:((DoneUploadsResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.doneUploads
         
         // See https://developer.apple.com/reference/foundation/nsurlsessionconfiguration/1408259-timeoutintervalforrequest
@@ -381,7 +381,7 @@ class ServerAPI {
         
         var params = [String : Any]()
         params[ServerEndpoint.masterVersionKey] = serverMasterVersion
-        params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        params[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         
 #if DEBUG
         if let testLockSync = delegate?.doneUploadsRequestTestLockSync(forServerAPI: self) {
@@ -428,7 +428,7 @@ class ServerAPI {
         case serverMasterVersionUpdate(Int64)
     }
     
-    func downloadFile(fileNamingObject: FilenamingWithAppMetaDataVersion, serverMasterVersion:MasterVersionInt!, sharingGroupId: SharingGroupId, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
+    func downloadFile(fileNamingObject: FilenamingWithAppMetaDataVersion, serverMasterVersion:MasterVersionInt!, sharingGroupUUID: String, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.downloadFile
         
         var params = [String : Any]()
@@ -436,7 +436,7 @@ class ServerAPI {
         params[DownloadFileRequest.fileUUIDKey] = fileNamingObject.fileUUID
         params[DownloadFileRequest.fileVersionKey] = fileNamingObject.fileVersion
         params[DownloadFileRequest.appMetaDataVersionKey] = fileNamingObject.appMetaDataVersion
-        params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        params[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         
         guard let downloadFileRequest = DownloadFileRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest)
@@ -517,11 +517,11 @@ class ServerAPI {
         return jsonDict
     }
         
-    func getUploads(sharingGroupId: SharingGroupId, completion:((_ fileIndex: [FileInfo]?, SyncServerError?)->(Void))?) {
+    func getUploads(sharingGroupUUID: String, completion:((_ fileIndex: [FileInfo]?, SyncServerError?)->(Void))?) {
     
         let endpoint = ServerEndpoints.getUploads
         var params = [String : Any]()
-        params[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        params[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         
         guard let getUploadsRequest = GetUploadsRequest(json: params) else {
             completion?(nil, .couldNotCreateRequest)
@@ -556,16 +556,16 @@ class ServerAPI {
     struct FileToDelete {
         let fileUUID:String!
         let fileVersion:FileVersionInt!
-        let sharingGroupId: SharingGroupId!
+        let sharingGroupUUID: String!
         
 #if DEBUG
         var actualDeletion:Bool = false
 #endif
 
-        init(fileUUID:String, fileVersion:FileVersionInt, sharingGroupId: SharingGroupId) {
+        init(fileUUID:String, fileVersion:FileVersionInt, sharingGroupUUID: String) {
             self.fileUUID = fileUUID
             self.fileVersion = fileVersion
-            self.sharingGroupId = sharingGroupId
+            self.sharingGroupUUID = sharingGroupUUID
         }
     }
     
@@ -581,7 +581,7 @@ class ServerAPI {
         paramsForRequest[UploadDeletionRequest.fileUUIDKey] = file.fileUUID
         paramsForRequest[UploadDeletionRequest.fileVersionKey] = file.fileVersion
         paramsForRequest[UploadDeletionRequest.masterVersionKey] = serverMasterVersion
-        paramsForRequest[ServerEndpoint.sharingGroupIdKey] = file.sharingGroupId
+        paramsForRequest[ServerEndpoint.sharingGroupUUIDKey] = file.sharingGroupUUID
 
 #if DEBUG
         if file.actualDeletion {
@@ -620,13 +620,13 @@ class ServerAPI {
         case responseConversionError
     }
 
-    func createSharingInvitation(withPermission permission:Permission, sharingGroupId: SharingGroupId, completion:((_ sharingInvitationUUID:String?, Error?)->(Void))?) {
+    func createSharingInvitation(withPermission permission:Permission, sharingGroupUUID: String, completion:((_ sharingInvitationUUID:String?, Error?)->(Void))?) {
     
         let endpoint = ServerEndpoints.createSharingInvitation
 
         var paramsForRequest:[String:Any] = [:]
         paramsForRequest[CreateSharingInvitationRequest.permissionKey] = permission
-        paramsForRequest[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        paramsForRequest[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         let invitationRequest = CreateSharingInvitationRequest(json: paramsForRequest)!
         
         let parameters = invitationRequest.urlParameters()!
@@ -655,7 +655,7 @@ class ServerAPI {
     
     // Some accounts return an access token after sign-in (e.g., Facebook's long-lived access token).
     // When redeeming a sharing invitation for an owning user account type that requires a cloud folder, you must give a cloud folder in the redeeming request.
-    func redeemSharingInvitation(sharingInvitationUUID:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, SyncServerError?)->(Void))?) {
+    func redeemSharingInvitation(sharingInvitationUUID:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupUUID: String?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.redeemSharingInvitation
 
         var paramsForRequest:[String:Any] = [:]
@@ -674,7 +674,7 @@ class ServerAPI {
             if resultError == nil {
                 if let invitationResponse = RedeemSharingInvitationResponse(json: response!) {
                     let accessToken = response?[ServerConstants.httpResponseOAuth2AccessTokenKey] as? String
-                    completion?(accessToken, invitationResponse.sharingGroupId, nil)
+                    completion?(accessToken, invitationResponse.sharingGroupUUID, nil)
                 }
                 else {
                     completion?(nil, nil, .couldNotCreateResponse)
@@ -692,14 +692,14 @@ class ServerAPI {
     }
     
     // Note that you can't do an undeletion for an appMetaData upload-- because there is no content to upload. I.e., when an uploadDeletion occurs the file is deleted in cloud storage. Thus, there is no option for this method to undelete.
-    func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupId: SharingGroupId, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
+    func uploadAppMetaData(appMetaData: AppMetaData, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupUUID: String, completion:((Result<UploadAppMetaDataResult>)->(Void))?) {
         let endpoint = ServerEndpoints.uploadAppMetaData
         
         let uploadRequest = UploadAppMetaDataRequest()
         uploadRequest.appMetaData = appMetaData
         uploadRequest.fileUUID = fileUUID
         uploadRequest.masterVersion = serverMasterVersion
-        uploadRequest.sharingGroupId = sharingGroupId
+        uploadRequest.sharingGroupUUID = sharingGroupUUID
         
         let parameters = uploadRequest.urlParameters()!
         let serverURL = makeURL(forEndpoint: endpoint, parameters: parameters)
@@ -729,7 +729,7 @@ class ServerAPI {
         case serverMasterVersionUpdate(Int64)
     }
 
-    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupId: SharingGroupId, completion:((Result<DownloadAppMetaDataResult>)->())?) {
+    func downloadAppMetaData(appMetaDataVersion: AppMetaDataVersionInt, fileUUID: String, serverMasterVersion: MasterVersionInt, sharingGroupUUID: String, completion:((Result<DownloadAppMetaDataResult>)->())?) {
     
         let endpoint = ServerEndpoints.downloadAppMetaData
         
@@ -737,7 +737,7 @@ class ServerAPI {
         paramsForRequest[DownloadAppMetaDataRequest.fileUUIDKey] = fileUUID
         paramsForRequest[DownloadAppMetaDataRequest.appMetaDataVersionKey] = appMetaDataVersion
         paramsForRequest[DownloadAppMetaDataRequest.masterVersionKey] = serverMasterVersion
-        paramsForRequest[ServerEndpoint.sharingGroupIdKey] = sharingGroupId
+        paramsForRequest[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
         let downloadAppMetaData = DownloadAppMetaDataRequest(json: paramsForRequest)!
         
         let parameters = downloadAppMetaData.urlParameters()!
@@ -768,12 +768,12 @@ class ServerAPI {
     
     // MARK: Sharing groups
     
-    public func createSharingGroup(sharingGroupName: String?, completion:@escaping ((Result<SharingGroupId>)->())) {
+    public func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String?, completion:@escaping ((Error?)->())) {
 
         guard let request = CreateSharingGroupRequest(json: [
             CreateSharingGroupRequest.sharingGroupNameKey: sharingGroupName as Any
         ]) else {
-            completion(.error(SyncServerError.couldNotCreateRequest))
+            completion(SyncServerError.couldNotCreateRequest)
             return
         }
         
@@ -785,25 +785,24 @@ class ServerAPI {
         sendRequestUsing(method: endpoint.method, toURL: serverURL, retryIfError: false) { (response, httpStatus, error) in
 
             if httpStatus == HTTPStatus.ok.rawValue, let response = response,
-                let createResponse = CreateSharingGroupResponse(json: response),
-                let sharingGroupId = createResponse.sharingGroupId {
-                completion(.success(sharingGroupId))
+                let _ = CreateSharingGroupResponse(json: response) {
+                completion(nil)
             }
             else if let errorResult = self.checkForError(statusCode: httpStatus, error: error) {
-                completion(.error(errorResult))
+                completion(errorResult)
             }
             else {
-                completion(.error(SyncServerError.unknownServerError))
+                completion(SyncServerError.unknownServerError)
             }
         }
     }
 
     // If the result is non-nil, that means there was a master version update.
-    public func removeSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+    public func removeSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
 
         guard let request = RemoveSharingGroupRequest(json: [
             ServerEndpoint.masterVersionKey: masterVersion,
-            ServerEndpoint.sharingGroupIdKey: sharingGroupId
+            ServerEndpoint.sharingGroupUUIDKey: sharingGroupUUID
         ]), let parameters = request.urlParameters() else {
             completion(.error(SyncServerError.couldNotCreateRequest))
             return
@@ -827,11 +826,11 @@ class ServerAPI {
         }
     }
     
-    public func updateSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, sharingGroupName: String, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+    public func updateSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt, sharingGroupName: String, completion:@escaping ((Result<MasterVersionInt?>)->())) {
         
         guard let request = UpdateSharingGroupRequest(json: [
             ServerEndpoint.masterVersionKey: masterVersion,
-            ServerEndpoint.sharingGroupIdKey: sharingGroupId,
+            ServerEndpoint.sharingGroupUUIDKey: sharingGroupUUID,
             UpdateSharingGroupRequest.sharingGroupNameKey: sharingGroupName
         ]), let parameters = request.urlParameters() else {
             completion(.error(SyncServerError.couldNotCreateRequest))
@@ -856,11 +855,11 @@ class ServerAPI {
         }
     }
     
-    public func removeUserFromSharingGroup(sharingGroupId: SharingGroupId, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
+    public func removeUserFromSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt, completion:@escaping ((Result<MasterVersionInt?>)->())) {
         
         guard let request = RemoveUserFromSharingGroupRequest(json: [
             ServerEndpoint.masterVersionKey: masterVersion,
-            ServerEndpoint.sharingGroupIdKey: sharingGroupId
+            ServerEndpoint.sharingGroupUUIDKey: sharingGroupUUID
         ]), let parameters = request.urlParameters() else {
             completion(.error(SyncServerError.couldNotCreateRequest))
             return

@@ -24,11 +24,11 @@ class Client_Downloads: TestCase {
         super.tearDown()
     }
     
-    func checkForDownloads(expectedMasterVersion:MasterVersionInt, sharingGroupId: SharingGroupId, expectedFiles:[ServerAPI.File]) {
+    func checkForDownloads(expectedMasterVersion:MasterVersionInt, sharingGroupUUID: String, expectedFiles:[ServerAPI.File]) {
         
         let expectation = self.expectation(description: "check")
 
-        Download.session.check(sharingGroupId: sharingGroupId) { checkCompletion in
+        Download.session.check(sharingGroupUUID: sharingGroupUUID) { checkCompletion in
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
                 XCTAssert(expectedFiles.count == 0)
@@ -66,27 +66,27 @@ class Client_Downloads: TestCase {
     
     func testCheckForDownloadOfZeroFilesWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        checkForDownloads(expectedMasterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedFiles: [])
+        checkForDownloads(expectedMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
     }
     
     func testCheckForDownloadOfSingleFileWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -94,23 +94,23 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
     }
     
     func testCheckForDownloadOfTwoFilesWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -119,32 +119,32 @@ class Client_Downloads: TestCase {
         let fileUUID2 = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return
         }
         
-        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file1, file2])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file1, file2])
     }
     
     func testDownloadNextWithNoFilesOnServer() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        checkForDownloads(expectedMasterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedFiles: [])
+        checkForDownloads(expectedMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
     
         let result = Download.session.next() { completionResult in
             XCTFail()
@@ -158,12 +158,12 @@ class Client_Downloads: TestCase {
     
     func testDownloadNextWithOneFileNotDownloadedOnServer() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -171,13 +171,13 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
 
         let expectation = self.expectation(description: "next")
 
@@ -213,12 +213,12 @@ class Client_Downloads: TestCase {
     
     func testDownloadNextWithMasterVersionUpdate() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -226,13 +226,13 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Fake an incorrect master version.
@@ -271,12 +271,12 @@ class Client_Downloads: TestCase {
     
     func testThatNextWithOneFileMarksGroupAsCompleted() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -284,13 +284,13 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
 
         // First next should work as usual
         let expectation1 = self.expectation(description: "next1")
@@ -316,12 +316,12 @@ class Client_Downloads: TestCase {
     
     func testNextImmediatelyFollowedByNextIndicatesDownloadAlreadyOccurring() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -329,13 +329,13 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupId: sharingGroupId, expectedFiles: [file])
+        checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
 
         let expectation = self.expectation(description: "next")
 
@@ -360,15 +360,15 @@ class Client_Downloads: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    func onlyCheck(sharingGroupId: SharingGroupId, expectedDownloads:Int=0, expectedDownloadDeletions:Int=0) {
-        guard let masterVersionFirst = getMasterVersion(sharingGroupId: sharingGroupId) else {
+    func onlyCheck(sharingGroupUUID: String, expectedDownloads:Int=0, expectedDownloadDeletions:Int=0) {
+        guard let masterVersionFirst = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
         let expectation1 = self.expectation(description: "onlyCheck")
 
-        Download.session.onlyCheck(sharingGroupId: sharingGroupId) { onlyCheckResult in
+        Download.session.onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
             switch onlyCheckResult {
             case .error(let error):
                 XCTFail("Failed: \(error)")
@@ -388,22 +388,22 @@ class Client_Downloads: TestCase {
     
     func testOnlyCheckWhenNoFiles() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        onlyCheck(sharingGroupId: sharingGroupId)
+        onlyCheck(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testOnlyCheckWhenOneFileForDownload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -411,34 +411,34 @@ class Client_Downloads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        onlyCheck(sharingGroupId: sharingGroupId, expectedDownloads:1)
+        onlyCheck(sharingGroupUUID: sharingGroupUUID, expectedDownloads:1)
     }
     
     func testOnlyCheckWhenOneFileForDownloadDeletion() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
-        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
+        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
         // Simulate another device deleting the file.
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupUUID: sharingGroupUUID)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         
-        self.doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        self.doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        onlyCheck(sharingGroupId: sharingGroupId, expectedDownloadDeletions:1)
+        onlyCheck(sharingGroupUUID: sharingGroupUUID, expectedDownloadDeletions:1)
     }
 }

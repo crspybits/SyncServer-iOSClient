@@ -24,7 +24,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         super.tearDown()
     }
     
-    func upload(uploadCopy: Bool, sharingGroupId: SharingGroupId, failureExpected: Bool = false) {
+    func upload(uploadCopy: Bool, sharingGroupUUID: String, failureExpected: Bool = false) {
         let fileUUID = UUID().uuidString
         var url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         
@@ -38,7 +38,7 @@ class Client_SyncServer_SharingGroup: TestCase {
             url = copyOfFileURL
         }
 
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         do {
             if uploadCopy {
@@ -59,50 +59,54 @@ class Client_SyncServer_SharingGroup: TestCase {
     
     func testMultipleSharingGroupsUploadImmutableFileBeforeSyncFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        upload(uploadCopy: false, sharingGroupId: sharingGroupId)
-        upload(uploadCopy: false, sharingGroupId: sharingGroupId + 1, failureExpected: true)
+        upload(uploadCopy: false, sharingGroupUUID: sharingGroupUUID)
+        let badSharingGroupUUID = UUID().uuidString
+        upload(uploadCopy: false, sharingGroupUUID: badSharingGroupUUID, failureExpected: true)
     }
     
     func testMultipleSharingGroupsUploadCopyFileBeforeSyncFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        upload(uploadCopy: true, sharingGroupId: sharingGroupId)
-        upload(uploadCopy: true, sharingGroupId: sharingGroupId + 1, failureExpected: true)
+        upload(uploadCopy: true, sharingGroupUUID: sharingGroupUUID)
+        let badSharingGroupUUID = UUID().uuidString
+        upload(uploadCopy: true, sharingGroupUUID: badSharingGroupUUID, failureExpected: true)
     }
 
     func testMultipleSharingGroupsUploadAppMetaDataBeforeSyncFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        upload(uploadCopy: true, sharingGroupId: sharingGroupId)
-        upload(uploadCopy: true, sharingGroupId: sharingGroupId + 1, failureExpected: true)
+        upload(uploadCopy: true, sharingGroupUUID: sharingGroupUUID)
+        let badSharingGroupUUID = UUID().uuidString
+        upload(uploadCopy: true, sharingGroupUUID: badSharingGroupUUID, failureExpected: true)
     }
     
     
     func testRemoveSharingGroupWithAFileWorks() {
-        guard let sharingGroupId = createSharingGroup(sharingGroupName: nil) else {
+        let sharingGroupUUID = UUID().uuidString
+        guard createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: nil) else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        guard let fileIndexResult1 = getFileIndex(sharingGroupId: sharingGroupId),
+        guard let fileIndexResult1 = getFileIndex(sharingGroupUUID: sharingGroupUUID),
             let fileIndex1 = fileIndexResult1.fileIndex else {
             XCTFail()
             return
@@ -114,19 +118,19 @@ class Client_SyncServer_SharingGroup: TestCase {
             return
         }
         
-        if let _ = removeSharingGroup(sharingGroupId: sharingGroupId, masterVersion: fileIndexResult1.masterVersion!) {
+        if let _ = removeSharingGroup(sharingGroupUUID: sharingGroupUUID, masterVersion: fileIndexResult1.masterVersion!) {
             XCTFail()
             return
         }
         
-        getFileIndex(sharingGroupId: sharingGroupId, errorExpected: true)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, errorExpected: true)
         
-        guard let fileIndexResult2 = getFileIndex(sharingGroupId: nil) else {
+        guard let fileIndexResult2 = getFileIndex(sharingGroupUUID: nil) else {
             XCTFail()
             return
         }
         
-        let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupId == sharingGroupId}
+        let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
         XCTAssert(filteredResult.count == 0)
     }
 }

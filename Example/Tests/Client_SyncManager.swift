@@ -25,7 +25,7 @@ class Client_SyncManager: TestCase {
     
     func testStartWithNoFilesOnServer() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -36,7 +36,7 @@ class Client_SyncManager: TestCase {
             XCTFail()
         }
         
-        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
+        SyncManager.session.start(sharingGroupUUID: sharingGroupUUID) { (error) in
             XCTAssert(error == nil)
             expectation.fulfill()
         }
@@ -46,18 +46,18 @@ class Client_SyncManager: TestCase {
     
     func testStartWithOneUploadedFileOnServer() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId)
+        uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID)
     }
     
-    func downloadTwoFilesUsingStart(file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt, sharingGroupId: SharingGroupId, singleFileDownloaded:(()->())? = nil, completion:(()->())? = nil) {
+    func downloadTwoFilesUsingStart(file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt, sharingGroupUUID: String, singleFileDownloaded:(()->())? = nil, completion:(()->())? = nil) {
         let expectedFiles = [file1, file2]
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
         
         let expectation = self.expectation(description: "start")
         let file1Exp = self.expectation(description: "file1")
@@ -88,7 +88,7 @@ class Client_SyncManager: TestCase {
             }
         }
         
-        SyncManager.session.start(sharingGroupId: sharingGroupId) { (error) in
+        SyncManager.session.start(sharingGroupUUID: sharingGroupUUID) { (error) in
             XCTAssert(error == nil, "\(String(describing: error))")
             
             XCTAssert(downloadCount == 2)
@@ -112,9 +112,9 @@ class Client_SyncManager: TestCase {
         waitForExpectations(timeout: 60.0, handler: nil)
     }
     
-    func uploadTwoFiles(sharingGroupId: SharingGroupId) -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {
+    func uploadTwoFiles(sharingGroupUUID: String) -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {
     
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -124,11 +124,11 @@ class Client_SyncManager: TestCase {
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return nil
         }
         
-        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return nil
         }
         
@@ -137,17 +137,17 @@ class Client_SyncManager: TestCase {
     
     func testStartWithTwoUploadedFilesOnServer() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupId: sharingGroupId) else {
+        guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        downloadTwoFilesUsingStart(file1: file1, file2: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        downloadTwoFilesUsingStart(file1: file1, file2: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     // Simulation of master version change on server-- by changing it locally.
@@ -155,12 +155,12 @@ class Client_SyncManager: TestCase {
         var numberDownloads = 0
         
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
  
-        guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupId: sharingGroupId) else {
+        guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -180,6 +180,6 @@ class Client_SyncManager: TestCase {
             }
         }
         
-        downloadTwoFilesUsingStart(file1: file1, file2: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId, singleFileDownloaded: singleFileDownload)
+        downloadTwoFilesUsingStart(file1: file1, file2: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, singleFileDownloaded: singleFileDownload)
     }
 }

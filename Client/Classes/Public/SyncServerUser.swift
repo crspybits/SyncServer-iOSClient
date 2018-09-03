@@ -117,7 +117,7 @@ public class SyncServerUser {
     }
     
     private func setupSharingGroups() {
-        ServerAPI.session.index(sharingGroupId: nil) { response in
+        ServerAPI.session.index(sharingGroupUUID: nil) { response in
             switch response {
             case .success(let result):
                 self.sharingGroups = result.sharingGroups
@@ -177,11 +177,11 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to add a user.
-    public func addUser(creds: GenericCredentials, sharingGroupName: String?, completion:@escaping (SharingGroupId?, Error?) ->()) {
+    public func addUser(creds: GenericCredentials, sharingGroupUUID: String, sharingGroupName: String?, completion:@escaping (Error?) ->()) {
         Log.msg("SignInCreds: \(creds)")
 
         ServerAPI.session.creds = creds
-        ServerAPI.session.addUser(cloudFolderName: cloudFolderName, sharingGroupName: sharingGroupName) { syncServerUserId, sharingGroupId, error in
+        ServerAPI.session.addUser(cloudFolderName: cloudFolderName, sharingGroupUUID: sharingGroupUUID, sharingGroupName: sharingGroupName) { syncServerUserId, error in
             if error == nil {
                 self.creds = creds
                 if let syncServerUserId = syncServerUserId  {
@@ -197,15 +197,15 @@ public class SyncServerUser {
             }
             
             Thread.runSync(onMainThread: {
-                completion(sharingGroupId, error)
+                completion(error)
             })
         }
     }
     
     /// Calls the server API method to create a sharing invitation.
-    public func createSharingInvitation(withPermission permission:Permission, sharingGroupId: SharingGroupId, completion:((_ invitationCode:String?, Error?)->(Void))?) {
+    public func createSharingInvitation(withPermission permission:Permission, sharingGroupUUID: String, completion:((_ invitationCode:String?, Error?)->(Void))?) {
 
-        ServerAPI.session.createSharingInvitation(withPermission: permission, sharingGroupId: sharingGroupId) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: permission, sharingGroupUUID: sharingGroupUUID) { (sharingInvitationUUID, error) in
             Thread.runSync(onMainThread: {
                 completion?(sharingInvitationUUID, error)
             })
@@ -213,7 +213,7 @@ public class SyncServerUser {
     }
     
     /// Calls the server API method to redeem a sharing invitation.
-    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupId: SharingGroupId?, Error?)->())?) {
+    public func redeemSharingInvitation(creds: GenericCredentials, invitationCode:String, cloudFolderName: String?, completion:((_ accessToken:String?, _ sharingGroupUUID: String?, Error?)->())?) {
         
         ServerAPI.session.creds = creds
         

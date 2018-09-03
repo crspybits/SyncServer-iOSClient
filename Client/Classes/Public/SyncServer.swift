@@ -162,7 +162,7 @@ public class SyncServer {
         }
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {[weak self] in
-            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupId: attr.sharingGroupId)
+            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
             if errorToThrow != nil {
                 return
             }
@@ -176,7 +176,7 @@ public class SyncServer {
                 entry!.fileUUID = attr.fileUUID
                 entry!.mimeType = attr.mimeType.rawValue
                 entry!.fileGroupUUID = attr.fileGroupUUID
-                entry!.sharingGroupId = attr.sharingGroupId
+                entry!.sharingGroupUUID = attr.sharingGroupUUID
                 fileGroupUUID = attr.fileGroupUUID
             }
             else {
@@ -212,7 +212,7 @@ public class SyncServer {
             newUft.appMetaData = attr.appMetaData
             newUft.fileUUID = attr.fileUUID
             newUft.mimeType = attr.mimeType.rawValue
-            newUft.sharingGroupId = attr.sharingGroupId
+            newUft.sharingGroupUUID = attr.sharingGroupUUID
             newUft.uploadCopy = copy
             newUft.operation = .file
             newUft.fileGroupUUID = fileGroupUUID
@@ -273,7 +273,7 @@ public class SyncServer {
         var errorToThrow:Error?
 
         CoreDataSync.perform(sessionName: Constants.coreDataName) {[weak self] in
-            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupId: attr.sharingGroupId)
+            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
             if errorToThrow != nil {
                 return
             }
@@ -312,7 +312,7 @@ public class SyncServer {
             newUft.appMetaData = attr.appMetaData
             newUft.fileUUID = attr.fileUUID
             newUft.mimeType = attr.mimeType.rawValue
-            newUft.sharingGroupId = attr.sharingGroupId
+            newUft.sharingGroupUUID = attr.sharingGroupUUID
             newUft.uploadCopy = false
             newUft.operation = .appMetaData
             
@@ -327,15 +327,15 @@ public class SyncServer {
     }
     
     // Do this in a Core Data perform block.
-    private func checkIfSameSharingGroup(sharingGroupId: SharingGroupId) -> Error? {
+    private func checkIfSameSharingGroup(sharingGroupUUID: String) -> Error? {
         var errorToThrow: Error?
         
         Synchronized.block(self) {
             do {
                 let uploadFileTrackers = try Upload.pendingSync().uploadFileTrackers
-                let result = uploadFileTrackers.filter {$0.sharingGroupId == sharingGroupId}
+                let result = uploadFileTrackers.filter {$0.sharingGroupUUID == sharingGroupUUID}
                 if result.count != uploadFileTrackers.count {
-                    errorToThrow = SyncServerError.sharingGroupIdInconsistent
+                    errorToThrow = SyncServerError.sharingGroupUUIDInconsistent
                 }
             } catch (let error) {
                 errorToThrow = error
@@ -436,11 +436,11 @@ public class SyncServer {
             throw SyncServerError.deletingUnknownFile
         }
         
-        guard let sharingGroupId = entry.sharingGroupId else {
+        guard let sharingGroupUUID = entry.sharingGroupUUID else {
             throw SyncServerError.noSharingGroupId
         }
         
-        if let errorToThrow = checkIfSameSharingGroup(sharingGroupId: sharingGroupId) {
+        if let errorToThrow = checkIfSameSharingGroup(sharingGroupUUID: sharingGroupUUID) {
             throw errorToThrow
         }
 
@@ -512,11 +512,11 @@ public class SyncServer {
      
         Non-blocking in all cases.
     */
-    public func sync(sharingGroupId: SharingGroupId) throws {
-        try sync(sharingGroupId:sharingGroupId, completion:nil)
+    public func sync(sharingGroupUUID: String) throws {
+        try sync(sharingGroupUUID:sharingGroupUUID, completion:nil)
     }
     
-    func sync(sharingGroupId: SharingGroupId, completion:(()->())?) throws {
+    func sync(sharingGroupUUID: String, completion:(()->())?) throws {
         var doStart = true
         
         var errorToThrow: Error?
@@ -532,7 +532,7 @@ public class SyncServer {
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
                     if try Upload.pendingSync().uploadFileTrackers.count > 0  {
-                        try Upload.movePendingSyncToSynced(sharingGroupId: sharingGroupId)
+                        try Upload.movePendingSyncToSynced(sharingGroupUUID: sharingGroupUUID)
                     }
                 } catch (let error) {
                     errorToThrow = error
@@ -556,7 +556,7 @@ public class SyncServer {
         }
         
         if doStart {
-            start(sharingGroupId: sharingGroupId, completion: completion)
+            start(sharingGroupUUID: sharingGroupUUID, completion: completion)
         }
     }
     
@@ -617,8 +617,8 @@ public class SyncServer {
         - parameters:
             - completion: Gives stats about downloads that are currently available; gives nil if there was an error.
     */
-    public func getStats(sharingGroupId: SharingGroupId, completion:@escaping (Stats?)->()) {
-        Download.session.onlyCheck(sharingGroupId: sharingGroupId) { onlyCheckResult in
+    public func getStats(sharingGroupUUID: String, completion:@escaping (Stats?)->()) {
+        Download.session.onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
             switch onlyCheckResult {
             case .error(let error):
                 Log.error("Error on Download onlyCheck: \(error)")
@@ -818,11 +818,11 @@ public class SyncServer {
         return results
     }
     
-    private func start(sharingGroupId: SharingGroupId, completion:(()->())?) {
+    private func start(sharingGroupUUID: String, completion:(()->())?) {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        SyncManager.session.start(sharingGroupId: sharingGroupId, first: true) { error in
+        SyncManager.session.start(sharingGroupUUID: sharingGroupUUID, first: true) { error in
             if error != nil {
                 Thread.runSync(onMainThread: {
                     self.delegate?.syncServerErrorOccurred(error: error!)
@@ -845,7 +845,7 @@ public class SyncServer {
             
             Synchronized.block(self) { [unowned self] in
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupId: sharingGroupId) || self.delayedSync) {
+                    if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupUUID: sharingGroupUUID) || self.delayedSync) {
                         self.delayedSync = false
                         doStart = true
                     }
@@ -858,7 +858,7 @@ public class SyncServer {
             }
             
             if doStart {
-                self.start(sharingGroupId: sharingGroupId, completion:completion)
+                self.start(sharingGroupUUID: sharingGroupUUID, completion:completion)
             }
         }
     }
@@ -894,10 +894,10 @@ public class SyncServer {
 
     // TODO: *2* This is incomplete. Needs more work.
     /// This is intended for development/debug only. This enables you do a consistency check between your local files and SyncServer meta data. Does a sync first to ensure files are synchronized.
-    public func consistencyCheck(sharingGroupId: SharingGroupId, localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) throws {
-        try sync(sharingGroupId: sharingGroupId) {
+    public func consistencyCheck(sharingGroupUUID: String, localFiles:[UUIDString], repair:Bool = false, completion:((Error?)->())?) throws {
+        try sync(sharingGroupUUID: sharingGroupUUID) {
             // TODO: *2* Check for errors in sync.
-            Consistency.check(sharingGroupId: sharingGroupId, localFiles: localFiles, repair: repair, callback: completion)
+            Consistency.check(sharingGroupUUID: sharingGroupUUID, localFiles: localFiles, repair: repair, callback: completion)
         }
     }
 }

@@ -22,9 +22,9 @@ class Performance: TestCase {
         super.tearDown()
     }
     
-    func downloadNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType, sharingGroupId: SharingGroupId) {
+    func downloadNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType, sharingGroupUUID: String) {
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -34,12 +34,12 @@ class Performance: TestCase {
         for _ in 1...N {
             let fileUUID = UUID().uuidString
 
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: Int64(N))
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: Int64(N))
         
         let expectation = self.expectation(description: "downloadNFiles")
         self.deviceUUID = Foundation.UUID()
@@ -74,78 +74,78 @@ class Performance: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: Double(N) * 30.0, handler: nil)
     }
     
     func test10SmallTextFileDownloads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupId: sharingGroupId)
+        downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
     }
     
     func test10_120K_ImageFileDownloads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType: .jpeg, sharingGroupId: sharingGroupId)
+        downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
  
     // 5/27/17; I've been having problems with large-ish downloads. E.g., See https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
     func test10SmallerImageFileDownloads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupId: sharingGroupId)
+        downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
     
     func test10LargeImageFileDownloads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupId: sharingGroupId)
+        downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func interspersedDownloadsOfSmallTextFile(_ N:Int, sharingGroupId: SharingGroupId) {
+    func interspersedDownloadsOfSmallTextFile(_ N:Int, sharingGroupUUID: String) {
         for _ in 1...N {
-            doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupId: sharingGroupId)
+            doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
         }
     }
     
     // TODO: *0* Change this to not allow retries at the ServerAPI or networking level. i.e., so that it fails if a retry was to be required.
     func test10SmallTextFileDownloadsInterspersed() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        interspersedDownloadsOfSmallTextFile(10, sharingGroupId: sharingGroupId)
+        interspersedDownloadsOfSmallTextFile(10, sharingGroupUUID: sharingGroupUUID)
     }
     
     func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
 
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -158,21 +158,21 @@ class Performance: TestCase {
             let fileUUID = UUID().uuidString
             fileUUIDs.append(fileUUID)
             
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupId:sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID:sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: Int64(N))
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: Int64(N))
         
         for fileIndex in 0...N-1 {
             let fileUUID = fileUUIDs[Int(fileIndex)]
 
-            let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: 0, sharingGroupId: sharingGroupId)
+            let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
             uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
         }
         
-        doneUploads(masterVersion: masterVersion+1, sharingGroupId: sharingGroupId, expectedNumberDeletions: N)
+        doneUploads(masterVersion: masterVersion+1, sharingGroupUUID: sharingGroupUUID, expectedNumberDeletions: N)
     }
     
     // Failed with `shouldSaveDownload` being nil, when run with others as a group.
@@ -189,7 +189,7 @@ class Performance: TestCase {
     // This test case did *not* reproduce the issue.
     func testFileIndexWhileDownloadingImages() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -202,7 +202,7 @@ class Performance: TestCase {
         let mimeType:MimeType = .jpeg
 
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -212,12 +212,12 @@ class Performance: TestCase {
         for _ in 1...N {
             let fileUUID = UUID().uuidString
 
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: Int64(N))
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: Int64(N))
         
         let downloadExp = self.expectation(description: "download")
         let fileIndexExp = self.expectation(description: "fileIndex")
@@ -227,7 +227,7 @@ class Performance: TestCase {
         var downloadCount = 0
         
         func recursiveFileIndex() {
-            ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+            ServerAPI.session.index(sharingGroupUUID: sharingGroupUUID) { response in
                 switch response {
                 case .success:
                     if downloadCount < Int(N) {
@@ -259,7 +259,7 @@ class Performance: TestCase {
         }
         
         // Next, initiate the download using .sync()
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         recursiveFileIndex()
         

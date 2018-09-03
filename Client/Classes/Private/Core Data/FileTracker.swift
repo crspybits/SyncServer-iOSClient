@@ -44,8 +44,8 @@ public class FileTracker: NSManagedObject, Filenaming, FileUUID, LocalURLData {
             appMetaDataVersionInternal = newValue == nil ? nil : NSNumber(value: newValue!)
         }
     }
-    
-    public var sharingGroupId: SharingGroupId? {
+
+    public var sharingGroupId: Int64? {
         get {
             return sharingGroupIdInternal?.int64Value
         }

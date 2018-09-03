@@ -53,7 +53,7 @@ public enum SyncServerError: Error {
     case badCheckCreds
     case badAddUser
     case appMetaDataUploadUndeletionAttempt
-    case sharingGroupIdInconsistent
+    case sharingGroupUUIDInconsistent
     case noSharingGroupId
     case unknownServerError
     case coreDataError(Error)

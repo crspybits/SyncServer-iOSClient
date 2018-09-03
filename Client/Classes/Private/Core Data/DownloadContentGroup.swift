@@ -32,8 +32,8 @@ public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations
             statusRaw = newValue.rawValue
         }
     }
-    
-    public var sharingGroupId: SharingGroupId? {
+
+    public var sharingGroupId: Int64? {
         get {
             return sharingGroupIdInternal?.int64Value
         }
@@ -71,7 +71,7 @@ public class DownloadContentGroup: NSManagedObject, CoreDataModel, AllOperations
         var group:DownloadContentGroup!
         if let fileGroupUUID = fileGroupUUID, let dcg = DownloadContentGroup.fetchObjectWithUUID(fileGroupUUID: fileGroupUUID) {
             if dcg.sharingGroupId != dft.sharingGroupId {
-                throw SyncServerError.sharingGroupIdInconsistent
+                throw SyncServerError.sharingGroupUUIDInconsistent
             }
             group = dcg
         }

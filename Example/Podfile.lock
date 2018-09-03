@@ -34,7 +34,7 @@ PODS:
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.0)
     - SyncServer/Lite (= 17.0.0)
-  - SyncServer-Shared (9.0.0):
+  - SyncServer-Shared (9.1.1):
     - Gloss (~> 1.2)
   - SyncServer/Dropbox (17.0.0):
     - Gloss (~> 1.2)
@@ -58,9 +58,9 @@ PODS:
     - SyncServer-Shared (~> 9.0)
 
 DEPENDENCIES:
-  - SMCoreLib (from `../../Common/SMCoreLib`)
+  - SMCoreLib (~> 1.3)
   - SyncServer (from `..`)
-  - SyncServer-Shared (from `../../SyncServer-Shared`)
+  - SyncServer-Shared (~> 9.1)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -80,14 +80,12 @@ SPEC REPOS:
     - SwiftyDropbox
   https://github.com/crspybits/Specs.git:
     - GoogleSignIn
+    - SMCoreLib
+    - SyncServer-Shared
 
 EXTERNAL SOURCES:
-  SMCoreLib:
-    :path: "../../Common/SMCoreLib"
   SyncServer:
     :path: ".."
-  SyncServer-Shared:
-    :path: "../../SyncServer-Shared"
 
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
@@ -104,8 +102,8 @@ SPEC CHECKSUMS:
   SwiftyBeaver: e45759613e50b522b0e6f53b1f0f14389b45ca34
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
   SyncServer: 8365a49db9c0127706b895ad1e3a9a0ced8dcafe
-  SyncServer-Shared: e5a49bbc15faaaa6bfc2ba573345582ebd0cd4ee
+  SyncServer-Shared: dd12045d7db6e40ad08b75eea48ce3ee0045969a
 
-PODFILE CHECKSUM: 606bf04b0103a78f70a596c0ba5e5a1848a63032
+PODFILE CHECKSUM: f877b66c2f0c8efe9df1329fa408f647cb587522
 
 COCOAPODS: 1.5.3

@@ -293,9 +293,10 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                 }
 
             case .createOwningUser:
-                SyncServerUser.session.addUser(creds: creds, sharingGroupName: nil) {[unowned self] sharingGroupId, error in
-                    if error == nil, let sharingGroupId = sharingGroupId {
-                        self.successCreatingOwningUser(sharingGroupId: sharingGroupId)
+                let sharingGroupUUID = UUID().uuidString
+                SyncServerUser.session.addUser(creds: creds, sharingGroupUUID: sharingGroupUUID, sharingGroupName: nil) {[unowned self] error in
+                    if error == nil {
+                        self.successCreatingOwningUser(sharingGroupUUID: sharingGroupUUID)
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating owning user: \(error!)")
@@ -306,9 +307,9 @@ extension GoogleSyncServerSignIn : GIDSignInDelegate {
                 }
                 
             case .createSharingUser(invitationCode: let invitationCode):
-                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode, cloudFolderName: SyncServerUser.session.cloudFolderName) {[unowned self] accessToken, sharingGroupId, error in
-                    if error == nil, let sharingGroupId = sharingGroupId {
-                        self.successCreatingSharingUser(sharingGroupId: sharingGroupId)
+                SyncServerUser.session.redeemSharingInvitation(creds: creds, invitationCode: invitationCode, cloudFolderName: SyncServerUser.session.cloudFolderName) {[unowned self] accessToken, sharingGroupUUID, error in
+                    if error == nil, let sharingGroupUUID = sharingGroupUUID {
+                        self.successCreatingSharingUser(sharingGroupUUID: sharingGroupUUID)
                     }
                     else {
                         SMCoreLib.Alert.show(withTitle: "Alert!", message: "Error creating sharing user: \(error!)")

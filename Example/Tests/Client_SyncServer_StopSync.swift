@@ -50,14 +50,14 @@ class Client_SyncServer_StopSync: TestCase {
      */
     func testStopSyncBeforeUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStarted, .syncStopping, .contentUploadsCompleted]
         let syncStarted = self.expectation(description: "SyncStarted")
@@ -84,7 +84,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
                 
             case .contentUploadsCompleted:
@@ -97,7 +97,7 @@ class Client_SyncServer_StopSync: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -108,7 +108,7 @@ class Client_SyncServer_StopSync: TestCase {
     */
     func testStopSyncBetweenTwoUploads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -116,8 +116,8 @@ class Client_SyncServer_StopSync: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStopping, .contentUploadsCompleted, .singleFileUploadComplete]
         
@@ -139,7 +139,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
                 
             case .singleFileUploadComplete:
@@ -162,7 +162,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -173,13 +173,13 @@ class Client_SyncServer_StopSync: TestCase {
     */
     func testStopSyncBeforeDownload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         // Upload a file, without using client interface, so it'll download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -187,11 +187,11 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
 
         SyncServer.session.eventsDesired = [.syncStopping, .syncStarted]
         
@@ -224,7 +224,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
                 
             default:
@@ -242,7 +242,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -253,13 +253,13 @@ class Client_SyncServer_StopSync: TestCase {
     */
     func testStopSyncBetweenTwoDownloads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         // Upload two files, without using client interface, so they will download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -268,15 +268,15 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID2 = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
 
         SyncServer.session.eventsDesired = [.syncStopping]
         
@@ -298,7 +298,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
                 
             default:
@@ -321,7 +321,7 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -332,13 +332,13 @@ class Client_SyncServer_StopSync: TestCase {
     */
     func testStopSyncBetweenTwoUploadDeletions() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId),
-            let (_, attr2) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID),
+            let (_, attr2) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -368,7 +368,7 @@ class Client_SyncServer_StopSync: TestCase {
                 
                 // But, should be good after a delay.
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
 
             default:
@@ -378,7 +378,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.delete(fileWithUUID: attr1.fileUUID)
         try! SyncServer.session.delete(fileWithUUID: attr2.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -388,7 +388,7 @@ class Client_SyncServer_StopSync: TestCase {
     */
     func testTwoStopSyncs() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -396,8 +396,8 @@ class Client_SyncServer_StopSync: TestCase {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncStopping, .syncStarted, .singleFileUploadComplete, .contentUploadsCompleted]
         
@@ -419,7 +419,7 @@ class Client_SyncServer_StopSync: TestCase {
                 numberOfStops += 1
 
                 TimedCallback.withDuration(1.0) {
-                    try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+                    try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
                 }
                 
             case .singleFileUploadComplete:
@@ -442,7 +442,7 @@ class Client_SyncServer_StopSync: TestCase {
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr1)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -451,13 +451,13 @@ class Client_SyncServer_StopSync: TestCase {
     */
    func testStopSyncWithMasterVersionChange() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
     
         // 1) Upload two files, without using client interface, so they will download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -472,15 +472,15 @@ class Client_SyncServer_StopSync: TestCase {
             (uuid: fileUUID2, url: url as URL)
         ]
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
     
         // 2) Do the first stop sync
         let shouldSaveDownloadExp1 = self.expectation(description: "ShouldSaveDownload1")
@@ -497,14 +497,14 @@ class Client_SyncServer_StopSync: TestCase {
             }
         }
 
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
     
         waitForExpectations(timeout: 10.0, handler: nil)
     
         // 3) Delete remaining file-- Don't use the client sync interface so that we force a master version update that we're not aware of in the context of the client sync interface.
-    let fileToDelete = ServerAPI.FileToDelete(fileUUID: files[0].uuid, fileVersion: 0, sharingGroupId: sharingGroupId)
+    let fileToDelete = ServerAPI.FileToDelete(fileUUID: files[0].uuid, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
-    doneUploads(masterVersion: masterVersion+1, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+    doneUploads(masterVersion: masterVersion+1, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
     
         // 4) Do another sync. Should not get a download deletion callback because the client doesn't know about that file.
     
@@ -526,7 +526,7 @@ class Client_SyncServer_StopSync: TestCase {
             XCTFail()
         }
     
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         waitForExpectations(timeout: 10.0, handler: nil)
     }
 }

@@ -26,12 +26,12 @@ class Client_GetAttributes: TestCase {
     
     func testGetAttributesForAnUploadedFileWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, uploadedAttr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
+        guard let (_, uploadedAttr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
             XCTFail()
             return
         }
@@ -45,17 +45,17 @@ class Client_GetAttributes: TestCase {
         XCTAssert(uploadedAttr.fileGroupUUID == attr.fileGroupUUID)
         XCTAssert(uploadedAttr.appMetaData == attr.appMetaData)
         XCTAssert(uploadedAttr.mimeType == attr.mimeType)
-        XCTAssert(uploadedAttr.sharingGroupId == attr.sharingGroupId)
+        XCTAssert(uploadedAttr.sharingGroupUUID == attr.sharingGroupUUID)
     }
     
     func testGetAttributesForADownloadedFileWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -63,11 +63,11 @@ class Client_GetAttributes: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, uploadedAttr) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let (_, uploadedAttr) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         let download = self.expectation(description: "test1")
         let done = self.expectation(description: "done")
@@ -90,7 +90,7 @@ class Client_GetAttributes: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
@@ -107,14 +107,14 @@ class Client_GetAttributes: TestCase {
     
     func testGetAttributesForADeletedFileFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone]
         
@@ -136,10 +136,10 @@ class Client_GetAttributes: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         

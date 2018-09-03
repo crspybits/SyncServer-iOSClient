@@ -25,50 +25,50 @@ class Client_SyncServer_FileUpload: TestCase {
         super.tearDown()
     }
 
-    func uploadASingleFile(copy:Bool, sharingGroupId: SharingGroupId) {
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId, uploadCopy: copy) else {
+    func uploadASingleFile(copy:Bool, sharingGroupUUID: String) {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, uploadCopy: copy) else {
             XCTFail()
             return
         }
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingASingleImmutableFileWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadASingleFile(copy:false, sharingGroupId: sharingGroupId)
+        uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingASingleCopyFileWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadASingleFile(copy:true, sharingGroupId: sharingGroupId)
+        uploadASingleFile(copy:true, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func uploadTwoSeparateFilesWorks(copy:Bool, sharingGroupId: SharingGroupId) {
+    func uploadTwoSeparateFilesWorks(copy:Bool, sharingGroupUUID: String) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
 
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
 
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
@@ -103,11 +103,11 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr2)
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
             (fileUUID: fileUUID1, fileSize: nil),
             (fileUUID: fileUUID2, fileSize: nil)
         ])
@@ -117,31 +117,31 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingTwoSeparateImmutableFilesWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadTwoSeparateFilesWorks(copy:false, sharingGroupId: sharingGroupId)
+        uploadTwoSeparateFilesWorks(copy:false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingTwoSeparateCopyFilesWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadTwoSeparateFilesWorks(copy:true, sharingGroupId: sharingGroupId)
+        uploadTwoSeparateFilesWorks(copy:true, sharingGroupUUID: sharingGroupUUID)
     }
 
     // TODO: *2* file will have deleted flag set in local Directory.
@@ -151,11 +151,11 @@ class Client_SyncServer_FileUpload: TestCase {
     }
 */
 
-    func addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy:Bool, sharingGroupId: SharingGroupId) {
+    func addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy:Bool, sharingGroupUUID: String) {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectation1 = self.expectation(description: "test1")
@@ -189,11 +189,11 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr)
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
         // Download the file and make sure it corresponds to url2
         var masterVersion:MasterVersionInt!
@@ -201,39 +201,39 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url2 as URL, file: file, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url2 as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatAddingSameImmutableFileToUploadQueueTwiceBeforeSyncReplaces() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: false, sharingGroupId: sharingGroupId)
+        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatAddingSameCopyFileToUploadQueueTwiceBeforeSyncReplaces() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: true, sharingGroupId: sharingGroupId)
+        addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func changingTheMimeTypeOnSecondUploadFails(copy: Bool, sharingGroupId: SharingGroupId) {
+    func changingTheMimeTypeOnSecondUploadFails(copy: Bool, sharingGroupUUID: String) {
        let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
         
-        let attr1 = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         // Different mime type for second upload attempt.
-        let attr2 = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .jpeg)
+        let attr2 = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .jpeg)
         
         if copy {
             try! SyncServer.session.uploadCopy(localFile: url1, withAttributes: attr1)
@@ -259,28 +259,28 @@ class Client_SyncServer_FileUpload: TestCase {
     
     func testThatChangingTheMimeTypeOnSecondUploadImmutableFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        changingTheMimeTypeOnSecondUploadFails(copy: false, sharingGroupId: sharingGroupId)
+        changingTheMimeTypeOnSecondUploadFails(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatChangingTheMimeTypeOnSecondUploadCopyFails() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        changingTheMimeTypeOnSecondUploadFails(copy: true, sharingGroupId: sharingGroupId)
+        changingTheMimeTypeOnSecondUploadFails(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
 
-    func syncAferCompleteUploadWorks(copy: Bool, sharingGroupId: SharingGroupId) {
+    func syncAferCompleteUploadWorks(copy: Bool, sharingGroupUUID: String) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let syncDone1 = self.expectation(description: "test1")
@@ -327,50 +327,50 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testSyncAferCompleteUploadImmutableWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        syncAferCompleteUploadWorks(copy: false, sharingGroupId: sharingGroupId)
+        syncAferCompleteUploadWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testSyncAferCompleteUploadCopyWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        syncAferCompleteUploadWorks(copy: true, sharingGroupId: sharingGroupId)
+        syncAferCompleteUploadWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: Bool, sharingGroupId: SharingGroupId) {
+    func uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: Bool, sharingGroupUUID: String) {
         let url1 = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
-        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr1 = SyncAttributes(fileUUID: fileUUID1, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
 
         let url2 = SMRelativeLocalURL(withRelativePath: "UploadMe3.txt", toBaseURLType: .mainBundle)!
         let fileUUID2 = UUID().uuidString
-        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr2 = SyncAttributes(fileUUID: fileUUID2, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         let expectSyncDone1 = self.expectation(description: "test1")
@@ -439,7 +439,7 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url1, withAttributes: attr1)
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
 
         if copy {
             try! SyncServer.session.uploadCopy(localFile: url2, withAttributes: attr2)
@@ -448,11 +448,11 @@ class Client_SyncServer_FileUpload: TestCase {
             try! SyncServer.session.uploadImmutable(localFile: url2, withAttributes: attr2)
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupId: sharingGroupId, expectedFiles: [
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
             (fileUUID: fileUUID1, fileSize: nil),
             (fileUUID: fileUUID2, fileSize: nil)
         ])
@@ -463,37 +463,37 @@ class Client_SyncServer_FileUpload: TestCase {
             masterVersion = Singleton.get().masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url1 as URL, file: file1, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url1 as URL, file: file1, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupId: sharingGroupId, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
-        onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion, sharingGroupId: sharingGroupId)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testUploadImmutableOfDifferentFilesAcrossDifferentSyncsWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: false, sharingGroupId: sharingGroupId)
+        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testUploadCopyOfDifferentFilesAcrossDifferentSyncsWorks() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: true, sharingGroupId: sharingGroupId)
+        uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func creationDateOfFileIsCorrect(copy: Bool, sharingGroupId: SharingGroupId) {
+    func creationDateOfFileIsCorrect(copy: Bool, sharingGroupUUID: String) {
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         // Queue's the file for upload.
         if copy {
@@ -529,7 +529,7 @@ class Client_SyncServer_FileUpload: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
@@ -550,22 +550,22 @@ class Client_SyncServer_FileUpload: TestCase {
     // The purpose of this test is to make sure that, despite the fact that we queue the file for upload, that the file creation date/time occurs *after* we start the sync operation.
     func testThatCreationDateOfImmutableFileIsCorrect() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        creationDateOfFileIsCorrect(copy: false, sharingGroupId: sharingGroupId)
+        creationDateOfFileIsCorrect(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatCreationDateOfCopyFileIsCorrect() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        creationDateOfFileIsCorrect(copy: true, sharingGroupId: sharingGroupId)
+        creationDateOfFileIsCorrect(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
     
     // TODO: *3* Test of upload file1, sync, upload file1, sync-- uploads both files.

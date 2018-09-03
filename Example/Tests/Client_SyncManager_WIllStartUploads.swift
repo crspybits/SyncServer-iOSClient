@@ -26,7 +26,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
     
     func testThatWillUploadEventIsNotTriggeredForNoUploads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -47,21 +47,21 @@ class Client_SyncManager_WIllStartUploads: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
     }
     
     func testThatWillUploadEventIsTriggeredForOneFileUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
         SyncServer.session.delegate = self
@@ -84,19 +84,19 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         }
         
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
-        try! SyncServer.session.sync(sharingGroupId:sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID:sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -123,26 +123,26 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         }
         
         try! SyncServer.session.delete(fileWithUUID: attr.fileUUID)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
     func testThatWillUploadEventIsTriggeredForFileUploadAndUploadDeletion() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
 
-        guard let (_, deletionAttr) = uploadSingleFileUsingSync(sharingGroupId: sharingGroupId) else {
+        guard let (_, deletionAttr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
-        let uploadAttr = SyncAttributes(fileUUID: fileUUID, sharingGroupId: sharingGroupId, mimeType: .text)
+        let uploadAttr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         
         SyncServer.session.eventsDesired = [.willStartUploads, .syncDone]
         SyncServer.session.delegate = self
@@ -167,7 +167,7 @@ class Client_SyncManager_WIllStartUploads: TestCase {
         
         try! SyncServer.session.delete(fileWithUUID: deletionAttr.fileUUID)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: uploadAttr)
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }

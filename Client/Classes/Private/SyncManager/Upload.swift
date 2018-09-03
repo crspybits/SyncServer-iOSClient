@@ -37,7 +37,7 @@ class Upload {
     }
     
     // Starts upload of next file, if there is one. There should be no files uploading already. Only if .started is the NextResult will the completion handler be called. With a masterVersionUpdate response for NextCompletion, the MasterVersion Core Data object is updated by this method, and all the UploadFileTracker objects have been reset.
-    func next(sharingGroupId: SharingGroupId, first: Bool = false, completion:((NextCompletion)->())?) -> NextResult {
+    func next(sharingGroupUUID: String, first: Bool = false, completion:((NextCompletion)->())?) -> NextResult {
         self.completion = completion
         
         var nextResult:NextResult!
@@ -49,7 +49,7 @@ class Upload {
         var numberUploadDeletions:Int!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            uploadQueue = Upload.getHeadSyncQueue(forSharingGroupId: sharingGroupId)
+            uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID)
             guard uploadQueue != nil else {
                 nextResult = .noUploads
                 return
@@ -135,7 +135,7 @@ class Upload {
                 return
             }
             
-            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupId: nextToUpload.sharingGroupId!)
+            fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupUUID: nextToUpload.sharingGroupUUID!)
         }
         
         guard nextResult == nil else {
@@ -181,7 +181,7 @@ class Upload {
         var nextResult:NextResult?
         var fileUUID: String!
         var appMetaData:AppMetaData!
-        var sharingGroupId: SharingGroupId!
+        var sharingGroupUUID: String!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // 1/11/18; Determing the version to upload immediately before the upload. See https://github.com/crspybits/SyncServerII/issues/12
@@ -205,14 +205,14 @@ class Upload {
             fileUUID = nextToUpload.fileUUID
             
             // It's OK to use the sharing group id from the upload tracker-- since we've already made the decision about which sharing group we're uploading.
-            sharingGroupId = nextToUpload.sharingGroupId
+            sharingGroupUUID = nextToUpload.sharingGroupUUID
         } // end perform
         
         guard nextResult == nil else {
             return nextResult!
         }
         
-        ServerAPI.session.uploadAppMetaData(appMetaData: appMetaData, fileUUID: fileUUID, serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId) {[weak self] result in
+        ServerAPI.session.uploadAppMetaData(appMetaData: appMetaData, fileUUID: fileUUID, serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) {[weak self] result in
             switch result {
             case .success(.success):
                 var completionResult:NextCompletion?
@@ -282,7 +282,7 @@ class Upload {
             let appMetaData = AppMetaData(version: nextToUpload.appMetaDataVersion, contents: nextToUpload.appMetaData)
             
             let mimeType = MimeType(rawValue: nextToUpload.mimeType!)!
-            file = ServerAPI.File(localURL: nextToUpload.localURL as URL?, fileUUID: nextToUpload.fileUUID, fileGroupUUID: nextToUpload.fileGroupUUID, sharingGroupId: nextToUpload.sharingGroupId, mimeType: mimeType, deviceUUID:self.deviceUUID, appMetaData: appMetaData, fileVersion: nextToUpload.fileVersion)
+            file = ServerAPI.File(localURL: nextToUpload.localURL as URL?, fileUUID: nextToUpload.fileUUID, fileGroupUUID: nextToUpload.fileGroupUUID, sharingGroupUUID: nextToUpload.sharingGroupUUID, mimeType: mimeType, deviceUUID:self.deviceUUID, appMetaData: appMetaData, fileVersion: nextToUpload.fileVersion)
             
             undelete = nextToUpload.uploadUndeletion
         } // end perform
@@ -319,7 +319,7 @@ class Upload {
                     }
 
                     // 1/27/18; See [2] below.
-                    var attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, sharingGroupId: nextToUpload.sharingGroupId!, mimeType:mimeType, creationDate: creationDate, updateDate: updateDate)
+                    var attr = SyncAttributes(fileUUID: nextToUpload.fileUUID, sharingGroupUUID: nextToUpload.sharingGroupUUID!, mimeType:mimeType, creationDate: creationDate, updateDate: updateDate)
                     
                     // `nextToUpload.appMetaData` may be nil because the client isn't making a change to the appMetaData.
                     var appMetaData:String?
@@ -395,13 +395,13 @@ class Upload {
         case error(SyncServerError)
     }
     
-    func doneUploads(sharingGroupId: SharingGroupId, completion:((DoneUploadsCompletion)->())?) {
+    func doneUploads(sharingGroupUUID: String, completion:((DoneUploadsCompletion)->())?) {
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             masterVersion = Singleton.get().masterVersion
         }
         
-        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupId: sharingGroupId) { (result, error) in
+        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) { (result, error) in
             guard error == nil else {
                 completion?(.error(error!))
                 return
@@ -429,7 +429,7 @@ class Upload {
             case .serverMasterVersionUpdate(let masterVersionUpdate):
                 var completionResult:DoneUploadsCompletion?
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    guard let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupId: sharingGroupId) else {
+                    guard let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) else {
                         completionResult = .error(.generic("Failed on getHeadSyncQueue"))
                         return
                     }

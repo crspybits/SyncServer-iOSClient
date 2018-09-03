@@ -28,18 +28,18 @@ class Client_SyncServer_Download: TestCase {
     
     func testDownloadByDifferentDeviceUUIDThanUpload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
-        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupId: sharingGroupId)
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
     }
     
     // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
     func testDownloadTwoFilesBackToBack() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -49,7 +49,7 @@ class Client_SyncServer_Download: TestCase {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload two files.
-        guard let masterVersion = getMasterVersion(sharingGroupId: sharingGroupId) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -59,15 +59,15 @@ class Client_SyncServer_Download: TestCase {
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 2)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
         
         let expectation = self.expectation(description: "test1")
         let willStartDownloadsExp = self.expectation(description: "willStartDownloads")
@@ -112,7 +112,7 @@ class Client_SyncServer_Download: TestCase {
         Log.msg("After assignment to shouldSaveDownload")
         
         // Next, initiate the download using .sync()
-        try! SyncServer.session.sync(sharingGroupId: sharingGroupId)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         
@@ -121,24 +121,24 @@ class Client_SyncServer_Download: TestCase {
     
     func testDownloadWithMetaData() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
-        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupId: sharingGroupId, appMetaData: appMetaData)
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
     }
     
     func testThatResetWorksAfterDownload() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
-        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupId: sharingGroupId, appMetaData: appMetaData)
+        doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
         
         do {
             try SyncServer.session.reset(type: .all)
@@ -151,14 +151,14 @@ class Client_SyncServer_Download: TestCase {
             return
         }
         
-        let sharingGroupIds = sharingGroups.filter {$0.sharingGroupId != nil}.map {$0.sharingGroupId!}
-        assertThereIsNoMetaData(sharingGroupIds: sharingGroupIds)
+        let sharingGroupUUIDs = sharingGroups.filter {$0.sharingGroupUUID != nil}.map {$0.sharingGroupUUID!}
+        assertThereIsNoMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
     }
     
     // TODO: *2* This test typically fails when run as a group with other tests. Why?
     func testGetStats() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -166,32 +166,32 @@ class Client_SyncServer_Download: TestCase {
         // 1) Get a download deletion ready
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
-        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupId: sharingGroupId) else {
+        guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
         // Simulate another device deleting the file.
-        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupId: sharingGroupId)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupUUID: sharingGroupUUID)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
         
-        self.doneUploads(masterVersion: masterVersion, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        self.doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         // 2) Get a file download ready
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupId: sharingGroupId, fileUUID: fileUUID, serverMasterVersion: masterVersion+1) else {
+        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion+1) else {
             return
         }
         
-        doneUploads(masterVersion: masterVersion+1, sharingGroupId: sharingGroupId, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion+1, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         let uploadDeletionExp = self.expectation(description: "uploadDeletion")
         
         // 3) Now, check to make sure we have what we expect
         
-        SyncServer.session.getStats(sharingGroupId: sharingGroupId) { stats in
+        SyncServer.session.getStats(sharingGroupUUID: sharingGroupUUID) { stats in
             guard let stats = stats else {
                 XCTFail()
                 return

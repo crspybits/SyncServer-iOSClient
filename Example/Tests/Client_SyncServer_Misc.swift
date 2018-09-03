@@ -36,7 +36,7 @@ class Client_SyncServer_Misc: XCTestCase {
         sg1.deleted = false
         sg1.masterVersion = 1
         sg1.permission = .admin
-        sg1.sharingGroupId = 1
+        sg1.sharingGroupUUID = UUID().uuidString
         sg1.sharingGroupUsers = [sgu1]
     
         SyncServerUser.session.sharingGroups = [sg1]
@@ -50,7 +50,7 @@ class Client_SyncServer_Misc: XCTestCase {
         XCTAssert(result1.deleted == sg1.deleted)
         XCTAssert(result1.masterVersion == sg1.masterVersion)
         XCTAssert(result1.permission == sg1.permission)
-        XCTAssert(result1.sharingGroupId == sg1.sharingGroupId)
+        XCTAssert(result1.sharingGroupUUID == sg1.sharingGroupUUID)
 
         guard let sgus = result1.sharingGroupUsers, sgus.count == 1 else {
             XCTFail()

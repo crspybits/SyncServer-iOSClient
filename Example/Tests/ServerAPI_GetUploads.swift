@@ -23,14 +23,14 @@ class ServerAPI_GetUploads: TestCase {
     
     func testGetUploads() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
         
         let expectation = self.expectation(description: "GetUploads")
         
-        ServerAPI.session.getUploads(sharingGroupId: sharingGroupId) { (uploads, error) in
+        ServerAPI.session.getUploads(sharingGroupUUID: sharingGroupUUID) { (uploads, error) in
             XCTAssert(error == nil)
             expectation.fulfill()
         }

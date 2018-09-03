@@ -25,7 +25,7 @@ class ServerAPI_Failure: TestCase {
     // The intent of this test is really to make sure that the number of db connections  opened/closed is the same even if the client goes away before the server call is done. And within this, really wanting to ensure that we don't have server threads that will never be released/ended. Currently this number of db connections opened/closed needs to be assessed visually.
     func testExample() {
         guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupId = sharingGroup.sharingGroupId else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -34,7 +34,7 @@ class ServerAPI_Failure: TestCase {
 
         var gotCallback = false
         fileIndexServerSleep = 5
-        ServerAPI.session.index(sharingGroupId: sharingGroupId) { response in
+        ServerAPI.session.index(sharingGroupUUID: sharingGroupUUID) { response in
             gotCallback = true
         }
 
