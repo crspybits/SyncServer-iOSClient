@@ -130,8 +130,8 @@ class Upload {
                 return
             }
             
-            if entry!.sharingGroupId == nil {
-                nextResult = .error(.noSharingGroupId)
+            if entry!.sharingGroupUUID == nil {
+                nextResult = .error(.noSharingGroupUUID)
                 return
             }
             
@@ -313,8 +313,8 @@ class Upload {
             
                     let mimeType = MimeType(rawValue: nextToUpload.mimeType!)!
                     
-                    if nextToUpload.sharingGroupId == nil {
-                        completionResult = .error(.noSharingGroupId)
+                    if nextToUpload.sharingGroupUUID == nil {
+                        completionResult = .error(.noSharingGroupUUID)
                         return
                     }
 

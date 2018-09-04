@@ -437,7 +437,7 @@ public class SyncServer {
         }
         
         guard let sharingGroupUUID = entry.sharingGroupUUID else {
-            throw SyncServerError.noSharingGroupId
+            throw SyncServerError.noSharingGroupUUID
         }
         
         if let errorToThrow = checkIfSameSharingGroup(sharingGroupUUID: sharingGroupUUID) {
@@ -480,6 +480,7 @@ public class SyncServer {
                 newUft.operation = .deletion
                 newUft.fileUUID = uuid
                 newUft.sharingGroupId = entry.sharingGroupId
+                newUft.sharingGroupUUID = entry.sharingGroupUUID
 
                 /* [1]: `entry.fileVersion` will be nil if we are in the process of uploading a new file. Which causes the following to fail:
                         newUft.fileVersion = entry.fileVersion

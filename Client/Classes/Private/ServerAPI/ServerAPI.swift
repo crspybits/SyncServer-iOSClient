@@ -771,7 +771,8 @@ class ServerAPI {
     public func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String?, completion:@escaping ((Error?)->())) {
 
         guard let request = CreateSharingGroupRequest(json: [
-            CreateSharingGroupRequest.sharingGroupNameKey: sharingGroupName as Any
+            CreateSharingGroupRequest.sharingGroupNameKey: sharingGroupName as Any,
+            ServerEndpoint.sharingGroupUUIDKey: sharingGroupUUID
         ]) else {
             completion(SyncServerError.couldNotCreateRequest)
             return

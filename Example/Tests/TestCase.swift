@@ -920,7 +920,8 @@ class TestCase: XCTestCase {
                     XCTFail()
                     return nil
                 }
-            } catch {
+            } catch (let error) {
+                Log.error("\(error)")
                 if errorExpected != UploadSingleFileUsingSyncError.uploadImmutable {
                     XCTFail()
                 }

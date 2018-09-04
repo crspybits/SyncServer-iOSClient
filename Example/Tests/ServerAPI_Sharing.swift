@@ -41,8 +41,13 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testThatSameUserCannotRedeemInvitation() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroups = getSharingGroups() else {
+            XCTFail()
+            return
+        }
+        
+        let filtered = sharingGroups.filter {$0.deleted != nil && !$0.deleted!}
+        guard filtered.count > 0, let sharingGroupUUID = filtered[0].sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -50,8 +55,11 @@ class ServerAPI_Sharing: TestCase {
         let expectation = self.expectation(description: "SharingInvitation")
 
         ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupUUID: sharingGroupUUID) { (sharingInvitationUUID, error) in
-            XCTAssert(error == nil)
-            XCTAssert(sharingInvitationUUID != nil)
+            guard error == nil, sharingInvitationUUID != nil else {
+                XCTFail()
+                return
+            }
+
             ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!, cloudFolderName: self.cloudFolderName) { accessToken, sharingGroupId, error in
                 XCTAssert(error != nil)
                 expectation.fulfill()
