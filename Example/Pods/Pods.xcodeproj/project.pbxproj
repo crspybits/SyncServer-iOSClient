@@ -334,6 +334,12 @@
 		8364AFBB35EA87205B97D5168881822D /* LazyFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 5593E9C5C89C5B3532B9FE526CEE5280 /* LazyFrame.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		83B787D82134F1B00016C276 /* UploadQueues+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B787D72134F1B00016C276 /* UploadQueues+CoreDataProperties.swift */; };
 		83B787DA2134F1FF0016C276 /* UploadFileTracker+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B787D92134F1FF0016C276 /* UploadFileTracker+CoreDataProperties.swift */; };
+		83B78813213E247A0016C276 /* SharingGroupUploadTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B78811213E247A0016C276 /* SharingGroupUploadTracker.swift */; };
+		83B78814213E247A0016C276 /* SharingGroupUploadTracker+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B78812213E247A0016C276 /* SharingGroupUploadTracker+CoreDataProperties.swift */; };
+		83B78824213E2E230016C276 /* Tracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B7881B213E2E230016C276 /* Tracker.swift */; };
+		83B78825213E2E230016C276 /* Tracker+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B7881C213E2E230016C276 /* Tracker+CoreDataProperties.swift */; };
+		83B7882C213F7BBA0016C276 /* SharingEntry+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B78828213F7BBA0016C276 /* SharingEntry+CoreDataProperties.swift */; };
+		83B78830213F7C100016C276 /* SharingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B7882F213F7C100016C276 /* SharingEntry.swift */; };
 		83F528D855F095703DA4D6B83492A38D /* AppEventsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58378CB63B5E01C36B1F08322D33A13E /* AppEventsLogger.swift */; };
 		8448C014FF62BAF749ED0EE7B0EC1A3E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5A7669BBB3AFDD9F967A3988EE71A7D /* Foundation.framework */; };
 		84EC30B56B27FBA4A88A27FF586AD457 /* FileRequestsRoutes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A944E8A850C353101F192E766C1A91 /* FileRequestsRoutes.swift */; };
@@ -1349,6 +1355,12 @@
 		83B787CC2134F0100016C276 /* Client10.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Client10.xcdatamodel; sourceTree = "<group>"; };
 		83B787D72134F1B00016C276 /* UploadQueues+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UploadQueues+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		83B787D92134F1FF0016C276 /* UploadFileTracker+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UploadFileTracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		83B78811213E247A0016C276 /* SharingGroupUploadTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharingGroupUploadTracker.swift; sourceTree = "<group>"; };
+		83B78812213E247A0016C276 /* SharingGroupUploadTracker+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SharingGroupUploadTracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		83B7881B213E2E230016C276 /* Tracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tracker.swift; sourceTree = "<group>"; };
+		83B7881C213E2E230016C276 /* Tracker+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		83B78828213F7BBA0016C276 /* SharingEntry+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharingEntry+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		83B7882F213F7C100016C276 /* SharingEntry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharingEntry.swift; sourceTree = "<group>"; };
 		83FB0FC0A2212B3D4B46FD658BF7B605 /* FBSDKAccessTokenCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKAccessTokenCache.h; path = FBSDKCoreKit/FBSDKCoreKit/Internal/TokenCaching/FBSDKAccessTokenCache.h; sourceTree = "<group>"; };
 		840CB5F5AA9E4481FEA15BB727479C6D /* FBSDKAppLinkResolver.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKAppLinkResolver.m; path = FBSDKCoreKit/FBSDKCoreKit/FBSDKAppLinkResolver.m; sourceTree = "<group>"; };
 		8489FC35D4389C4FAC0C882C9CA07535 /* FBSDKGraphRequest.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FBSDKGraphRequest.h; path = FBSDKCoreKit/FBSDKCoreKit/FBSDKGraphRequest.h; sourceTree = "<group>"; };
@@ -1942,6 +1954,8 @@
 		054665CE696F7BD012F8F3EC7722208A /* Core Data */ = {
 			isa = PBXGroup;
 			children = (
+				83B7882F213F7C100016C276 /* SharingEntry.swift */,
+				83B78828213F7BBA0016C276 /* SharingEntry+CoreDataProperties.swift */,
 				C03E0466F8FC518620D39538E175E561 /* CoreData+Extras.swift */,
 				283F4CC983E84430EF29CFA4D0BFBC72 /* DirectoryEntry.swift */,
 				11C6B44F27B60571A96A1FC559702C46 /* DirectoryEntry+CoreDataProperties.swift */,
@@ -1955,6 +1969,8 @@
 				D151E20FB9F852B330B6CBA2713A284F /* Migrations.swift */,
 				0914360EA1089B72AE41C9E7FBE6B366 /* Singleton.swift */,
 				A2862FD42DDF5E1935A1FAD46F0C45F8 /* Singleton+CoreDataProperties.swift */,
+				83B7881B213E2E230016C276 /* Tracker.swift */,
+				83B7881C213E2E230016C276 /* Tracker+CoreDataProperties.swift */,
 				242F6B721E00B29D93C46FB52E7500B9 /* NetworkCached */,
 				5BAC7E871950141E9ECD10B79F8B1EE5 /* Upload */,
 			);
@@ -2477,6 +2493,8 @@
 		5BAC7E871950141E9ECD10B79F8B1EE5 /* Upload */ = {
 			isa = PBXGroup;
 			children = (
+				83B78811213E247A0016C276 /* SharingGroupUploadTracker.swift */,
+				83B78812213E247A0016C276 /* SharingGroupUploadTracker+CoreDataProperties.swift */,
 				83B787D92134F1FF0016C276 /* UploadFileTracker+CoreDataProperties.swift */,
 				83B787D72134F1B00016C276 /* UploadQueues+CoreDataProperties.swift */,
 				47ACB74FF9678AECB5E1EA8192E7C498 /* UploadFileTracker.swift */,
@@ -4160,17 +4178,21 @@
 				83B787D82134F1B00016C276 /* UploadQueues+CoreDataProperties.swift in Sources */,
 				BA1DBE31CB70BA53027179074D1507EB /* Directory.swift in Sources */,
 				3FA9FC0EEE71E2DBD9E79518E6417A05 /* DirectoryEntry+CoreDataProperties.swift in Sources */,
+				83B78814213E247A0016C276 /* SharingGroupUploadTracker+CoreDataProperties.swift in Sources */,
 				E735785911BCD391DE74F21C1143E811 /* DirectoryEntry.swift in Sources */,
 				3F113538CE1C9011701828507C466634 /* Download.swift in Sources */,
 				A4A3775E6CC59BF5F35391DF559BF42D /* DownloadContentGroup+CoreDataProperties.swift in Sources */,
 				F79B7BF9E23F1DB33AFB99BABC600F80 /* DownloadContentGroup.swift in Sources */,
+				83B78824213E2E230016C276 /* Tracker.swift in Sources */,
 				14C09693210E068A2B61E8364E30EDF8 /* DownloadFileTracker+CoreDataProperties.swift in Sources */,
 				46F1F4B6A498F0773FD92665BD7C66B0 /* DownloadFileTracker.swift in Sources */,
 				9F89C4651996E6EEE0626C1A473CA8EE /* DropboxSignIn.swift in Sources */,
 				6196220825A30DA78303F63E101728D6 /* FacebookSignIn.swift in Sources */,
 				83B787DA2134F1FF0016C276 /* UploadFileTracker+CoreDataProperties.swift in Sources */,
+				83B78825213E2E230016C276 /* Tracker+CoreDataProperties.swift in Sources */,
 				80FF6F838B7ADF4AC5FE1AE8F0B472B0 /* FilesMisc.swift in Sources */,
 				7FCE760B27CA77A98C925F90D96F4C99 /* FileTracker+CoreDataProperties.swift in Sources */,
+				83B78830213F7C100016C276 /* SharingEntry.swift in Sources */,
 				BE1B96604449ECCE58EA4CCF0DF3DF7D /* FileTracker.swift in Sources */,
 				FEE12106F9AC44DE2FE18C593AEF09C5 /* GenericSignIn.swift in Sources */,
 				9AA32DCC7BD44E317F79F6F32B6FCCA1 /* GoogleSignIn.swift in Sources */,
@@ -4184,6 +4206,7 @@
 				0751605928507FCBBA8D52F3649A40D7 /* ServerNetworking+Loading.swift in Sources */,
 				B18E8A3400499CD9E5FBB2A3A2950E78 /* ServerNetworking.swift in Sources */,
 				B8F85C4C0CD2259EE3B7000719700022 /* SharingInvitation.swift in Sources */,
+				83B7882C213F7BBA0016C276 /* SharingEntry+CoreDataProperties.swift in Sources */,
 				5028155493A526A1A0308551E1434AD4 /* SignIn.swift in Sources */,
 				D139E90B970328B36D09AEF03DD33182 /* SignInAccounts.swift in Sources */,
 				B0E987E3BDB015AF1B109C83FC5ECD56 /* SignInManager.swift in Sources */,
@@ -4204,6 +4227,7 @@
 				82C48CE4DAE5A350EF74F4165FBC3E2F /* UploadFileTracker.swift in Sources */,
 				DA55ECBF205917EFC2BE02540965A218 /* UploadQueue+CoreDataProperties.swift in Sources */,
 				CC2560DE95DAE17C1400E12459E4C007 /* UploadQueue.swift in Sources */,
+				83B78813213E247A0016C276 /* SharingGroupUploadTracker.swift in Sources */,
 				47810C12CDF1D2ECE0F18C1089DA88F2 /* UploadQueues.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

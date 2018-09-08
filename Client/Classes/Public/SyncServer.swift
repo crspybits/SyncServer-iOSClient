@@ -332,9 +332,9 @@ public class SyncServer {
         
         Synchronized.block(self) {
             do {
-                let uploadFileTrackers = try Upload.pendingSync().uploadFileTrackers
-                let result = uploadFileTrackers.filter {$0.sharingGroupUUID == sharingGroupUUID}
-                if result.count != uploadFileTrackers.count {
+                let uploadTrackers = try Upload.pendingSync().uploadTrackers
+                let result = uploadTrackers.filter {$0.sharingGroupUUID == sharingGroupUUID}
+                if result.count != uploadTrackers.count {
                     errorToThrow = SyncServerError.sharingGroupUUIDInconsistent
                 }
             } catch (let error) {
@@ -364,7 +364,7 @@ public class SyncServer {
                     }
                 }
                 
-                try Upload.pendingSync().addToUploadsOverride(newUft)
+                try Upload.pendingSync().addToUploads(newUft)
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch (let error) {
                 errorToThrow = error
@@ -487,7 +487,7 @@ public class SyncServer {
                     AND: In general, there can be any number of uploads queued and sync'ed prior to this upload deletion, which would mean we can't simply determine the version to delete at this point in time. It seems easiest to wait until the last possible moment to determine the file version we are deleting.
                 */
                 
-                try Upload.pendingSync().addToUploadsOverride(newUft)
+                try Upload.pendingSync().addToUploads(newUft)
             } catch (let error) {
                 errorToThrow = error
             }
@@ -504,6 +504,41 @@ public class SyncServer {
         if pendingUploadDeletions.count > 0 {
             throw SyncServerError.fileQueuedForDeletion
         }
+    }
+    
+    /**
+        Enqueue sharing group addition operation.
+    */
+    public func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String? = nil) {
+    }
+
+    /**
+        Enqueue request to update the given sharing group.
+    */
+    public func updateSharingGroup(sharingGroupUUID: String, sharingGroupName: String) {
+    }
+    
+    /**
+        Enqueue request to remove the current user from the given sharing group.
+    */
+    public func removeSharingGroupUser(sharingGroupUUID: String) {
+    }
+    
+    /// The sharing groups that the user is currently a member of, and known to the server. They will not be marked as deleted, and only the sharingGroupUUID and sharingGroupName attributes are available.
+    public var sharingGroups: [SharingGroup] {
+        var result: [SharingGroup]!
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let filteredSharingEntries = SharingEntry.fetchAll().filter {!$0.deletedOnServer}
+            result = filteredSharingEntries.map {
+                let group = SharingGroup(json:[:])!
+                group.sharingGroupName = $0.sharingGroupName
+                group.sharingGroupUUID = $0.sharingGroupUUID
+                return group
+            }
+        }
+        
+        return result
     }
     
     /**
@@ -625,7 +660,7 @@ public class SyncServer {
                 Log.error("Error on Download onlyCheck: \(error)")
                 completion(nil)
             
-            case .checkResult(downloadSet: let downloadSet, _):
+            case .checkResult(downloadSet: let downloadSet):
                 let stats = Stats(contentDownloadsAvailable: downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count, downloadDeletionsAvailable: downloadSet.downloadDeletions.count)
                 completion(stats)
             }

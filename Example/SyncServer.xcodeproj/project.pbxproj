@@ -426,7 +426,6 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = BH68R29JBE;
 						LastSwiftMigration = 0820;
 					};
 					607FACE41AFB9204008FA782 = {
@@ -802,7 +801,7 @@
 			baseConfigurationReference = A5DC520778F7EB9A2C2C2CA7 /* Pods-SyncServer_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = BH68R29JBE;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",
@@ -827,7 +826,7 @@
 					"$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2",
 				);
 				INFOPLIST_FILE = SyncServer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" -D SYNCSERVER_GOOGLE_SIGNIN";
@@ -842,7 +841,7 @@
 			baseConfigurationReference = 950FA6AEF6E79D1648CC8B07 /* Pods-SyncServer_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = BH68R29JBE;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",
@@ -867,7 +866,7 @@
 					"$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2",
 				);
 				INFOPLIST_FILE = SyncServer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN $(inherited) \"-D\" \"COCOAPODS\" -D SYNCSERVER_GOOGLE_SIGNIN";

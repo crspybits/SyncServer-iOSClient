@@ -164,13 +164,17 @@ class Client_SyncManager: TestCase {
             XCTFail()
             return
         }
-        
+    
         let singleFileDownload = {
             numberDownloads += 1
             if numberDownloads == 1 {
+                // This is fake: It would be conceptually better to upload a file here but that's a bit of a pain the way I have it setup in testing.
+                guard self.decrementMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+                    XCTFail()
+                    return
+                }
+                
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    // This is fake: It would be conceptually better to upload a file here but that's a bit of a pain the way I have it setup in testing.
-                    Singleton.get().masterVersion = Singleton.get().masterVersion - 1
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
                     } catch {

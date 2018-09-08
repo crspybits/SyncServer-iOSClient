@@ -18,12 +18,6 @@ public class SyncServerUser {
     public var creds:GenericCredentials? {
         didSet {
             ServerAPI.session.creds = creds
-            if let _ = creds {
-                setupSharingGroups()
-            }
-            else {
-                sharingGroups = nil
-            }
         }
     }
     
@@ -40,43 +34,9 @@ public class SyncServerUser {
         }
     }
     
-    // Keeping this comment so I know the user defaults key used for it.
+    // Keeping these comments so I know the user keys used for them.
     // static let sharingGroupIds = SMPersistItemData(name: "SyncServerUser.sharingGroupIds", initialDataValue: Data(), persistType: .userDefaults)
-    static let sharingGroups = SMPersistItemData(name: "SyncServerUser.sharingGroups", initialDataValue: Data(), persistType: .userDefaults)
-    
-    /// This is set at app launch, and is an error if a user is signed in and there are no sharingGroupIds.
-    public internal(set) var sharingGroups: [SharingGroup]? {
-        get {
-            if SyncServerUser.sharingGroups.dataValue == Data() {
-                return nil
-            }
-            else {
-                guard let dicts = NSKeyedUnarchiver.unarchiveObject(with: SyncServerUser.sharingGroups.dataValue) as? [Gloss.JSON] else {
-                    return nil
-                }
-                let result = dicts.compactMap {SharingGroup(json: $0)}
-                
-                if dicts.count == result.count {
-                    return result
-                }
-                else {
-                    return nil
-                }
-            }
-        }
-        
-        set {
-            var newArchive:Data!
-            if newValue == nil {
-                newArchive = Data()
-            }
-            else {
-                let plist = newValue!.toJSONArray()
-                newArchive = NSKeyedArchiver.archivedData(withRootObject: plist as Any)
-            }
-            SyncServerUser.sharingGroups.dataValue = newArchive
-        }
-    }
+    // static let sharingGroups = SMPersistItemData(name: "SyncServerUser.sharingGroups", initialDataValue: Data(), persistType: .userDefaults)
     
     public private(set) var cloudFolderName:String?
     
@@ -116,19 +76,6 @@ public class SyncServerUser {
         })
     }
     
-    private func setupSharingGroups() {
-        ServerAPI.session.index(sharingGroupUUID: nil) { response in
-            switch response {
-            case .success(let result):
-                self.sharingGroups = result.sharingGroups
-                EventDesired.reportEvent(.haveSharingGroupIds, mask: self.desiredEvents, delegate: self.delegate)
-                
-            case .error(let error):
-                Log.error("Error setting up sharing groups: \(error)")
-            }
-        }
-    }
-    
     /// Calls the server API method to check credentials.
     public func checkForExistingUser(creds: GenericCredentials,
         completion:@escaping (_ result: CheckForExistingUserResult?, Error?) ->()) {
@@ -139,24 +86,35 @@ public class SyncServerUser {
         
         ServerAPI.session.checkCreds {[unowned self] (checkCredsResult, error) in
             var checkForUserResult:CheckForExistingUserResult?
-            var errorResult:Error? = error
+            let errorResult = error
             
             switch checkCredsResult {
             case .none:
                 ServerAPI.session.creds = nil
                 // Don't sign the user out here. Callers of `checkForExistingUser` (e.g., GoogleSignIn or FacebookSignIn) can deal with this.
                 Log.error("Had an error: \(String(describing: error))")
-                errorResult = error
-            
+                
             case .some(.noUser):
                 ServerAPI.session.creds = nil
                 // Definitive result from server-- there was no user. Still, I'm not going to sign the user out here. Callers can do that.
                 checkForUserResult = .noUser
-                
+            
             case .some(.user(let syncServerUserId, let accessToken)):
                 self.creds = creds
                 checkForUserResult = .user(accessToken:accessToken)
                 SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"
+                
+                Download.session.onlyUpdateSharingGroups() { error in
+                    if error != nil {
+                        Thread.runSync(onMainThread: {
+                            self.showAlert(with: "Error trying to sign in: \(error!)")
+                        })
+                    }
+                    Thread.runSync(onMainThread: {
+                        completion(checkForUserResult, error)
+                    })
+                }
+                return
             }
             
             if case .some(.noUser) = checkForUserResult {
@@ -179,10 +137,42 @@ public class SyncServerUser {
     /// Calls the server API method to add a user.
     public func addUser(creds: GenericCredentials, sharingGroupUUID: String, sharingGroupName: String?, completion:@escaping (Error?) ->()) {
         Log.msg("SignInCreds: \(creds)")
-
+        
+        var alreadyExists = false
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            if let _ = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) {
+                alreadyExists = true
+            }
+        }
+        
+        if alreadyExists {
+            Thread.runSync(onMainThread: {
+                completion(SyncServerError.generic("Sharing Group UUID already exists!"))
+            })
+        }
+        
         ServerAPI.session.creds = creds
         ServerAPI.session.addUser(cloudFolderName: cloudFolderName, sharingGroupUUID: sharingGroupUUID, sharingGroupName: sharingGroupName) { syncServerUserId, error in
             if error == nil {
+                var saveError: Error?
+                CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                    let sharingEntry = SharingEntry.newObject() as! SharingEntry
+                    sharingEntry.sharingGroupUUID = sharingGroupUUID
+                    sharingEntry.sharingGroupName = sharingGroupName
+                    do {
+                        try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                    } catch (let error) {
+                        saveError = error
+                    }
+                }
+                
+                if saveError != nil {
+                    Thread.runSync(onMainThread: {
+                        completion(SyncServerError.otherError(saveError!))
+                    })
+                    return
+                }
+                
                 self.creds = creds
                 if let syncServerUserId = syncServerUserId  {
                     SyncServerUser.syncServerUserId.stringValue = "\(syncServerUserId)"

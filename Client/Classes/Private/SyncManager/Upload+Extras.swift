@@ -34,13 +34,13 @@ extension Upload {
 
         assert(pendingQueue.uploads!.count > 0)
         
-        let filtered = pendingQueue.uploadFileTrackers.filter {$0.sharingGroupUUID == sharingGroupUUID}
-        guard filtered.count == pendingQueue.uploadFileTrackers.count else {
+        let filtered = pendingQueue.uploadTrackers.filter {$0.sharingGroupUUID == sharingGroupUUID}
+        guard filtered.count == pendingQueue.uploadTrackers.count else {
             throw SyncServerError.sharingGroupUUIDInconsistent
         }
         
         let uploadQueues = synced()
-        uploadQueues.addToQueuesOverride(pendingQueue)
+        uploadQueues.addToQueues(pendingQueue)
         
         // This does a `saveContext`, so don't need to do that again.
         try createNewPendingSync()
@@ -66,7 +66,7 @@ extension Upload {
         }
         
         return queues.filter {
-            $0.uploadFileTrackers.count > 0 && $0.uploadFileTrackers[0].sharingGroupUUID == sharingGroupUUID
+            $0.uploadTrackers.count > 0 && $0.uploadTrackers[0].sharingGroupUUID == sharingGroupUUID
         }
     }
     

@@ -37,9 +37,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
-        var masterVersion:MasterVersionInt!
+        guard let masterVersion = getMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return nil
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
             guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 XCTFail()
                 return
@@ -123,9 +126,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             (fileUUID: fileUUID, fileSize: nil),
         ])
         
-        var masterVersion:MasterVersionInt!
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
             guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID) else {
                 XCTFail()
                 return
@@ -310,9 +316,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         // Upload delete the file-- but don't use sync system so we don't record it in our local meta data.
@@ -368,9 +374,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
 
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupUUID: sharingGroupUUID)
@@ -455,9 +461,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
 
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupUUID: sharingGroupUUID)
@@ -563,9 +569,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system. This will cause the download deletion we're looking for.
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
 
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupUUID: sharingGroupUUID)
@@ -658,9 +664,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
 
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupUUID: sharingGroupUUID)
@@ -753,9 +759,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
 
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: fileUUID, fileVersion: fileVersion, sharingGroupUUID: sharingGroupUUID)
@@ -1468,9 +1474,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         // 3) "Someone else" do an upload undeletion-- do this using the Server API directly.
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {

@@ -24,7 +24,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     override func viewDidLoad() {
         super.viewDidLoad()
         SyncServer.session.delegate = self
-        SyncServer.session.eventsDesired = [.haveSharingGroupIds]
+        SyncServer.session.eventsDesired = [.sharingGroups]
         
         googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
         SetupSignIn.session.googleSignIn.delegate = self
@@ -102,7 +102,8 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     }
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
-        guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0, let sharingGroupUUID = sharingGroups[0].sharingGroupUUID else {
+        let sharingGroups = SyncServer.session.sharingGroups
+        guard sharingGroups.count > 0, let sharingGroupUUID = sharingGroups[0].sharingGroupUUID else {
             Log.error("No sharing groups!")
             return
         }
@@ -159,6 +160,7 @@ extension ViewController : GenericSignInDelegate {
             Log.error("User not found on sign in attempt")
 
         case .existingUserSignedIn:
+            //SyncServer.session.sync
             break
             
         case .owningUserCreated:
@@ -184,11 +186,12 @@ extension ViewController : SyncServerDelegate {
         syncServerEventOccurred?(event)
         
         switch event {
-        case .haveSharingGroupIds:
+        case .sharingGroups:
             if SyncServer.backgroundTest.boolValue {
                 SyncServer.backgroundTest.boolValue = false
-                
-                guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0 else {
+                let sharingGroups = SyncServer.session.sharingGroups
+
+                guard sharingGroups.count > 0 else {
                     Log.error("Failed getting sharing groups1")
                     return
                 }

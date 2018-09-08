@@ -19,9 +19,37 @@ class Download {
     private init() {
     }
     
+    // Need some way to bootstrap our record of sharing groups so that we have sharing group UUID(s) so the client can use the regular sync method.
+    func onlyUpdateSharingGroups( completion:((SyncServerError?)->())? = nil) {
+        ServerAPI.session.index(sharingGroupUUID: nil) { response in
+            var indexResult:ServerAPI.IndexResult!
+            switch response {
+            case .success(let result):
+                indexResult = result
+            case .error(let error):
+                completion?(SyncServerError.otherError(error))
+                return
+            }
+            
+            let sharingGroups = indexResult.sharingGroups
+            var sharingGroupUpdates: SharingEntry.Updates!
+            
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                sharingGroupUpdates = SharingEntry.update(sharingGroups: sharingGroups)
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            }
+            
+            if sharingGroupUpdates != nil {
+                EventDesired.reportEvent(.sharingGroups(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer), mask: self.desiredEvents, delegate: self.delegate)
+            }
+            
+            completion?(nil)
+        }
+    }
+    
     enum OnlyCheckCompletion {
-    case checkResult(downloadSet: Directory.DownloadSet, MasterVersionInt?)
-    case error(SyncServerError)
+        case checkResult(downloadSet: Directory.DownloadSet)
+        case error(SyncServerError)
     }
     
     // TODO: *0* while this check is occurring, we want to make sure we don't have a concurrent check operation.
@@ -40,10 +68,12 @@ class Download {
                 return
             }
             
-            guard let fileIndex = indexResult.fileIndex, let masterVersion = indexResult.masterVersion else {
+            guard let fileIndex = indexResult.fileIndex else {
                 completion?(.error(SyncServerError.generic("Could not get file index or master version.")))
                 return
             }
+            
+            let sharingGroups = indexResult.sharingGroups
             
             // Make sure the mime types we get back from the server are known to the client.
             for file in fileIndex {
@@ -56,13 +86,15 @@ class Download {
             }
 
             var completionResult:OnlyCheckCompletion!
+            var sharingGroupUpdates: SharingEntry.Updates!
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
+                    sharingGroupUpdates = SharingEntry.update(sharingGroups: sharingGroups)
                     let downloadSet =
                         try Directory.session.checkFileIndex(serverFileIndex: fileIndex)
                     completionResult =
-                        .checkResult(downloadSet: downloadSet, masterVersion)
+                        .checkResult(downloadSet: downloadSet)
                 } catch (let error) {
                     completionResult = .error(.coreDataError(error))
                 }
@@ -70,14 +102,18 @@ class Download {
                 CoreData.sessionNamed(Constants.coreDataName).saveContext()
             }
             
+            if sharingGroupUpdates != nil {
+                EventDesired.reportEvent(.sharingGroups(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer), mask: self.desiredEvents, delegate: self.delegate)
+            }
+            
             completion?(completionResult)
         }
     }
     
     enum CheckCompletion {
-    case noDownloadsOrDeletionsAvailable
-    case downloadsAvailable(numberOfContentDownloads:Int, numberOfDownloadDeletions:Int)
-    case error(SyncServerError)
+        case noDownloadsOrDeletionsAvailable
+        case downloadsAvailable(numberOfContentDownloads:Int, numberOfDownloadDeletions:Int)
+        case error(SyncServerError)
     }
     
     // TODO: *0* while this check is occurring, we want to make sure we don't have a concurrent check operation.
@@ -88,12 +124,10 @@ class Download {
             case .error(let error):
                 completion?(.error(error))
             
-            case .checkResult(downloadSet: let downloadSet, let masterVersion):
+            case .checkResult(downloadSet: let downloadSet):
                 var completionResult:CheckCompletion!
 
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    Singleton.get().masterVersion = masterVersion!
-                    
                     if downloadSet.allFiles().count > 0 {
                         for file in downloadSet.allFiles() {
                             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
@@ -242,15 +276,19 @@ class Download {
             } catch (let error) {
                 nextResult = .error(SyncServerError.coreDataError(error))
             }
-            
-            masterVersion = Singleton.get().masterVersion
-            
+
             // Need this inside the `perform` to bridge the gap without an NSManagedObject
             downloadFile = FilenamingWithAppMetaDataVersion(fileUUID: nextToDownload.fileUUID, fileVersion: nextToDownload.fileVersion, appMetaDataVersion: nextToDownload.appMetaDataVersion)
             operation = nextToDownload.operation
             
             // We are only downloading from a single sharing group, so it's ok to grab the sharing group from the core data object.
             sharingGroupUUID = nextToDownload.sharingGroupUUID
+            
+            masterVersion = SharingEntry.masterVersionForUUID(sharingGroupUUID)
+            if masterVersion == nil {
+                nextResult = .error(SyncServerError.generic("Could not get master version!"))
+                return
+            }
         }
         
         guard nextResult == nil else {
@@ -267,6 +305,10 @@ class Download {
         case .deletion:
             // Should not get here because we're checking for deletions above.
             assert(false, "Bad puppy!")
+            
+        case .sharingGroup:
+            // And should not get here because we handle download of sharing group operations differently.
+            assert(false)
         }
         
         return .started
@@ -309,7 +351,7 @@ class Download {
                 completion?(nextCompletionResult)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
-                self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, completion:completion)
+                self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID, completion:completion)
             }
         }
     }
@@ -336,7 +378,7 @@ class Download {
                 completion?(nextCompletionResult)
                 
             case .success(.serverMasterVersionUpdate(let masterVersionUpdate)):
-                self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, completion:completion)
+                self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID, completion:completion)
                 
             case .error(let error):
                 self?.doError(nextToDownload: nextToDownload, error: .otherError(error), completion: completion)
@@ -356,14 +398,20 @@ class Download {
         completion?(.error(error))
     }
     
-    private func doMasterVersionUpdate(masterVersionUpdate: MasterVersionInt, completion:((NextCompletion)->())?) {
+    private func doMasterVersionUpdate(masterVersionUpdate: MasterVersionInt, sharingGroupUUID: String, completion:((NextCompletion)->())?) {
         // The following will remove any outstanding DownloadFileTrackers. If we've already downloaded a file group-- those dft's will have been removed already.
         
         var nextCompletionResult:NextCompletion!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             DownloadFileTracker.removeAll()
             DownloadContentGroup.removeAll()
-            Singleton.get().masterVersion = masterVersionUpdate
+            
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                nextCompletionResult = .error(.generic("Could not get Sharing Entry."))
+                return
+            }
+            
+            sharingEntry.masterVersion = masterVersionUpdate
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()

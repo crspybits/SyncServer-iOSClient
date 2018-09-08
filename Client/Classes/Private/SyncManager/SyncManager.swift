@@ -165,6 +165,9 @@ class SyncManager {
                             contentType = .appMetaData
                         case .deletion:
                             contentType = .deletion
+                        case .sharingGroup:
+                            // We're not dealing with sharing group downloads in this manner.
+                            assert(false)
                         }
                         
                         return DownloadOperation(type: contentType, attr: dft.attr)
@@ -285,6 +288,9 @@ class SyncManager {
             EventDesired.reportEvent(.singleAppMetaDataUploadComplete(fileUUID: fileUUID), mask: self.desiredEvents, delegate: self.delegate)
         case .deletion:
             assert(false)
+            
+        case .sharingGroup:
+            EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
         }
         
         // Recursively see if there is a next upload to do.
@@ -317,7 +323,7 @@ class SyncManager {
                         return
                     }
                     
-                    contentUploads = uploadQueue.uploadFileTrackers.filter {$0.operation.isContents}
+                    contentUploads = uploadQueue.uploadTrackers.filter {$0.operation.isContents} as? [UploadFileTracker]
                 }
                 
                 if errorResult != nil {
@@ -365,7 +371,7 @@ class SyncManager {
                         }
                     }
                     
-                    uploadDeletions = uploadQueue.uploadFileTrackers.filter {$0.operation.isDeletion}
+                    uploadDeletions = uploadQueue.uploadTrackers.filter {$0.operation.isDeletion} as? [UploadFileTracker]
                 } // end perform
 
                 if uploadDeletions.count > 0 {

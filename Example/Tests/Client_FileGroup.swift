@@ -563,9 +563,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr.fileUUID, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
@@ -629,9 +629,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
@@ -700,9 +700,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
@@ -770,9 +770,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let appMetaData1 = AppMetaData(version: 0, contents: "Foobar")
@@ -862,9 +862,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
@@ -959,9 +959,9 @@ class Client_FileGroup: TestCase {
             return
         }
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let fileToDelete1 = ServerAPI.FileToDelete(fileUUID: attr1.fileUUID, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)

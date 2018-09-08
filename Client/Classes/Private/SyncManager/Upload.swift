@@ -22,18 +22,18 @@ class Upload {
     }
     
     enum NextResult {
-    case started
-    case noUploads
-    case allUploadsCompleted
-    case error(SyncServerError)
+        case started
+        case noUploads
+        case allUploadsCompleted
+        case error(SyncServerError)
     }
     
     enum NextCompletion {
-    case fileUploaded(SyncAttributes, uft: UploadFileTracker)
-    case appMetaDataUploaded(uft: UploadFileTracker)
-    case uploadDeletion(fileUUID:String)
-    case masterVersionUpdate
-    case error(SyncServerError)
+        case fileUploaded(SyncAttributes, uft: UploadFileTracker)
+        case appMetaDataUploaded(uft: UploadFileTracker)
+        case uploadDeletion(fileUUID:String)
+        case masterVersionUpdate
+        case error(SyncServerError)
     }
     
     // Starts upload of next file, if there is one. There should be no files uploading already. Only if .started is the NextResult will the completion handler be called. With a masterVersionUpdate response for NextCompletion, the MasterVersion Core Data object is updated by this method, and all the UploadFileTracker objects have been reset.
@@ -42,11 +42,14 @@ class Upload {
         
         var nextResult:NextResult!
         var masterVersion:MasterVersionInt!
-        var nextToUpload:UploadFileTracker!
+        var nextToUpload:Tracker!
         var uploadQueue:UploadQueue!
         var operation: FileTracker.Operation!
         var numberContentUploads:Int!
         var numberUploadDeletions:Int!
+        var numberSharingGroupOperations:Int!
+        var uploadFileTracker: UploadFileTracker!
+        var sharingGroupUploadTracker: SharingGroupUploadTracker!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID)
@@ -55,15 +58,14 @@ class Upload {
                 return
             }
             
-            numberContentUploads =
-                uploadQueue.uploadFileTrackers.filter {
-                    $0.status == .notStarted && $0.operation.isContents
-                }.count
+            numberContentUploads = uploadQueue.uploadFileTrackers.filter
+                {$0.status == .notStarted && $0.operation.isContents}.count
             
-            numberUploadDeletions =
-                uploadQueue.uploadFileTrackers.filter {
-                    $0.status == .notStarted && $0.operation.isDeletion
-                }.count
+            numberUploadDeletions = uploadQueue.uploadFileTrackers.filter
+                {$0.status == .notStarted && $0.operation.isDeletion}.count
+            
+            numberSharingGroupOperations = uploadQueue.sharingGroupUploadTrackers.filter
+                {$0.status == .notStarted}.count
             
             let alreadyUploading =
                 uploadQueue.uploadFileTrackers.filter {$0.status == .uploading}
@@ -72,17 +74,30 @@ class Upload {
                 nextResult = .error(.alreadyUploadingAFile)
                 return
             }
-
-            nextToUpload = uploadQueue.nextUpload()
-            guard nextToUpload != nil else {
+            
+            nextToUpload = uploadQueue.nextUploadTracker()
+            
+            switch nextToUpload {
+            case .none:
                 nextResult = .allUploadsCompleted
                 return
+            case .some(let uft as UploadFileTracker):
+                uft.status = .uploading
+                uploadFileTracker = uft
+            case .some(let sgut as SharingGroupUploadTracker):
+                sgut.status = .uploading
+                sharingGroupUploadTracker = sgut
+            default:
+                assert(false)
+                break
             }
-
-            nextToUpload.status = .uploading
-            operation = nextToUpload.operation
             
-            masterVersion = Singleton.get().masterVersion
+            operation = nextToUpload.operation
+            masterVersion = SharingEntry.masterVersionForUUID(sharingGroupUUID)
+            if masterVersion == nil {
+                nextResult = .error(.generic("Could not get master version!"))
+                return
+            }
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -96,19 +111,28 @@ class Upload {
         }
         
         if first {
-            EventDesired.reportEvent(.willStartUploads(numberContentUploads: UInt(numberContentUploads), numberUploadDeletions: UInt(numberUploadDeletions)), mask: desiredEvents, delegate: delegate)
+            EventDesired.reportEvent(.willStartUploads(numberContentUploads: UInt(numberContentUploads), numberUploadDeletions: UInt(numberUploadDeletions), numberSharingGroupOperatioms: UInt(numberSharingGroupOperations)), mask: desiredEvents, delegate: delegate)
         }
         
         switch operation! {
         case .file:
-            return uploadFile(nextToUpload: nextToUpload, uploadQueue: uploadQueue, masterVersion: masterVersion)
+            return uploadFile(nextToUpload: uploadFileTracker, uploadQueue: uploadQueue, masterVersion: masterVersion)
             
         case .appMetaData:
-            return uploadAppMetaData(nextToUpload: nextToUpload, uploadQueue: uploadQueue, masterVersion: masterVersion)
+            return uploadAppMetaData(nextToUpload: uploadFileTracker, uploadQueue: uploadQueue, masterVersion: masterVersion)
             
         case .deletion:
-            return uploadDeletion(nextToUpload:nextToUpload, uploadQueue:uploadQueue, masterVersion:masterVersion)
+            return uploadDeletion(nextToUpload:uploadFileTracker, uploadQueue:uploadQueue, masterVersion:masterVersion)
+            
+        case .sharingGroup:
+            return uploadSharingGroupOperation(sgut: sharingGroupUploadTracker)
         }
+    }
+    
+    private func uploadSharingGroupOperation(sgut: SharingGroupUploadTracker) -> NextResult {
+        
+    
+        return .started
     }
     
     private func uploadDeletion(nextToUpload:UploadFileTracker, uploadQueue:UploadQueue, masterVersion:MasterVersionInt) -> NextResult {
@@ -116,6 +140,7 @@ class Upload {
         // We need to figure out the current file version for the file we are deleting: Because, as explained in [1] in SyncServer.swift, we didn't establish the file version we were deleting earlier.
         
         var fileToDelete:ServerAPI.FileToDelete!
+        var sharingGroupUUID:String!
         
         var nextResult:NextResult?
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
@@ -136,6 +161,7 @@ class Upload {
             }
             
             fileToDelete = ServerAPI.FileToDelete(fileUUID: nextToUpload.fileUUID, fileVersion: entry!.fileVersion!, sharingGroupUUID: nextToUpload.sharingGroupUUID!)
+            sharingGroupUUID = nextToUpload.sharingGroupUUID
         }
         
         guard nextResult == nil else {
@@ -168,7 +194,7 @@ class Upload {
                 self?.completion?(completionResult!)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
-                self?.masterVersionUpdate(uploadQueue:uploadQueue, masterVersionUpdate: masterVersionUpdate)
+                self?.masterVersionUpdate(uploadQueue:uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
             }
         }
         
@@ -232,7 +258,7 @@ class Upload {
                 self?.completion?(completionResult!)
             
             case .success(.serverMasterVersionUpdate(let masterVersionUpdate)):
-                self?.masterVersionUpdate(uploadQueue: uploadQueue, masterVersionUpdate: masterVersionUpdate)
+                self?.masterVersionUpdate(uploadQueue: uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
 
             case .error(let error):
                 self?.uploadError(.otherError(error), nextToUpload: nextToUpload)
@@ -248,6 +274,7 @@ class Upload {
         var nextResult:NextResult?
         var directoryEntry:DirectoryEntry?
         var undelete = false
+        var sharingGroupUUID: String!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // 1/11/18; Determining the version to upload immediately before the upload. See https://github.com/crspybits/SyncServerII/issues/12
@@ -285,6 +312,7 @@ class Upload {
             file = ServerAPI.File(localURL: nextToUpload.localURL as URL?, fileUUID: nextToUpload.fileUUID, fileGroupUUID: nextToUpload.fileGroupUUID, sharingGroupUUID: nextToUpload.sharingGroupUUID, mimeType: mimeType, deviceUUID:self.deviceUUID, appMetaData: appMetaData, fileVersion: nextToUpload.fileVersion)
             
             undelete = nextToUpload.uploadUndeletion
+            sharingGroupUUID = nextToUpload.sharingGroupUUID
         } // end perform
         
         guard nextResult == nil else {
@@ -340,14 +368,14 @@ class Upload {
                 self?.completion?(completionResult!)
 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
-                self?.masterVersionUpdate(uploadQueue: uploadQueue, masterVersionUpdate: masterVersionUpdate)
+                self?.masterVersionUpdate(uploadQueue: uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
             }
         }
         
         return .started
     }
     
-    private func masterVersionUpdate(uploadQueue:UploadQueue, masterVersionUpdate: MasterVersionInt) {
+    private func masterVersionUpdate(uploadQueue:UploadQueue, masterVersionUpdate: MasterVersionInt, sharingGroupUUID: String) {
         var completionResult:NextCompletion?
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Simplest method for now: Mark all uft's as .notStarted
@@ -356,7 +384,12 @@ class Upload {
                 uft.status = .notStarted
             }
 
-            Singleton.get().masterVersion = masterVersionUpdate
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                completionResult = .error(.generic("Could not get Sharing Entry."))
+                return
+            }
+            
+            sharingEntry.masterVersion = masterVersionUpdate
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -397,8 +430,15 @@ class Upload {
     
     func doneUploads(sharingGroupUUID: String, completion:((DoneUploadsCompletion)->())?) {
         var masterVersion:MasterVersionInt!
+        var sharingEntry:SharingEntry!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+            sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID)
+            masterVersion = sharingEntry.masterVersion
+        }
+        
+        if sharingEntry == nil {
+            completion?(.error(.generic("Could not get master version.")))
+            return
         }
         
         ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) { (result, error) in
@@ -412,7 +452,7 @@ class Upload {
                 var completionResult:DoneUploadsCompletion?
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     // Master version was incremented on the server as part of normal doneUploads operation. Update ours locally.
-                    Singleton.get().masterVersion = masterVersion + MasterVersionInt(1)
+                    sharingEntry.masterVersion += 1
                     
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -440,7 +480,7 @@ class Upload {
                         uft.status = .notStarted
                     }
 
-                    Singleton.get().masterVersion = masterVersionUpdate
+                    sharingEntry.masterVersion = masterVersionUpdate
                     
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()

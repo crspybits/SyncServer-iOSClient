@@ -50,7 +50,7 @@ class CoreDataTests: TestCase {
         let uft = UploadFileTracker.newObject() as! UploadFileTracker
         uft.fileUUID = UUID().uuidString
         uft.sharingGroupUUID = sharingGroupUUID
-        try! Upload.pendingSync().addToUploadsOverride(uft)
+        try! Upload.pendingSync().addToUploads(uft)
     }
     
     func testThatPendingSyncQueueCanAddObject() {

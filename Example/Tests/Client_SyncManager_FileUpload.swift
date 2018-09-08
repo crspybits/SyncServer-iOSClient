@@ -33,9 +33,9 @@ class Client_SyncServer_FileUpload: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -112,9 +112,9 @@ class Client_SyncServer_FileUpload: TestCase {
             (fileUUID: fileUUID2, fileSize: nil)
         ])
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -196,9 +196,9 @@ class Client_SyncServer_FileUpload: TestCase {
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
         // Download the file and make sure it corresponds to url2
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -334,9 +334,9 @@ class Client_SyncServer_FileUpload: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -458,9 +458,9 @@ class Client_SyncServer_FileUpload: TestCase {
         ])
         
         // Download and check the files
-        var masterVersion:MasterVersionInt!
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
         }
         
         let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)

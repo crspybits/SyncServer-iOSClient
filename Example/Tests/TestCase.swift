@@ -105,6 +105,55 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    func getMasterVersionFor(sharingGroupUUID: String) -> MasterVersionInt? {
+        var result: MasterVersionInt?
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+        
+            result = sharingEntry.masterVersion
+        }
+        
+        return result
+    }
+
+    @discardableResult
+    func incrementMasterVersionFor(sharingGroupUUID: String) -> Bool {
+        var result = false
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+        
+            sharingEntry.masterVersion += 1
+            result = true
+        }
+        
+        return result
+    }
+    
+    @discardableResult
+    func decrementMasterVersionFor(sharingGroupUUID: String) -> Bool {
+        var result = false
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+        
+            sharingEntry.masterVersion -= 1
+            result = true
+        }
+        
+        return result
+    }
+    
     func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String?) -> Bool {
         let expectation = self.expectation(description: "test")
 
@@ -190,7 +239,8 @@ class TestCase: XCTestCase {
     }
     
     func getFirstSharingGroup() -> SharingGroup? {
-        guard let sharingGroups = SyncServerUser.session.sharingGroups, sharingGroups.count > 0 else {
+        let sharingGroups = SyncServer.session.sharingGroups
+        guard sharingGroups.count > 0 else {
             XCTFail()
             return nil
         }
@@ -199,11 +249,7 @@ class TestCase: XCTestCase {
     }
     
     func getSharingGroups() -> [SharingGroup]? {
-        guard let sharingGroups = SyncServerUser.session.sharingGroups else {
-            XCTFail()
-            return nil
-        }
-        
+        let sharingGroups = SyncServer.session.sharingGroups        
         return sharingGroups
     }
     

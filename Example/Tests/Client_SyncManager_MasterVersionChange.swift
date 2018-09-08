@@ -64,9 +64,14 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             case .singleFileUploadComplete(_):
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
-                    // Serious faking of the master version change between the two file uploads.s :). I was having too much problem trying to do an intervening upload right here.
+                    // Serious faking of the master version change between the two file uploads. :). I was having too much problem trying to do an intervening upload right here.
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        Singleton.get().masterVersion -= 1
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                            XCTFail()
+                            return
+                        }
+                        
+                        sharingEntry.masterVersion -= 1
                     }
                 }
                 
@@ -91,7 +96,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+            
+            masterVersion = sharingEntry.masterVersion
         }
         
         let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -162,7 +172,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        Singleton.get().masterVersion += 1
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                            XCTFail()
+                            return
+                        }
+                        
+                        sharingEntry.masterVersion += 1
                     }
                 }
                 
@@ -184,7 +199,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            masterVersion = Singleton.get().masterVersion
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+            
+            masterVersion = sharingEntry.masterVersion
         }
         
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
@@ -257,7 +277,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        Singleton.get().masterVersion += 1
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                            XCTFail()
+                            return
+                        }
+                        
+                        sharingEntry.masterVersion += 1
                     }
                 }
                 
@@ -348,9 +373,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 downloadCount += 1
                 
                 if downloadCount == 1 {
-                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        Singleton.get().masterVersion += 1
-                    }
+                    self.incrementMasterVersionFor(sharingGroupUUID: sharingGroupUUID)
                 }
                 
                 // After a master version change, what happens to DownloadFileTracker(s) that were around before the change? They get deleted. And the server is again checked for downloads.

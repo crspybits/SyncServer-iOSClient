@@ -41,8 +41,13 @@ class Client_Downloads: TestCase {
                 XCTFail()
             }
             
+            guard let masterVersion = self.getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
+        
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                XCTAssert(Singleton.get().masterVersion == expectedMasterVersion)
+                XCTAssert(masterVersion == expectedMasterVersion)
 
                 let dfts = DownloadFileTracker.fetchAll()
                 XCTAssert(dfts.count == expectedFiles.count, "dfts.count: \(dfts.count); expectedFiles.count: \(expectedFiles.count)")
@@ -236,8 +241,13 @@ class Client_Downloads: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Fake an incorrect master version.
-            Singleton.get().masterVersion = masterVersion
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                XCTFail()
+                return
+            }
             
+            sharingEntry.masterVersion = masterVersion
+
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch {
@@ -360,12 +370,7 @@ class Client_Downloads: TestCase {
         waitForExpectations(timeout: 30.0, handler: nil)
     }
     
-    func onlyCheck(sharingGroupUUID: String, expectedDownloads:Int=0, expectedDownloadDeletions:Int=0) {
-        guard let masterVersionFirst = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
-            XCTFail()
-            return
-        }
-        
+    func onlyCheck(sharingGroupUUID: String, expectedDownloads:Int=0, expectedDownloadDeletions:Int=0) {        
         let expectation1 = self.expectation(description: "onlyCheck")
 
         Download.session.onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
@@ -373,11 +378,10 @@ class Client_Downloads: TestCase {
             case .error(let error):
                 XCTFail("Failed: \(error)")
             
-            case .checkResult(downloadSet: let downloadSet, let masterVersion):
+            case .checkResult(downloadSet: let downloadSet):
                 XCTAssert(downloadSet.downloadFiles.count == expectedDownloads, "count: \(downloadSet.downloadFiles.count)")
                 XCTAssert(downloadSet.downloadDeletions.count == expectedDownloadDeletions, "\(downloadSet.downloadDeletions.count)")
                 XCTAssert(downloadSet.downloadAppMetaData.count == 0)
-                XCTAssert(masterVersion == masterVersionFirst)
             }
             
             expectation1.fulfill()
