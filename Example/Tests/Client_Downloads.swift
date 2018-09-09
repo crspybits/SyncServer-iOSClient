@@ -15,8 +15,7 @@ class Client_Downloads: TestCase {
     
     override func setUp() {
         super.setUp()
-        
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -41,7 +40,7 @@ class Client_Downloads: TestCase {
                 XCTFail()
             }
             
-            guard let masterVersion = self.getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            guard let masterVersion = self.getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
                 XCTFail()
                 return
             }
@@ -76,7 +75,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -91,7 +90,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -115,7 +114,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -144,7 +143,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -168,7 +167,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -223,7 +222,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -286,7 +285,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -331,7 +330,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -407,7 +406,7 @@ class Client_Downloads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

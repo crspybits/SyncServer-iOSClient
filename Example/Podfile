@@ -11,9 +11,12 @@ target 'SyncServer_Example' do
 	
 	# 8/26/18; These need to reference specific library versions of SMCoreLib and SyncServer-Shared to support the need to rebuild this example app from prior releases. If they just reference paths in the development system on my Mac, then they may use different versions of the libraries and thus not enable easy rebuilding of the example app.
 	pod 'SMCoreLib', '~> 1.3'
-	pod 'SyncServer-Shared', '~> 9.1'
+
+	# pod 'SwiftyBeaver', :git => 'https://github.com/crspybits/SwiftyBeaver.git'
+	# pod 'SwiftyBeaver', :path => '../../SwiftyBeaver'
+	# pod 'SMCoreLib', :path => '../../Common/SMCoreLib'
 	
-# 	pod 'SMCoreLib', :path => '../../Common/SMCoreLib'
+	pod 'SyncServer-Shared', '~> 9.1'
 # 	pod 'SyncServer-Shared', :path => '../../SyncServer-Shared'
 	
 # 	pod 'SyncServer'

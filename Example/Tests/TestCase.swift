@@ -105,7 +105,37 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
-    func getMasterVersionFor(sharingGroupUUID: String) -> MasterVersionInt? {
+    func setupTest(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
+        if !updateSharingGroupsWithSync() {
+            XCTFail()
+        }
+        
+        resetFileMetaData(removeServerFiles: removeServerFiles, actualDeletion: actualDeletion)
+        
+        if !updateSharingGroupsWithSync() {
+            XCTFail()
+        }
+    }
+    
+    @discardableResult
+    func updateSharingGroupsWithSync() -> Bool {
+        var result = false
+        let expectation = self.expectation(description: "test")
+
+        Download.session.onlyUpdateSharingGroups { error in
+            if error == nil {
+                result = true
+            }
+            
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 40.0, handler: nil)
+        
+        return result
+    }
+    
+    func getLocalMasterVersionFor(sharingGroupUUID: String) -> MasterVersionInt? {
         var result: MasterVersionInt?
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
@@ -255,7 +285,7 @@ class TestCase: XCTestCase {
     
     @discardableResult
     func uploadFileVersion(_ version:FileVersionInt, fileURL: URL, mimeType:MimeType, sharingGroupUUID: String, fileGroupUUID: String? = nil) -> ServerAPI.File? {
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -510,7 +540,7 @@ class TestCase: XCTestCase {
                     fileSize = size
                 }
                 else {
-                    XCTFail()
+                    XCTFail("\(uploadFileResult!)")
                 }
             }
             
@@ -595,7 +625,7 @@ class TestCase: XCTestCase {
     }
     
     func removeAllServerFilesInFileIndex(sharingGroupUUID: String, actualDeletion:Bool=true) {
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -604,6 +634,12 @@ class TestCase: XCTestCase {
         let uploadDeletion = self.expectation(description: "uploadDeletion")
 
         func recursiveRemoval(indexToRemove:Int) {
+            guard filesToDelete != nil else {
+                XCTFail()
+                uploadDeletion.fulfill()
+                return
+            }
+            
             if indexToRemove >= filesToDelete!.count {
                 uploadDeletion.fulfill()
                 return
@@ -617,7 +653,7 @@ class TestCase: XCTestCase {
             ServerAPI.session.uploadDeletion(file: fileToDelete, serverMasterVersion: masterVersion) { (result, error) in
                 XCTAssert(error == nil)
                 guard case .success = result! else {
-                    XCTFail()
+                    XCTFail("\(String(describing: error)); result: \(String(describing: result))")
                     return
                 }
                 
@@ -636,8 +672,8 @@ class TestCase: XCTestCase {
                 else {
                     filesToDelete =  result.fileIndex!.filter({$0.deleted! == false})
                 }
-            case .error:
-                XCTFail()
+            case .error(let error):
+                XCTFail("\(error)")
             }
 
             numberDeletions = filesToDelete?.count
@@ -646,6 +682,11 @@ class TestCase: XCTestCase {
         }
         
         waitForExpectations(timeout: 120.0, handler: nil)
+        
+        guard numberDeletions != nil else {
+            XCTFail()
+            return
+        }
         
         // actual deletion removes actual rows from the file index-- in which case we don't need the done uploads to wrap things up.
         if numberDeletions! > 0 && !actualDeletion {
@@ -733,7 +774,7 @@ class TestCase: XCTestCase {
     @discardableResult
     // Uses SyncManager.session.start
     func uploadAndDownloadOneFileUsingStart( sharingGroupUUID: String) -> (ServerAPI.File, MasterVersionInt)? {
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -791,7 +832,7 @@ class TestCase: XCTestCase {
 
     @discardableResult
     func uploadDeletion( sharingGroupUUID: String) -> (fileUUID:String, MasterVersionInt)? {
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -846,7 +887,7 @@ class TestCase: XCTestCase {
     
     func uploadAndDownloadTextFile(sharingGroupUUID: String, appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
     
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -987,12 +1028,6 @@ class TestCase: XCTestCase {
     }
     
     func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
-        do {
-            try SyncServer.resetMetaData()
-        } catch {
-            XCTFail()
-        }
-
         if removeServerFiles {
             guard let sharingGroups = getSharingGroups() else {
                 XCTFail()
@@ -1008,6 +1043,13 @@ class TestCase: XCTestCase {
                 }
             }
         }
+        
+        // Do this after any removal of server files because we need the sharing groups meta data in order to know which sharing groups we're removing files from.
+        do {
+            try SyncServer.resetMetaData()
+        } catch {
+            XCTFail()
+        }
     }
     
     // returns the fileUUID
@@ -1016,7 +1058,7 @@ class TestCase: XCTestCase {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload a file.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }

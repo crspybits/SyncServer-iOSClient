@@ -14,7 +14,7 @@ class ServerAPI_DownloadFile: TestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        setupTest()
     }
     
     override func tearDown() {
@@ -51,7 +51,7 @@ class ServerAPI_DownloadFile: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

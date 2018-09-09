@@ -14,8 +14,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     
     override func setUp() {
         super.setUp()
-        
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {

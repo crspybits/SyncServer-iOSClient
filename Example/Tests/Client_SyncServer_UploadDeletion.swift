@@ -16,7 +16,7 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {

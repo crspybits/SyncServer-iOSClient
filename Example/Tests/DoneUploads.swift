@@ -13,6 +13,7 @@ import SMCoreLib
 class ServerAPI_DoneUploads: TestCase {    
     override func setUp() {
         super.setUp()
+        setupTest()
     }
     
     override func tearDown() {
@@ -27,7 +28,7 @@ class ServerAPI_DoneUploads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -60,7 +61,7 @@ class ServerAPI_DoneUploads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -150,7 +151,7 @@ class ServerAPI_DoneUploads: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -227,7 +228,7 @@ class ServerAPI_DoneUploads: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -247,6 +248,7 @@ class ServerAPI_DoneUploads: TestCase {
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberDeletions: 1)
         masterVersion += 1
         
+        // *Must* get master version from server here because local master version in SharingEntry's will not have been updated.
         guard let masterVersion2 = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return

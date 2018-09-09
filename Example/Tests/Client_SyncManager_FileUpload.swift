@@ -16,8 +16,7 @@ class Client_SyncServer_FileUpload: TestCase {
     
     override func setUp() {
         super.setUp()
-
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -33,7 +32,7 @@ class Client_SyncServer_FileUpload: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -112,7 +111,7 @@ class Client_SyncServer_FileUpload: TestCase {
             (fileUUID: fileUUID2, fileSize: nil)
         ])
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -196,7 +195,7 @@ class Client_SyncServer_FileUpload: TestCase {
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
         // Download the file and make sure it corresponds to url2
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -334,7 +333,7 @@ class Client_SyncServer_FileUpload: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -458,7 +457,7 @@ class Client_SyncServer_FileUpload: TestCase {
         ])
         
         // Download and check the files
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

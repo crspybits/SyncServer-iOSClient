@@ -15,7 +15,7 @@ class Client_SyncServer_StopSync: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -179,7 +179,7 @@ class Client_SyncServer_StopSync: TestCase {
         }
         
         // Upload a file, without using client interface, so it'll download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -259,7 +259,7 @@ class Client_SyncServer_StopSync: TestCase {
         }
         
         // Upload two files, without using client interface, so they will download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -457,7 +457,7 @@ class Client_SyncServer_StopSync: TestCase {
         }
     
         // 1) Upload two files, without using client interface, so they will download when we do a sync.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

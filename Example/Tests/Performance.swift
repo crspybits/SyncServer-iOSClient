@@ -14,7 +14,7 @@ class Performance: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData(removeServerFiles: true, actualDeletion: false)
+        setupTest(removeServerFiles: true, actualDeletion: false)
     }
     
     override func tearDown() {
@@ -24,7 +24,7 @@ class Performance: TestCase {
     
     func downloadNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType, sharingGroupUUID: String) {
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -145,7 +145,7 @@ class Performance: TestCase {
         }
 
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -202,7 +202,7 @@ class Performance: TestCase {
         let mimeType:MimeType = .jpeg
 
         // First upload N files.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

@@ -16,7 +16,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -37,7 +37,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
         
-        guard let masterVersion = getMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -126,7 +126,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             (fileUUID: fileUUID, fileSize: nil),
         ])
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -316,7 +316,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -374,7 +374,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -461,7 +461,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -569,7 +569,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system. This will cause the download deletion we're looking for.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -664,7 +664,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -759,7 +759,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
 
         // 2) Upload delete the file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -833,7 +833,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -1013,7 +1013,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file OR appMetaData, not using the sync system-- this is the download that will conflict with the following upload.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -1474,7 +1474,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         // 3) "Someone else" do an upload undeletion-- do this using the Server API directly.
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -1545,7 +1545,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileURL = SMRelativeLocalURL(withRelativePath: "UploadMe.txt", toBaseURLType: .mainBundle)!
         
         // 1) Upload a file, not using the sync system.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -1682,7 +1682,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // 2) Upload second version, using API so it's like another app did it.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -1767,7 +1767,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         // Delete them.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

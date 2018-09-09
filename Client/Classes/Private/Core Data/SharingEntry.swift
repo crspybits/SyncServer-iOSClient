@@ -52,46 +52,44 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         let updatedSharingGroups:[SharingGroup]
     }
     
-    class func update(sharingGroups: [SharingGroup]) -> Updates? {
+    // We're being passed the list of sharing groups in which the user is still a member. (Notably, if a sharing group has been removed from a group, it will not be in this list, so we haven't handle this specially).
+    class func update(serverSharingGroups: [SharingGroup]) -> Updates? {
         var deletedOnServer = [SharingGroup]()
         var newSharingGroups = [SharingGroup]()
         var updatedSharingGroups = [SharingGroup]()
         
-        sharingGroups.forEach { sharingGroup in
+        serverSharingGroups.forEach { sharingGroup in
             if let sharingGroupUUID = sharingGroup.sharingGroupUUID {
-                if let deleted = sharingGroup.deleted, deleted {
-                    if let found = fetchObjectWithUUID(uuid: sharingGroupUUID) {
-                        if !found.deletedOnServer {
-                            found.deletedOnServer = true
-                            deletedOnServer += [sharingGroup]
-                        }
-                        // If we already know it's deleted, no need to do anything else.
+                if let found = fetchObjectWithUUID(uuid: sharingGroupUUID) {
+                    if found.sharingGroupName != sharingGroup.sharingGroupName {
+                        found.sharingGroupName = sharingGroup.sharingGroupName
+                        updatedSharingGroups += [sharingGroup]
                     }
-                    else {
-                        // Not found, and its deleted on server; lets create a SharingEntry and mark it as deleted.
-                        let sharingEntry = SharingEntry.newObject() as! SharingEntry
-                        sharingEntry.sharingGroupUUID = sharingGroupUUID
-                        sharingEntry.deletedOnServer = true
+                    if found.masterVersion != sharingGroup.masterVersion {
+                        found.masterVersion = sharingGroup.masterVersion!
                     }
                 }
                 else {
-                    if let found = fetchObjectWithUUID(uuid: sharingGroupUUID) {
-                        if found.sharingGroupName != sharingGroup.sharingGroupName {
-                            found.sharingGroupName = sharingGroup.sharingGroupName
-                            updatedSharingGroups += [sharingGroup]
-                        }
-                        if found.masterVersion != sharingGroup.masterVersion {
-                            found.masterVersion = sharingGroup.masterVersion!
-                        }
-                    }
-                    else {
-                        let sharingEntry = SharingEntry.newObject() as! SharingEntry
-                        sharingEntry.sharingGroupUUID = sharingGroupUUID
-                        sharingEntry.sharingGroupName = sharingGroup.sharingGroupName
-                        sharingEntry.masterVersion = sharingGroup.masterVersion!
-                        newSharingGroups += [sharingGroup]
-                    }
+                    let sharingEntry = SharingEntry.newObject() as! SharingEntry
+                    sharingEntry.sharingGroupUUID = sharingGroupUUID
+                    sharingEntry.sharingGroupName = sharingGroup.sharingGroupName
+                    sharingEntry.masterVersion = sharingGroup.masterVersion!
+                    newSharingGroups += [sharingGroup]
                 }
+            }
+        }
+        
+        // Now, do the opposite and figure out which sharing groups have been removed or we've been remove from.
+        let localSharingGroups = SharingEntry.fetchAll().filter {!$0.deletedOnServer}
+        localSharingGroups.forEach { localSharingGroup in
+            let filtered = serverSharingGroups.filter {$0.sharingGroupUUID == localSharingGroup.sharingGroupUUID}
+            if filtered.count == 0 {
+                // We're no longer a member of this sharing group.
+                localSharingGroup.deletedOnServer = true
+                let deletedSharingGroup = SharingGroup()!
+                deletedSharingGroup.sharingGroupUUID = localSharingGroup.sharingGroupUUID
+                deletedSharingGroup.sharingGroupName = localSharingGroup.sharingGroupName
+                deletedOnServer += [deletedSharingGroup]
             }
         }
         

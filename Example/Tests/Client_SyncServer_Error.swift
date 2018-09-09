@@ -15,7 +15,7 @@ import SyncServer_Shared
 class Client_SyncServer_Error: TestCase {
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -51,7 +51,7 @@ class Client_SyncServer_Error: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -67,6 +67,7 @@ class Client_SyncServer_Error: TestCase {
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
+        // All endpoint calls will fail after this.
         ServerAPI.session.failEndpoints = true
         
         SyncServer.session.eventsDesired = []
@@ -80,7 +81,10 @@ class Client_SyncServer_Error: TestCase {
         
         waitForExpectations(timeout: 40.0, handler: nil)
         
+        // We failed to do the sync above because of the simulated endpoint failures.
+        
         if retry {
+            // Try the download again, this time turning off the simulated endpoint failure. Our expectation is that the download works this time.
             ServerAPI.session.failEndpoints = false
             
             let shouldSaveDownloadsExp = self.expectation(description: "shouldSaveDownloadsExp")
@@ -211,7 +215,7 @@ class Client_SyncServer_Error: TestCase {
         let fileUUID1 = UUID().uuidString
         let fileUUID2 = UUID().uuidString
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

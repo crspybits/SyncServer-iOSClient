@@ -15,7 +15,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest(actualDeletion:false)
     }
     
     override func tearDown() {
@@ -36,7 +36,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -85,7 +85,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -112,7 +112,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
     func uploadDeleteFileVersion1(sharingGroupUUID: String) -> ServerAPI.File? {
         var result: ServerAPI.File?
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }
@@ -212,10 +212,11 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
+        
         guard let (fileSize, file2) = uploadFile(fileURL:file.localURL, mimeType: file.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file.fileUUID, serverMasterVersion: masterVersion, fileVersion: file.fileVersion + FileVersionInt(1), undelete: true) else {
             XCTFail()
             return

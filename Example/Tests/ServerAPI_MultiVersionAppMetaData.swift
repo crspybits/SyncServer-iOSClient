@@ -14,7 +14,7 @@ import SyncServer_Shared
 class ServerAPI_MultiVersionAppMetaData: TestCase {
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        setupTest()
     }
     
     override func tearDown() {
@@ -29,7 +29,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -77,7 +77,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         5) File index to check app meta data version.
         */
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -124,7 +124,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -143,7 +143,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -173,7 +173,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         // Upload app meta version 0 -- with endpoint.
         // Then version 1 with endpoint.
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -228,7 +228,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -254,7 +254,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -286,7 +286,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -341,7 +341,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -368,7 +368,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -392,7 +392,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

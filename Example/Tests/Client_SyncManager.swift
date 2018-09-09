@@ -14,8 +14,7 @@ import SyncServer_Shared
 class Client_SyncManager: TestCase {    
     override func setUp() {
         super.setUp()
-        
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -114,7 +113,7 @@ class Client_SyncManager: TestCase {
     
     func uploadTwoFiles(sharingGroupUUID: String) -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {
     
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return nil
         }

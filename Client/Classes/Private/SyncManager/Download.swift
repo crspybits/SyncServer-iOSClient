@@ -35,7 +35,7 @@ class Download {
             var sharingGroupUpdates: SharingEntry.Updates!
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                sharingGroupUpdates = SharingEntry.update(sharingGroups: sharingGroups)
+                sharingGroupUpdates = SharingEntry.update(serverSharingGroups: sharingGroups)
                 CoreData.sessionNamed(Constants.coreDataName).saveContext()
             }
             
@@ -90,7 +90,7 @@ class Download {
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
-                    sharingGroupUpdates = SharingEntry.update(sharingGroups: sharingGroups)
+                    sharingGroupUpdates = SharingEntry.update(serverSharingGroups: sharingGroups)
                     let downloadSet =
                         try Directory.session.checkFileIndex(serverFileIndex: fileIndex)
                     completionResult =

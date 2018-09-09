@@ -54,7 +54,7 @@ class ServerAPI {
         }
     }
     
-    // Fails endpoints until you set this to true.
+    // Fails endpoints if you set this to true.
     var failEndpoints = false
 #endif
     

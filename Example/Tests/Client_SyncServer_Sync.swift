@@ -15,7 +15,7 @@ class Client_SyncServer_Sync: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {

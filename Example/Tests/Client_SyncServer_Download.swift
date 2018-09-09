@@ -16,7 +16,7 @@ class Client_SyncServer_Download: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -49,7 +49,7 @@ class Client_SyncServer_Download: TestCase {
         let initialDeviceUUID = self.deviceUUID
 
         // First upload two files.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

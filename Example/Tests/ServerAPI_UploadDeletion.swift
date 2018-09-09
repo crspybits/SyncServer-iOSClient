@@ -14,7 +14,7 @@ class ServerAPI_UploadDeletion: TestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        setupTest()
     }
     
     override func tearDown() {
@@ -39,7 +39,7 @@ class ServerAPI_UploadDeletion: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -76,7 +76,7 @@ class ServerAPI_UploadDeletion: TestCase {
             return
         }
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -108,7 +108,7 @@ class ServerAPI_UploadDeletion: TestCase {
             return
         }
 
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -127,6 +127,11 @@ class ServerAPI_UploadDeletion: TestCase {
         
         // for the file upload
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
         
         guard let sharingGroups = getSharingGroups() else {
             XCTFail()

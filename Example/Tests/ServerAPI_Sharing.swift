@@ -14,7 +14,7 @@ class ServerAPI_Sharing: TestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        setupTest()
     }
     
     override func tearDown() {
@@ -46,8 +46,7 @@ class ServerAPI_Sharing: TestCase {
             return
         }
         
-        let filtered = sharingGroups.filter {$0.deleted != nil && !$0.deleted!}
-        guard filtered.count > 0, let sharingGroupUUID = filtered[0].sharingGroupUUID else {
+        guard sharingGroups.count > 0, let sharingGroupUUID = sharingGroups[0].sharingGroupUUID else {
             XCTFail()
             return
         }
@@ -70,7 +69,7 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testCreateNewSharingGroupWithoutName() {
-    let sharingGroupUUID = UUID().uuidString
+        let sharingGroupUUID = UUID().uuidString
         guard createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: nil) else {
             XCTFail()
             return

@@ -18,7 +18,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -316,7 +316,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         // When a single file has been downloaded, simulate a master version change.
         // 9/16/17; Since we're now doing the downloads incrementally, we should just get a total of 3 downloads.
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

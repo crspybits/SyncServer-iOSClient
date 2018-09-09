@@ -17,7 +17,7 @@ class CoreDataTests: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData(removeServerFiles: false, actualDeletion: false)
+        setupTest(removeServerFiles: false, actualDeletion: false)
     }
     
     override func tearDown() {

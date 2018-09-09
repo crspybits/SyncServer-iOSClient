@@ -12,11 +12,11 @@ import SMCoreLib
 import Foundation
 import SyncServer_Shared
 
-class Client_SyncManager_WIllStartUploads: TestCase {
+class Client_SyncManager_WillStartUploads: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {

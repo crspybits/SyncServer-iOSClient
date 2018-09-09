@@ -14,9 +14,9 @@ PODS:
     - FacebookCore (~> 0.3.2)
     - FBSDKCoreKit (~> 4.35)
     - FBSDKLoginKit (~> 4.35)
-  - FBSDKCoreKit (4.35.0):
+  - FBSDKCoreKit (4.36.0):
     - Bolts (~> 1.7)
-  - FBSDKLoginKit (4.35.0):
+  - FBSDKLoginKit (4.36.0):
     - FBSDKCoreKit
   - Gloss (1.2.4)
   - GoogleSignIn (0.1.2)
@@ -26,7 +26,7 @@ PODS:
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
-  - SwiftyBeaver (1.6.0)
+  - SwiftyBeaver (1.6.3)
   - SwiftyDropbox (4.6.0):
     - Alamofire (~> 4.5.0)
   - SyncServer (17.0.0):
@@ -76,11 +76,11 @@ SPEC REPOS:
     - Gloss
     - HPTextViewTapGestureRecognizer
     - Reachability
-    - SwiftyBeaver
     - SwiftyDropbox
   https://github.com/crspybits/Specs.git:
     - GoogleSignIn
     - SMCoreLib
+    - SwiftyBeaver
     - SyncServer-Shared
 
 EXTERNAL SOURCES:
@@ -92,18 +92,18 @@ SPEC CHECKSUMS:
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
   FacebookCore: fe93222bb70346730ef33b061d493e9e7a7cb1f5
   FacebookLogin: a4e225974791c82836765a294582b4778baffc07
-  FBSDKCoreKit: 1a5b2e3ceb5ca827a53c54aa5f4a3480efff80d2
-  FBSDKLoginKit: 00a3d65d1226852f9d76dcddff01981e5e6d9c38
+  FBSDKCoreKit: 3b8e6570eedb443f9fc4af196a7bf39f18e3a3d8
+  FBSDKLoginKit: 8bccb6064708ab2f4251a7fc4e3b6d8d00ad91ba
   Gloss: 4e036074610fdb993abcb958ebcd7332588e2333
   GoogleSignIn: c9fa579a8da31ea46b82627c259ccb2b1bf22bab
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SMCoreLib: 1fc2a916a45470cf41deb193bc509432b1987efc
-  SwiftyBeaver: e45759613e50b522b0e6f53b1f0f14389b45ca34
+  SwiftyBeaver: 86a40205740357f2a091724fbbe29b927ef3f4d4
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
   SyncServer: 8365a49db9c0127706b895ad1e3a9a0ced8dcafe
   SyncServer-Shared: dd12045d7db6e40ad08b75eea48ce3ee0045969a
 
-PODFILE CHECKSUM: f877b66c2f0c8efe9df1329fa408f647cb587522
+PODFILE CHECKSUM: 965b593157cf356e9d03f8aa0630ec3a7a8ce65a
 
 COCOAPODS: 1.5.3

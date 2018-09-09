@@ -33,7 +33,7 @@ class BackgroundTaskTest: TestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        setupTest()
     }
     
     override func tearDown() {
@@ -56,14 +56,12 @@ class BackgroundTaskTest: TestCase {
             return
         }
         
-        resetFileMetaData()
-        
         let fileName = "Cat"
         let fileExtension = "jpg"
         let mimeType:MimeType = .jpeg
         
         // First upload a file.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

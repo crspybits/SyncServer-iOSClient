@@ -16,7 +16,7 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     override func setUp() {
         super.setUp()
-        resetFileMetaData()
+        setupTest()
     }
     
     override func tearDown() {
@@ -181,7 +181,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         }
 
         // Upload, not using sync, so our local file directory doesn't have the change.
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -259,7 +259,7 @@ class Client_SyncServer_AppMetaData: TestCase {
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -323,7 +323,7 @@ class Client_SyncServer_AppMetaData: TestCase {
 
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

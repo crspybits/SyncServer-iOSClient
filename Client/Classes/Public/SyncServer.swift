@@ -715,6 +715,7 @@ public class SyncServer {
             switch type {
             case .all:
                 DirectoryEntry.removeAll()
+                SharingEntry.removeAll()
                 fallthrough
                 
             case .tracking:
@@ -725,6 +726,7 @@ public class SyncServer {
                 Singleton.removeAll()
                 NetworkCached.removeAll()
                 DownloadContentGroup.removeAll()
+                SharingGroupUploadTracker.removeAll()
             }
             
             do {
@@ -757,12 +759,15 @@ public class SyncServer {
             UploadQueues.printAll()
             Singleton.printAll()
             NetworkCached.printAll()
+            SharingEntry.printAll()
+            SharingGroupUploadTracker.printAll()
+            DirectoryEntry.printAll()
         }
         Log.msg(SyncServer.trailingMarker)
         
         // See also https://stackoverflow.com/questions/50311546/ios-flush-all-output-files/50311616
         if let completion = completion {
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                 completion()
             }
         }
