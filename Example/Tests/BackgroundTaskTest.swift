@@ -50,11 +50,12 @@ class BackgroundTaskTest: TestCase {
             Look for "Using cached download result"
     */
     func testUploadAndStartDownloadThenCrash() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileName = "Cat"
         let fileExtension = "jpg"
@@ -121,11 +122,12 @@ class BackgroundTaskTest: TestCase {
 
     // Same procedure as above, but output: "Using cached upload result"
     func testCrashDuringUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "Cat.jpg", toBaseURLType: .mainBundle)!
         

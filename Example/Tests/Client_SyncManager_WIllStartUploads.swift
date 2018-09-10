@@ -25,11 +25,12 @@ class Client_SyncManager_WillStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsNotTriggeredForNoUploads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         SyncServer.session.eventsDesired = [.syncDone, .willStartUploads]
         let expectation1 = self.expectation(description: "test1")
@@ -53,11 +54,12 @@ class Client_SyncManager_WillStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForOneFileUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
@@ -90,11 +92,12 @@ class Client_SyncManager_WillStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -129,11 +132,12 @@ class Client_SyncManager_WillStartUploads: TestCase {
     }
     
     func testThatWillUploadEventIsTriggeredForFileUploadAndUploadDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
 
         guard let (_, deletionAttr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()

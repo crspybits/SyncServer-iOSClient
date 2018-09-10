@@ -112,6 +112,11 @@ class SyncManager {
         }
     }
     
+    func sharingGroupDoesNotExistSync(sharingGroupUUID: String, _ callback:((SyncServerError?)->())? = nil) {
+        self.callback = callback
+        checkForPendingUploads(sharingGroupUUID: sharingGroupUUID, first: true)
+    }
+    
     private func downloadCompleted(dcg: DownloadContentGroup, callback:((SyncServerError?)->())? = nil) {
         var allCompleted:Bool!
         var sharingGroupUUID:String!
@@ -242,6 +247,9 @@ class SyncManager {
                     // Recursively see if there is a next upload to do.
                     selfObj.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 }
+                
+            case .sharingGroupCreated:
+                self?.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 
             case .masterVersionUpdate:
                 // Things have changed on the server. Check for downloads again. Don't go all the way back to `start` because we know that we don't have queued downloads.

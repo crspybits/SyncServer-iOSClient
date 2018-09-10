@@ -52,5 +52,11 @@ public struct SyncAttributes : FileUUID, Hashable {
     }
 }
 
+extension SyncServer {
+    public struct SharingGroup {
+        public let sharingGroupUUID: String
+        public let sharingGroupName: String?
+    }
+}
 
 

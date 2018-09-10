@@ -91,7 +91,7 @@ public class SyncServer {
         ServerAPI.session.baseURL = serverURL.absoluteString
         
         // 12/31/17; I put this in as part of: https://github.com/crspybits/SharedImages/issues/36
-        resetFileTrackers()
+        resetTrackers()
         
         ServerNetworking.session.minimumServerVersion = minimumServerVersion
 
@@ -161,9 +161,14 @@ public class SyncServer {
             throw SyncServerError.noMimeType
         }
         
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {[weak self] in
-            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            errorToThrow = self.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
             if errorToThrow != nil {
+                return
+            }
+            
+            guard self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
+                errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                 return
             }
             
@@ -240,7 +245,7 @@ public class SyncServer {
             // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
             // Similarly, the appMetaData version will be determined immediately before the upload.
             
-            errorToThrow = self?.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
+            errorToThrow = self.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
         } // end perform
         
         guard errorToThrow == nil else {
@@ -272,8 +277,13 @@ public class SyncServer {
         
         var errorToThrow:Error?
 
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {[weak self] in
-            errorToThrow = self?.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
+                errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
+                return
+            }
+            
+            errorToThrow = self.checkIfSameSharingGroup(sharingGroupUUID: attr.sharingGroupUUID)
             if errorToThrow != nil {
                 return
             }
@@ -318,12 +328,20 @@ public class SyncServer {
             
             // The appMetaData version will be determined immediately before the upload. The file version is not used in this case.
             
-            errorToThrow = self?.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
+            errorToThrow = self.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
         } // end perform
         
         guard errorToThrow == nil else {
             throw errorToThrow!
         }
+    }
+    
+    // Do this in a Core Data perform block.
+    private func knownSharingGroupUUID(_ sharingGroupUUID: String) -> Bool {
+        guard let _ = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            return false
+        }
+        return true
     }
     
     // Do this in a Core Data perform block.
@@ -353,6 +371,7 @@ public class SyncServer {
             do {
                 try failIfPendingDeletion(fileUUID: attr.fileUUID)
                 
+                // Remove any other uploads in this queue for the same fileUUID.
                 let result = try Upload.pendingSync().uploadFileTrackers.filter
                     {$0.fileUUID == attr.fileUUID}
                 
@@ -440,6 +459,10 @@ public class SyncServer {
             throw SyncServerError.noSharingGroupUUID
         }
         
+        guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+            throw SyncServerError.generic("Unknown sharing group UUID")
+        }
+        
         if let errorToThrow = checkIfSameSharingGroup(sharingGroupUUID: sharingGroupUUID) {
             throw errorToThrow
         }
@@ -507,9 +530,52 @@ public class SyncServer {
     }
     
     /**
-        Enqueue sharing group addition operation.
+        Enqueue sharing group creation operation. The current queue of upload operations must be empty (e.g., you must have done a sync operation).
     */
-    public func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String? = nil) {
+    public func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String? = nil) throws {
+        var errorToThrow: SyncServerError?
+        Synchronized.block(self) {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                if let _ = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) {
+                    errorToThrow = .generic("Attempt to create duplicate sharing group.")
+                    return
+                }
+        
+                do {
+                    let uploadTrackers = try Upload.pendingSync().uploadTrackers
+                    guard uploadTrackers.count == 0 else {
+                        errorToThrow = .generic("Attempt to create sharing group without first doing a sync.")
+                        return
+                    }
+                } catch (let error) {
+                    errorToThrow = .coreDataError(error)
+                    return
+                }
+
+                let newSharingEntry = SharingEntry.newObject() as! SharingEntry
+                newSharingEntry.sharingGroupUUID = sharingGroupUUID
+                newSharingEntry.sharingGroupName = sharingGroupName
+                
+                let tracker = SharingGroupUploadTracker.newObject() as! SharingGroupUploadTracker
+                tracker.sharingGroupUUID = sharingGroupUUID
+                tracker.sharingGroupName = sharingGroupName
+                tracker.status = SharingGroupUploadTracker.Status.notStarted
+                tracker.operation = .sharingGroup
+                tracker.sharingGroupOperation = .create
+                
+                do {
+                    try Upload.pendingSync().addToUploads(tracker)
+                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                } catch (let error) {
+                    errorToThrow = .coreDataError(error)
+                    return
+                }
+            }
+        }
+        
+        if errorToThrow != nil {
+            throw errorToThrow!
+        }
     }
 
     /**
@@ -531,10 +597,7 @@ public class SyncServer {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let filteredSharingEntries = SharingEntry.fetchAll().filter {!$0.deletedOnServer}
             result = filteredSharingEntries.map {
-                let group = SharingGroup(json:[:])!
-                group.sharingGroupName = $0.sharingGroupName
-                group.sharingGroupUUID = $0.sharingGroupUUID
-                return group
+                return SharingGroup(sharingGroupUUID: $0.sharingGroupUUID!, sharingGroupName: $0.sharingGroupName)
             }
         }
         
@@ -566,14 +629,27 @@ public class SyncServer {
             
             // 5/24/18; The positioning of this block of code has given me some consternation. It *must* come before block [2] below-- because the `sync` operation must do a sync, and `movePendingSyncToSynced` is core to what the sync operation is-- any delay aspect just doesn't trigger it with the `start` operation. HOWEVER, I found that https://github.com/crspybits/SharedImages/issues/101 was due to a deadlock of performAndWait calls. So, I've ended up with a rather different means of dealing with Core Data synchronization in the form of `CoreDataSync` used below.
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                var haveUploads = false
                 do {
-                    if try Upload.pendingSync().uploadFileTrackers.count > 0  {
+                    if try Upload.pendingSync().uploadTrackers.count > 0  {
+                        haveUploads = true
                         try Upload.movePendingSyncToSynced(sharingGroupUUID: sharingGroupUUID)
                     }
                 } catch (let error) {
                     errorToThrow = error
                     return
                 }
+                
+                if !haveUploads {
+                    guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+                        errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
+                        return
+                    }
+                }
+            }
+            
+            if errorToThrow != nil {
+                return
             }
             
             // [2]
@@ -863,48 +939,79 @@ public class SyncServer {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        SyncManager.session.start(sharingGroupUUID: sharingGroupUUID, first: true) { error in
-            if error != nil {
-                Thread.runSync(onMainThread: {
-                    self.delegate?.syncServerErrorOccurred(error: error!)
-                })
-                
-                // There was an error. Not much point in continuing.
-                Synchronized.block(self) {
-                    self.delayedSync = false
-                    self.syncOperating = false
-                }
-                
-                self.resetFileTrackers()
-                return
-            }
-            
-            completion?()
-            EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
+        /* Two options here:
+            a) The sharing group exists on the server -- normal sync where we do downloads followed by uploads.
+            b) The sharing group doesn't exist-- we're creating a sharing group. By-pass any downloads -- there aren't any for a sharing group that doesn't exist yet -- and just do uploads.
+        */
+        
+        var sharingGroupExistsOnServer = true
 
-            var doStart = false
-            
-            Synchronized.block(self) { [unowned self] in
-                CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupUUID: sharingGroupUUID) || self.delayedSync) {
-                        self.delayedSync = false
-                        doStart = true
-                    }
-                    else {
-                        self.syncOperating = false
+        Synchronized.block(self) {
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                // Check the head tracker on uploads to see if we're doing a) or b)
+                if let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) {
+                    let sharingGroupTrackers = uploadQueue.sharingGroupUploadTrackers
+                    if sharingGroupTrackers.count > 0 && sharingGroupTrackers[0].sharingGroupOperation == .create {
+                        sharingGroupExistsOnServer = false
                     }
                 }
-                
-                self.stoppingSync = false
+                // Else: No upload queue; presumably the sharing group exists.
             }
-            
-            if doStart {
-                self.start(sharingGroupUUID: sharingGroupUUID, completion:completion)
+        }
+        
+        if sharingGroupExistsOnServer {
+            SyncManager.session.start(sharingGroupUUID: sharingGroupUUID, first: true) { error in
+                self.syncDone(sharingGroupUUID: sharingGroupUUID, error: error, completion: completion)
+            }
+        }
+        else {
+            SyncManager.session.sharingGroupDoesNotExistSync(sharingGroupUUID: sharingGroupUUID) { error in
+                self.syncDone(sharingGroupUUID: sharingGroupUUID, error: error, completion: completion)
             }
         }
     }
+    
+    private func syncDone(sharingGroupUUID: String, error: SyncServerError?, completion:(()->())?) {
+        if error != nil {
+            Thread.runSync(onMainThread: {
+                self.delegate?.syncServerErrorOccurred(error: error!)
+            })
+            
+            // There was an error. Not much point in continuing.
+            Synchronized.block(self) {
+                self.delayedSync = false
+                self.syncOperating = false
+            }
+            
+            self.resetTrackers()
+            return
+        }
+    
+        completion?()
+        EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
 
-    private func resetFileTrackers() {
+        var doStart = false
+    
+        Synchronized.block(self) { [unowned self] in
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupUUID: sharingGroupUUID) || self.delayedSync) {
+                    self.delayedSync = false
+                    doStart = true
+                }
+                else {
+                    self.syncOperating = false
+                }
+            }
+            
+            self.stoppingSync = false
+        }
+    
+        if doStart {
+            self.start(sharingGroupUUID: sharingGroupUUID, completion:completion)
+        }
+    }
+    
+    private func resetTrackers() {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dfts = DownloadFileTracker.fetchAll()
             dfts.forEach { dft in
@@ -925,6 +1032,13 @@ public class SyncServer {
             dcgs.forEach { dcg in
                 if dcg.status == .downloading {
                     dcg.status = .notStarted
+                }
+            }
+            
+            let sguts = SharingGroupUploadTracker.fetchAll()
+            sguts.forEach(){ sgut in
+                if sgut.status == .uploading {
+                    sgut.status = .notStarted
                 }
             }
 

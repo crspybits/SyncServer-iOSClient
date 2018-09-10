@@ -196,11 +196,12 @@ class ServerAPI_Authentication: TestCase {
     }
     
     func testCredentialsRefreshGenerically() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let testCreds = TestCreds()
         testCreds.uiDisplayName = "chris@cprince.com"

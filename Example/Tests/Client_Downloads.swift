@@ -69,11 +69,12 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfZeroFilesWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -84,11 +85,12 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfSingleFileWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -108,11 +110,12 @@ class Client_Downloads: TestCase {
     }
     
     func testCheckForDownloadOfTwoFilesWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -137,11 +140,12 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithNoFilesOnServer() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -161,11 +165,12 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithOneFileNotDownloadedOnServer() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -216,11 +221,12 @@ class Client_Downloads: TestCase {
     }
     
     func testDownloadNextWithMasterVersionUpdate() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -279,11 +285,12 @@ class Client_Downloads: TestCase {
     }
     
     func testThatNextWithOneFileMarksGroupAsCompleted() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -324,11 +331,12 @@ class Client_Downloads: TestCase {
     }
     
     func testNextImmediatelyFollowedByNextIndicatesDownloadAlreadyOccurring() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -390,21 +398,23 @@ class Client_Downloads: TestCase {
     }
     
     func testOnlyCheckWhenNoFiles() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         onlyCheck(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testOnlyCheckWhenOneFileForDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -424,11 +434,12 @@ class Client_Downloads: TestCase {
     }
     
     func testOnlyCheckWhenOneFileForDownloadDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
         guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {

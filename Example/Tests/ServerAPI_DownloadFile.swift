@@ -23,21 +23,23 @@ class ServerAPI_DownloadFile: TestCase {
     }
     
     func testDownloadTextFile() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadAndDownloadTextFile(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testDownloadTextFileWithAppMetaData() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let appMetaData = AppMetaData(version: 0, contents: "foobar was here")
         uploadAndDownloadTextFile(sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
@@ -45,11 +47,12 @@ class ServerAPI_DownloadFile: TestCase {
     
     // TODO: These downloads should really be with *different* files-- similar size would be good, but different files.
     func testThatParallelDownloadsWork() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()

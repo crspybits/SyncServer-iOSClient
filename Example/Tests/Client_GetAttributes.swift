@@ -24,11 +24,12 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForAnUploadedFileWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, uploadedAttr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
             XCTFail()
@@ -48,11 +49,12 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADownloadedFileWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -105,11 +107,12 @@ class Client_GetAttributes: TestCase {
     }
     
     func testGetAttributesForADeletedFileFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString

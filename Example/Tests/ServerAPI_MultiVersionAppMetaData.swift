@@ -23,11 +23,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testMakeSureAppMetaDataVersionIsInFileIndex() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -63,11 +64,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testUploadInitialAppMetaDataWithEndpointWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         /* Steps:
         1) Upload file with nil app meta data.
@@ -118,11 +120,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadFile() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -137,11 +140,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadAppMetaData() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -164,11 +168,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testUploadAppMetaDataMultipleVersionWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Upload app meta version 0 -- with endpoint.
         // Then version 1 with endpoint.
@@ -222,11 +227,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithNilVersionFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -248,11 +254,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
 
     func testDownloadAppMetaDataWithVersion0Works() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -280,11 +287,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testDownloadAppMetaDataWithVersion1Works() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -335,11 +343,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadWithBadMasterVersionFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -362,11 +371,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     }
     
     func testAppMetaDataDownloadWithBadMasterVersionFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -386,11 +396,12 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
     
     // Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0OfFileUsingAppMetaDataUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()

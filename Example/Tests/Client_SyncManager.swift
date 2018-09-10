@@ -23,11 +23,12 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithNoFilesOnServer() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup()else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let expectation = self.expectation(description: "next")
 
@@ -44,11 +45,12 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithOneUploadedFileOnServer() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID)
     }
@@ -135,11 +137,12 @@ class Client_SyncManager: TestCase {
     }
     
     func testStartWithTwoUploadedFilesOnServer() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -153,11 +156,12 @@ class Client_SyncManager: TestCase {
     func testWhereMasterVersionChangesMidwayThroughTwoDownloads() {
         var numberDownloads = 0
         
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
  
         guard let (file1, file2, masterVersion) = uploadTwoFiles(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()

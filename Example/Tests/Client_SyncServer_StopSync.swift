@@ -49,11 +49,12 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect it to occur normally.
      */
     func testStopSyncBeforeUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
@@ -107,11 +108,12 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect second to occur normally.
     */
     func testStopSyncBetweenTwoUploads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -172,11 +174,12 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect download to occur normally.
     */
     func testStopSyncBeforeDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Upload a file, without using client interface, so it'll download when we do a sync.
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -252,11 +255,12 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect 2nd download to occur normally.
     */
     func testStopSyncBetweenTwoDownloads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Upload two files, without using client interface, so they will download when we do a sync.
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -331,11 +335,12 @@ class Client_SyncServer_StopSync: TestCase {
          2) If you call sync again, expect 2nd to occur normally.
     */
     func testStopSyncBetweenTwoUploadDeletions() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr1) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID),
             let (_, attr2) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
@@ -387,11 +392,12 @@ class Client_SyncServer_StopSync: TestCase {
      Allow upload. Call it before second upload. Restart. Should eventually get both uploads done.
     */
     func testTwoStopSyncs() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -450,11 +456,12 @@ class Client_SyncServer_StopSync: TestCase {
     /* Call stop sync after 1 of 2 downloads. After stopping, upload delete remaining file. Call sync again. We should get a master version update.
     */
    func testStopSyncWithMasterVersionChange() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+    
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
     
         // 1) Upload two files, without using client interface, so they will download when we do a sync.
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {

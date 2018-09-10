@@ -103,10 +103,12 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
  
     @IBAction func createSharingInvitationAction(_ sender: Any) {
         let sharingGroups = SyncServer.session.sharingGroups
-        guard sharingGroups.count > 0, let sharingGroupUUID = sharingGroups[0].sharingGroupUUID else {
+        guard sharingGroups.count > 0 else {
             Log.error("No sharing groups!")
             return
         }
+        
+        let sharingGroupUUID = sharingGroups[0].sharingGroupUUID
         
         Alert.show(message: "Press 'OK' if you are signed in as an owning user and want to create a sharing invitation.", allowCancel: true) {
                 
@@ -197,11 +199,7 @@ extension ViewController : SyncServerDelegate {
                 }
                 
                 let sharingGroup = sharingGroups[0]
-                
-                guard let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
-                    Log.error("Failed getting sharing groups uuid")
-                    return
-                }
+                let sharingGroupUUID = sharingGroup.sharingGroupUUID
                 
                 try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
             }

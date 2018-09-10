@@ -22,11 +22,12 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWorksWithOneFile() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -55,11 +56,12 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWorksWithTwoFiles() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -97,21 +99,23 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testThatUploadDeletionOfOneFileWithDoneUploadsActuallyDeletes() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeletionOfOneFileWithDoneUploads(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testDoneUploadsWith1FileUploadAnd1UploadDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // This upload deletion has to happen 1st because it does a doneUploads, and we don't want `fileUUIDUpload` to be subject to doneUploads yet.
         guard let (fileUUIDDelete, masterVersion) = uploadDeletion(sharingGroupUUID: sharingGroupUUID) else {
@@ -145,11 +149,12 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsConflict() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -222,11 +227,12 @@ class ServerAPI_DoneUploads: TestCase {
     }
     
     func testDoneUploadsWithDeletionChangesMasterVersion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()

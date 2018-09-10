@@ -23,11 +23,12 @@ class ServerAPI_Sharing: TestCase {
     }
     
     func testCreateSharingInvitation() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let expectation = self.expectation(description: "CreateSharingInvitation")
         
@@ -46,10 +47,12 @@ class ServerAPI_Sharing: TestCase {
             return
         }
         
-        guard sharingGroups.count > 0, let sharingGroupUUID = sharingGroups[0].sharingGroupUUID else {
+        guard sharingGroups.count > 0 else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroups[0].sharingGroupUUID
         
         let expectation = self.expectation(description: "SharingInvitation")
 
@@ -207,5 +210,45 @@ class ServerAPI_Sharing: TestCase {
             XCTFail()
             return
         }
+    }
+    
+    func testRemoveSharingGroupWithAFileWorks() {
+        let sharingGroupUUID = UUID().uuidString
+        guard createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: nil) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let fileIndexResult1 = getFileIndex(sharingGroupUUID: sharingGroupUUID),
+            let fileIndex1 = fileIndexResult1.fileIndex else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult1 = fileIndex1.filter{$0.fileUUID == attr.fileUUID}
+        guard filteredResult1.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        if let _ = removeSharingGroup(sharingGroupUUID: sharingGroupUUID, masterVersion: fileIndexResult1.masterVersion!) {
+            XCTFail()
+            return
+        }
+        
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, errorExpected: true)
+        
+        guard let fileIndexResult2 = getFileIndex(sharingGroupUUID: nil) else {
+            XCTFail()
+            return
+        }
+        
+        let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
+        XCTAssert(filteredResult.count == 0)
     }
 }

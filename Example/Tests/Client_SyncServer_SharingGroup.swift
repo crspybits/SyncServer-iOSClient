@@ -58,11 +58,12 @@ class Client_SyncServer_SharingGroup: TestCase {
     }
     
     func testMultipleSharingGroupsUploadImmutableFileBeforeSyncFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         upload(uploadCopy: false, sharingGroupUUID: sharingGroupUUID)
         let badSharingGroupUUID = UUID().uuidString
@@ -70,67 +71,184 @@ class Client_SyncServer_SharingGroup: TestCase {
     }
     
     func testMultipleSharingGroupsUploadCopyFileBeforeSyncFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         upload(uploadCopy: true, sharingGroupUUID: sharingGroupUUID)
         let badSharingGroupUUID = UUID().uuidString
         upload(uploadCopy: true, sharingGroupUUID: badSharingGroupUUID, failureExpected: true)
     }
 
-    func testMultipleSharingGroupsUploadAppMetaDataBeforeSyncFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
-            XCTFail()
-            return
-        }
+    // MARK: Creating sharing groups
+    
+    func createSharingGroup(name: String? = nil) -> String? {
+        var result: String?
         
-        upload(uploadCopy: true, sharingGroupUUID: sharingGroupUUID)
-        let badSharingGroupUUID = UUID().uuidString
-        upload(uploadCopy: true, sharingGroupUUID: badSharingGroupUUID, failureExpected: true)
-    }
-    
-    
-    func testRemoveSharingGroupWithAFileWorks() {
         let sharingGroupUUID = UUID().uuidString
-        guard createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: nil) else {
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: name)
+        } catch {
             XCTFail()
-            return
+            return nil
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
-            XCTFail()
-            return
+        SyncServer.session.eventsDesired = [.syncDone]
+        let expectation1 = self.expectation(description: "done")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                result = sharingGroupUUID
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
         }
         
-        guard let fileIndexResult1 = getFileIndex(sharingGroupUUID: sharingGroupUUID),
-            let fileIndex1 = fileIndexResult1.fileIndex else {
-            XCTFail()
-            return
-        }
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
-        let filteredResult1 = fileIndex1.filter{$0.fileUUID == attr.fileUUID}
-        guard filteredResult1.count == 1 else {
-            XCTFail()
-            return
-        }
+        waitForExpectations(timeout: 20, handler: nil)
         
-        if let _ = removeSharingGroup(sharingGroupUUID: sharingGroupUUID, masterVersion: fileIndexResult1.masterVersion!) {
-            XCTFail()
-            return
-        }
-        
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, errorExpected: true)
-        
-        guard let fileIndexResult2 = getFileIndex(sharingGroupUUID: nil) else {
-            XCTFail()
-            return
-        }
-        
-        let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
-        XCTAssert(filteredResult.count == 0)
+        return result
     }
+    
+    func createSharingGroupUsingSyncWorks(name: String?) {
+        let initialNumberSharingGroups = SyncServer.session.sharingGroups.count
+        
+        guard let sharingGroupUUID = createSharingGroup(name: name) else {
+            XCTFail()
+            return
+        }
+        
+        // Check the local sharing groups-- should have our new one.
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.deletedOnServer else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(sharingEntry.sharingGroupName == name)
+        }
+        
+        guard initialNumberSharingGroups + 1 == SyncServer.session.sharingGroups.count else {
+            XCTFail()
+            return
+        }
+        
+        let filtered = SyncServer.session.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
+        guard filtered.count == 1, filtered[0].sharingGroupName == name else {
+            XCTFail()
+            return
+        }
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        // Should still have our new one.
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.deletedOnServer else {
+                XCTFail()
+                return
+            }
+            XCTAssert(sharingEntry.sharingGroupName == name)
+        }
+        
+        guard initialNumberSharingGroups + 1 == SyncServer.session.sharingGroups.count else {
+            XCTFail()
+            return
+        }
+        
+        let filtered2 = SyncServer.session.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
+        guard filtered2.count == 1, filtered[0].sharingGroupName == name else {
+            XCTFail()
+            return
+        }
+    }
+    
+    func testCreateSharingGroupWithoutNameUsingSyncWorks() {
+        createSharingGroupUsingSyncWorks(name: nil)
+    }
+    
+    func testCreateSharingGroupWithNameUsingSyncWorks() {
+        createSharingGroupUsingSyncWorks(name: UUID().uuidString)
+    }
+
+    // Failure when doing an upload of a bad sharing group.
+    func testUploadFileToBadSharingGroupFails() {
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        
+        let sharingGroupUUID = UUID().uuidString
+        let fileUUID = UUID().uuidString
+
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        do {
+            try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+    // Failure when creating duplicate sharing group.
+    func testCreatingDuplicateSharingGroupAfterFails() {
+        guard let sharingGroupUUID = createSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+    func testCreatingDuplicateSharingGroupBeforeSyncFails() {
+        let sharingGroupUUID = UUID().uuidString
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID)
+        } catch {
+            XCTFail()
+        }
+        
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+    // Create a sharing group, create a second sharing group: Should fail.
+    func testCreatingTwoSharingGroupsSuccessivelyFails() {
+        let sharingGroupUUID1 = UUID().uuidString
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID1)
+        } catch {
+            XCTFail()
+        }
+        
+        let sharingGroupUUID2 = UUID().uuidString
+        do {
+            try SyncServer.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID2)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+    // Try to do a sync with an unknown sharing group
+    func testSyncWithBadSharingGroupFails() {
+        do {
+            try SyncServer.session.sync(sharingGroupUUID: UUID().uuidString)
+            XCTFail()
+        } catch {
+        }
+    }
+    
+    // MARK: Updating sharing groups
 }

@@ -226,7 +226,7 @@ class ServerAPI {
     struct IndexResult {
         let fileIndex: [FileInfo]?
         let masterVersion: MasterVersionInt?
-        let sharingGroups:[SharingGroup]
+        let sharingGroups:[SyncServer_Shared.SharingGroup]
     }
     
     func index(sharingGroupUUID: String?, completion:((Result<IndexResult>)->())?) {

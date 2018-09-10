@@ -24,11 +24,12 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func testSyncFailure() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         ServerAPI.session.failEndpoints = true
         
@@ -45,11 +46,12 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func syncFailureAfterOtherClientUpload(retry:Bool = false) {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup()else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -130,11 +132,12 @@ class Client_SyncServer_Error: TestCase {
     }
 
     private func failureAfterOneUpload(retry:Bool = false) {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -293,21 +296,23 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func testFailureAfterOneDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         failureAfterOneDownload(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testFailureAfterOneDownloadWithRetry() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         failureAfterOneDownload(sharingGroupUUID: sharingGroupUUID, retry:true)
     }

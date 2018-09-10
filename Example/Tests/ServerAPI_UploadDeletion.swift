@@ -23,21 +23,23 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionActuallyUploadsTheDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeletion(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatTwoUploadDeletionsOfTheSameFileWork() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -70,11 +72,12 @@ class ServerAPI_UploadDeletion: TestCase {
     // TODO: *0* Do an upload deletion, then a second upload deletion with the same file-- make sure the 2nd one fails.
     
     func testThatActualDeletionInDebugWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -102,11 +105,12 @@ class ServerAPI_UploadDeletion: TestCase {
     }
     
     func testDeleteAllServerFiles() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
 
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -139,13 +143,9 @@ class ServerAPI_UploadDeletion: TestCase {
         }
     
         sharingGroups.forEach { sharingGroup in
-            if let sharingGroupUUID = sharingGroup.sharingGroupUUID {
-                removeAllServerFilesInFileIndex(sharingGroupUUID: sharingGroupUUID)
-                getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: []) { fileInfo in
-                    XCTFail()
-                }
-            }
-            else {
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID
+            removeAllServerFilesInFileIndex(sharingGroupUUID: sharingGroupUUID)
+            getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: []) { fileInfo in
                 XCTFail()
             }
         }

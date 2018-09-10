@@ -23,11 +23,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func startWithOneDownloadDeletion() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
         guard let (file, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {
@@ -73,11 +74,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testStartWithTwoDownloadDeletions() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
         guard let (file1, _) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {
@@ -139,11 +141,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testStartWithOneDownloadDeletionAndOneFileDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Uses SyncManager.session.start so we have the file in our local Directory after download.
         guard let (file1, masterVersion) = uploadAndDownloadOneFileUsingStart(sharingGroupUUID: sharingGroupUUID) else {
@@ -210,11 +213,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
 
     func testDownloadDeletionWithKnownDeletedFile() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         startWithOneDownloadDeletion()
         
@@ -246,11 +250,12 @@ class Client_SyncManager_DownloadDeletion: TestCase {
     }
     
     func testDownloadDeletionWhereFileWasNotInDirectoryPreviously() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
 
         uploadDeletionOfOneFileWithDoneUploads(sharingGroupUUID: sharingGroupUUID)
         

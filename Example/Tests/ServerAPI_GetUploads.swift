@@ -22,11 +22,12 @@ class ServerAPI_GetUploads: TestCase {
     }
     
     func testGetUploads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let expectation = self.expectation(description: "GetUploads")
         

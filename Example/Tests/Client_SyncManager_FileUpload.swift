@@ -42,21 +42,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testThatUploadingASingleImmutableFileWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingASingleCopyFileWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadASingleFile(copy:true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -124,21 +126,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testThatUploadingTwoSeparateImmutableFilesWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTwoSeparateFilesWorks(copy:false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingTwoSeparateCopyFilesWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTwoSeparateFilesWorks(copy:true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -205,21 +209,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testThatAddingSameImmutableFileToUploadQueueTwiceBeforeSyncReplaces() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatAddingSameCopyFileToUploadQueueTwiceBeforeSyncReplaces() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -257,21 +263,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testThatChangingTheMimeTypeOnSecondUploadImmutableFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         changingTheMimeTypeOnSecondUploadFails(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatChangingTheMimeTypeOnSecondUploadCopyFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         changingTheMimeTypeOnSecondUploadFails(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -343,21 +351,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testSyncAferCompleteUploadImmutableWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         syncAferCompleteUploadWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testSyncAferCompleteUploadCopyWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         syncAferCompleteUploadWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -470,21 +480,23 @@ class Client_SyncServer_FileUpload: TestCase {
     }
     
     func testUploadImmutableOfDifferentFilesAcrossDifferentSyncsWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testUploadCopyOfDifferentFilesAcrossDifferentSyncsWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
     }
@@ -548,21 +560,23 @@ class Client_SyncServer_FileUpload: TestCase {
     
     // The purpose of this test is to make sure that, despite the fact that we queue the file for upload, that the file creation date/time occurs *after* we start the sync operation.
     func testThatCreationDateOfImmutableFileIsCorrect() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         creationDateOfFileIsCorrect(copy: false, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatCreationDateOfCopyFileIsCorrect() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         creationDateOfFileIsCorrect(copy: true, sharingGroupUUID: sharingGroupUUID)
     }

@@ -27,22 +27,24 @@ class Client_SyncServer_Download: TestCase {
     // TODO: *1* Other download test cases using .sync()
     
     func testDownloadByDifferentDeviceUUIDThanUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
     }
     
     // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
     func testDownloadTwoFilesBackToBack() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         Log.msg("Start of testDownloadTwoFilesBackToBack")
 
@@ -120,22 +122,24 @@ class Client_SyncServer_Download: TestCase {
     }
     
     func testDownloadWithMetaData() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
     }
     
     func testThatResetWorksAfterDownload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
@@ -151,17 +155,18 @@ class Client_SyncServer_Download: TestCase {
             return
         }
         
-        let sharingGroupUUIDs = sharingGroups.filter {$0.sharingGroupUUID != nil}.map {$0.sharingGroupUUID!}
+        let sharingGroupUUIDs = sharingGroups.map {$0.sharingGroupUUID}
         assertThereIsNoMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
     }
     
     // TODO: *2* This test typically fails when run as a group with other tests. Why?
     func testGetStats() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup()else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // 1) Get a download deletion ready
         

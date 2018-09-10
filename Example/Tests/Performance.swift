@@ -80,42 +80,46 @@ class Performance: TestCase {
     }
     
     func test10SmallTextFileDownloads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
     }
     
     func test10_120K_ImageFileDownloads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
  
     // 5/27/17; I've been having problems with large-ish downloads. E.g., See https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
     func test10SmallerImageFileDownloads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
     
     func test10LargeImageFileDownloads() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
     }
@@ -128,21 +132,23 @@ class Performance: TestCase {
     
     // TODO: *0* Change this to not allow retries at the ServerAPI or networking level. i.e., so that it fails if a retry was to be required.
     func test10SmallTextFileDownloadsInterspersed() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         interspersedDownloadsOfSmallTextFile(10, sharingGroupUUID: sharingGroupUUID)
     }
     
     func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
 
         // First upload N files.
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -188,11 +194,13 @@ class Performance: TestCase {
     // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39
     // This test case did *not* reproduce the issue.
     func testFileIndexWhileDownloadingImages() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
         
         // Goal-- to download 10 images using sync, and do FileIndex's (just using the ServerAPI) while those are going on.
         

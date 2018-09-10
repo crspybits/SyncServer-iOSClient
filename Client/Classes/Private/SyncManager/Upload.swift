@@ -32,6 +32,7 @@ class Upload {
         case fileUploaded(SyncAttributes, uft: UploadFileTracker)
         case appMetaDataUploaded(uft: UploadFileTracker)
         case uploadDeletion(fileUUID:String)
+        case sharingGroupCreated
         case masterVersionUpdate
         case error(SyncServerError)
     }
@@ -125,12 +126,48 @@ class Upload {
             return uploadDeletion(nextToUpload:uploadFileTracker, uploadQueue:uploadQueue, masterVersion:masterVersion)
             
         case .sharingGroup:
-            return uploadSharingGroupOperation(sgut: sharingGroupUploadTracker)
+            return uploadSharingGroupOperation(nextToUpload: sharingGroupUploadTracker)
         }
     }
     
-    private func uploadSharingGroupOperation(sgut: SharingGroupUploadTracker) -> NextResult {
+    private func uploadSharingGroupOperation(nextToUpload: SharingGroupUploadTracker) -> NextResult {
+        var sharingGroupUUID: String!
+        var sharingGroupName: String?
+        var nextResult:NextResult?
         
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            sharingGroupUUID = nextToUpload.sharingGroupUUID
+            sharingGroupName = nextToUpload.sharingGroupName
+        }
+        
+        guard nextResult == nil else {
+            return nextResult!
+        }
+        
+        ServerAPI.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: sharingGroupName) { error in
+        
+            guard error == nil else {
+                self.uploadError(.otherError(error!), nextToUpload: nextToUpload)
+                return
+            }
+            
+            var completionResult:NextCompletion?
+
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                nextToUpload.status = .uploaded
+                
+                do {
+                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                } catch (let error) {
+                    completionResult = .error(.coreDataError(error))
+                    return
+                }
+                
+                completionResult = .sharingGroupCreated
+            }
+
+            self.completion?(completionResult!)
+        }
     
         return .started
     }
@@ -404,9 +441,17 @@ class Upload {
         completion?(completionResult!)
     }
     
-    private func uploadError(_ error: SyncServerError, nextToUpload:UploadFileTracker) {
+    private func uploadError(_ error: SyncServerError, nextToUpload:Tracker) {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            nextToUpload.status = .notStarted
+            if let uploadFileTracker = nextToUpload as? UploadFileTracker {
+                uploadFileTracker.status = .notStarted
+            }
+            else if let sharingTracker = nextToUpload as? SharingGroupUploadTracker {
+                sharingTracker.status = .notStarted
+            }
+            else {
+                assert(false)
+            }
             
             // Already have an error, not going to worry about reporting one for saveContext.
             CoreData.sessionNamed(Constants.coreDataName).saveContext()

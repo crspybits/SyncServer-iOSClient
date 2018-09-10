@@ -268,7 +268,7 @@ class TestCase: XCTestCase {
         return masterVersionUpdate
     }
     
-    func getFirstSharingGroup() -> SharingGroup? {
+    func getFirstSharingGroup() -> SyncServer.SharingGroup? {
         let sharingGroups = SyncServer.session.sharingGroups
         guard sharingGroups.count > 0 else {
             XCTFail()
@@ -278,7 +278,7 @@ class TestCase: XCTestCase {
         return sharingGroups[0]
     }
     
-    func getSharingGroups() -> [SharingGroup]? {
+    func getSharingGroups() -> [SyncServer.SharingGroup]? {
         let sharingGroups = SyncServer.session.sharingGroups        
         return sharingGroups
     }
@@ -1035,12 +1035,8 @@ class TestCase: XCTestCase {
             }
         
             sharingGroups.forEach { sharingGroup in
-                if let sharingGroupUUID = sharingGroup.sharingGroupUUID {
-                    removeAllServerFilesInFileIndex(sharingGroupUUID: sharingGroupUUID, actualDeletion:actualDeletion)
-                }
-                else {
-                    XCTFail()
-                }
+                let sharingGroupUUID = sharingGroup.sharingGroupUUID
+                removeAllServerFilesInFileIndex(sharingGroupUUID: sharingGroupUUID, actualDeletion:actualDeletion)
             }
         }
         

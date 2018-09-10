@@ -30,11 +30,12 @@ class ServerAPI_MultiVersionFiles: TestCase {
 
     // Uploading version 1 of file with nil app meta data doesn't reset app meta data.
     func testAppMetaDataNotChangedWithNilValue() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -69,21 +70,23 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadTextFileVersion1() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTextFileVersion(1, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadingNonConsecutiveFileVersionFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard var masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -147,21 +150,23 @@ class ServerAPI_MultiVersionFiles: TestCase {
     
     // Upload deletion
     func testUploadDeleteFileVersion1() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeleteFileVersion1(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testUploadAfterUploadDeleteOfVersion1Fails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let file:ServerAPI.File = uploadDeleteFileVersion1(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -177,21 +182,23 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
 
     func testUploadAndDownloadTextFileVersion5Works() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTextFileVersion(5, sharingGroupUUID: sharingGroupUUID)
     }
     
     func testUploadAndDownloadImageFileVersion2Works() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileName = "Cat"
         let fileExtension = "jpg"
@@ -201,11 +208,12 @@ class ServerAPI_MultiVersionFiles: TestCase {
     }
     
     func testUploadUndeletionVersion1Works() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let file:ServerAPI.File = uploadDeleteFileVersion1(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -269,11 +277,12 @@ class ServerAPI_MultiVersionFiles: TestCase {
         Let's try having one of each of these and then do a DoneUploads.
     */
     func testDifferentTypesOfUploadAtSameTime() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // This is preparation: Getting ready for staging the items to be pending for the DoneUploads test.
         guard let file1:ServerAPI.File = uploadDeleteFileVersion1(sharingGroupUUID: sharingGroupUUID) else {

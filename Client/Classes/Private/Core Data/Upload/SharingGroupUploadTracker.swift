@@ -36,6 +36,16 @@ public class SharingGroupUploadTracker: Tracker, CoreDataModel, AllOperations {
         case removeUser
     }
     
+    var sharingGroupOperation:SharingGroupOperation {
+        get {
+            return SharingGroupOperation(rawValue: sharingGroupOperationInternal!)!
+        }
+        
+        set {
+            sharingGroupOperationInternal = newValue.rawValue
+        }
+    }
+    
     public class func entityName() -> String {
         return "SharingGroupUploadTracker"
     }

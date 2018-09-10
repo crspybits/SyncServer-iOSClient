@@ -26,11 +26,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Upload a file, with nil appMetaData-- make sure doesn't change current appMetaDataVersion, e.g., in the local directory entry.
     func testNilAppMetaDataDoesNotChangeLocalDirectoryAppMetaData() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         let appMetaData1 = "foobar"
@@ -61,11 +62,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Upload a file, with non-nil appMetaData-- make sure updates current appMetaDataVersion, e.g., in the local directory entry.
     func testNonNilAppMetaDataChangesLocalDirectoryAppMetaData() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         let appMetaData1 = "foobar1"
@@ -111,11 +113,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a file with nil appMetaData-- must have nil appMetaDataVersion
     func testNilAppMetaDataOnDownloadWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let fileUUID = doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -139,11 +142,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a file with non-nil appMetaData-- must have non-nil appMetaDataVersion
     func testNonNilAppMetaDataOnDownloadWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
         guard let fileUUID = doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData) else {
@@ -168,11 +172,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Download a purely app meta data update-- so that I get the delegate callback.
     func testAppMetaDataOnlyDownloadWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         guard let _ = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID:fileUUID) else {
@@ -226,11 +231,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataOnlyUploadWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID:fileUUID) else {
@@ -287,11 +293,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testVersion1AppMetaDataOnlyUploadWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         // Upload appMetaData version 0
         let fileUUID = UUID().uuidString
@@ -351,11 +358,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testUploadThenAppMetaDataUploadRemovesUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
 
@@ -380,11 +388,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadThenUploadRemovesAppMetaDataUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID:fileUUID) else {
@@ -410,11 +419,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     }
     
     func testAppMetaDataUploadThenAppMetaDataUploadRemovesFirst() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID:fileUUID) else {
@@ -444,11 +454,12 @@ class Client_SyncServer_AppMetaData: TestCase {
     
     // Error case: Cannot upload v0 of a file using appMetaData upload.
     func testUploadV0FileWithAppMetaUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let fileUUID = UUID().uuidString
         

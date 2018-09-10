@@ -54,11 +54,12 @@ class CoreDataTests: TestCase {
     }
     
     func testThatPendingSyncQueueCanAddObject() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup()else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupUUID: sharingGroupUUID)
@@ -80,11 +81,12 @@ class CoreDataTests: TestCase {
     }
     
     func testMovePendingSyncToSynced() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupUUID: sharingGroupUUID)
@@ -99,11 +101,12 @@ class CoreDataTests: TestCase {
     }
     
     func testThatGetHeadSyncQueueWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupUUID: sharingGroupUUID)
@@ -123,11 +126,12 @@ class CoreDataTests: TestCase {
     }
     
     func testThatRemoveHeadSyncQueueWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupUUID: sharingGroupUUID)
@@ -159,7 +163,7 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        let sharingGroupUUIDs = sharingGroups.filter {$0.sharingGroupUUID != nil}.map {$0.sharingGroupUUID!}
+        let sharingGroupUUIDs = sharingGroups.map {$0.sharingGroupUUID}
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
     }
     
@@ -180,16 +184,17 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        let sharingGroupUUIDs = sharingGroups.filter {$0.sharingGroupUUID != nil}.map {$0.sharingGroupUUID!}
+        let sharingGroupUUIDs = sharingGroups.map {$0.sharingGroupUUID}
         assertThereIsNoMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
     }
     
     func testLogAllTracking() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         XCTAssert(Log.deleteLogFile())
         
@@ -226,10 +231,7 @@ class CoreDataTests: TestCase {
         }
         
         let sharingGroup = sharingGroups[0]
-        guard let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
-            XCTFail()
-            return
-        }
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             self.addObjectToPendingSync(sharingGroupUUID: sharingGroupUUID)
@@ -248,7 +250,7 @@ class CoreDataTests: TestCase {
             XCTFail("\(error)")
         }
         
-        let sharingGroupUUIDs = sharingGroups.filter {$0.sharingGroupUUID != nil}.map {$0.sharingGroupUUID!}
+        let sharingGroupUUIDs = sharingGroups.map {$0.sharingGroupUUID}
         
         assertThereIsNoMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
     }
@@ -387,11 +389,12 @@ class CoreDataTests: TestCase {
     }
     
     func testAddDifferentSharingGroupIdsToSameDCGFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
@@ -419,11 +422,12 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToNewFileGroup() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
@@ -451,11 +455,12 @@ class CoreDataTests: TestCase {
     }
     
     func testAddToExistingFileGroup() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             XCTAssert(DownloadContentGroup.fetchAll().count == 0)
@@ -495,11 +500,12 @@ class CoreDataTests: TestCase {
     }
     
     func testFileGroupFudgeCase() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let dft = DownloadFileTracker.newObject() as! DownloadFileTracker

@@ -81,21 +81,23 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatUploadDeletionWorksWhenWaitUntilAfterUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID)
     }
     
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
@@ -173,11 +175,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
 
     func testUploadImmediatelyFollowedByDeletionWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID = UUID().uuidString
@@ -220,11 +223,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionImmediatelyFollowedByFileUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -242,11 +246,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionImmediatelyFollowedByAppMetaDataUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -266,11 +271,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatDeletionWithSyncFollowedByFileUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (url, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -286,11 +292,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     // Delete, sync, upload in immediate succession -- of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByFileUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup()else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -325,11 +332,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     
     // Delete, sync, delete in immediate succession -- second delete of the same file should fail.
     func testThatDeletionWithSyncImmediatelyFollowedByDeleteFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -363,11 +371,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -394,11 +403,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let (_, attr) = uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -413,11 +423,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleFileDeletionWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -483,11 +494,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleSimultaneousFileDeletionWorks() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString
@@ -552,11 +564,12 @@ class Client_SyncServer_UploadDeletion: TestCase {
     }
     
     func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
         let fileUUID1 = UUID().uuidString

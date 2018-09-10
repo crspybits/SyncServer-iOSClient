@@ -45,22 +45,24 @@ class ServerAPI_FileIndex: TestCase {
     }
     
     func testFileIndex() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID)
     }
     
     // Added this due some debugging of a problem I was doing on 1/16/18.
     func testFileIndexFollowedByUpload() {
-        guard let sharingGroup = getFirstSharingGroup(),
-            let sharingGroupUUID = sharingGroup.sharingGroupUUID else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         guard let result = getFileIndexAndMasterVersion(sharingGroupUUID: sharingGroupUUID),
             let masterVersion = result.masterVersion else {
