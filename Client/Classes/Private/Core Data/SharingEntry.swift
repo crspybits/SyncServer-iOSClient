@@ -25,7 +25,10 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
     
     public class func newObject() -> NSManagedObject {
         let se = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! SharingEntry
-        se.deletedOnServer = false
+        
+        // Has the current user been removed from this group?
+        se.removedFromGroup = false
+        
         se.masterVersion = 0
         return se
     }
@@ -80,12 +83,12 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         }
         
         // Now, do the opposite and figure out which sharing groups have been removed or we've been remove from.
-        let localSharingGroups = SharingEntry.fetchAll().filter {!$0.deletedOnServer}
+        let localSharingGroups = SharingEntry.fetchAll().filter {!$0.removedFromGroup}
         localSharingGroups.forEach { localSharingGroup in
             let filtered = serverSharingGroups.filter {$0.sharingGroupUUID == localSharingGroup.sharingGroupUUID}
             if filtered.count == 0 {
                 // We're no longer a member of this sharing group.
-                localSharingGroup.deletedOnServer = true
+                localSharingGroup.removedFromGroup = true
                 let deletedSharingGroup = SharingGroup()!
                 deletedSharingGroup.sharingGroupUUID = localSharingGroup.sharingGroupUUID
                 deletedSharingGroup.sharingGroupName = localSharingGroup.sharingGroupName

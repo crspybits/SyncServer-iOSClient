@@ -250,6 +250,11 @@ class SyncManager {
                 
             case .sharingGroupCreated:
                 self?.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
+            
+            case .userRemovedFromSharingGroup:
+                // No need to check for pending uploads-- this will have been the only operation in the queue. And don't do done uploads-- that will fail because we're no longer in the sharing group (and wouldn't do anything even if we were).
+                SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
+                self?.callback?(nil)
                 
             case .masterVersionUpdate:
                 // Things have changed on the server. Check for downloads again. Don't go all the way back to `start` because we know that we don't have queued downloads.
@@ -265,8 +270,11 @@ class SyncManager {
             // Don't do anything. `next` completion will invoke callback.
             break
             
+        case .noOperation:
+           self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
+            
         case .noUploads:
-            SyncManager.cleanupUploads()
+            SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
             callback?(nil)
             
         case .allUploadsCompleted:
@@ -414,7 +422,7 @@ class SyncManager {
                     }
                 } // end perform
                 
-                SyncManager.cleanupUploads()
+                SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
                 
                 self.callback?(errorResult)
             }
@@ -423,15 +431,27 @@ class SyncManager {
 
     // 4/22/18; I ran into the need for this during a crash Dany was having. For some reason there were 10 uft's on his app that were marked as uploaded. But for some reason had never been deleted. I'm calling this from places where there should not be uft's in this state-- so they should be removed. This is along the lines of garbage collection. Not sure why it's needed...
     // Not marking this as `private` so I can add a test case.
-    static func cleanupUploads() {
+    static func cleanupUploads(sharingGroupUUID: String) {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            let uploadedUfts = UploadFileTracker.fetchAll().filter { $0.status == .uploaded }
+            let uploadedUfts = UploadFileTracker.fetchAll().filter
+                { $0.status == .uploaded && $0.sharingGroupUUID == sharingGroupUUID}
             uploadedUfts.forEach { uft in
                 do {
                     try uft.remove()
                 } catch (let error) {
                     Log.error("Error removing uft: \(error)")
                 }
+            }
+            
+            let uploadedSguts = SharingGroupUploadTracker.fetchAll().filter
+                { $0.status == .uploaded && $0.sharingGroupUUID == sharingGroupUUID}
+            uploadedSguts.forEach { sgut in
+                sgut.remove()
+            }
+            
+            let emptyQueues = UploadQueue.fetchAll().filter {$0.uploadTrackers.count == 0}
+            emptyQueues.forEach { emptyQueue in
+                emptyQueue.remove()
             }
             
             CoreData.sessionNamed(Constants.coreDataName).saveContext()

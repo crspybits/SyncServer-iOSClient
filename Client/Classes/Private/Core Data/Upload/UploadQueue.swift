@@ -57,4 +57,8 @@ public class UploadQueue: NSManagedObject, AllOperations {
     var sharingGroupUploadTrackers: [SharingGroupUploadTracker] {
         return uploadTrackers.filter {$0 is SharingGroupUploadTracker} as! [SharingGroupUploadTracker]
     }
+    
+    func remove() {
+        CoreData.sessionNamed(Constants.coreDataName).remove(self)
+    }
 }

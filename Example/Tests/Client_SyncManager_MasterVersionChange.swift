@@ -67,7 +67,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 if singleUploadsCompleted == 1 {
                     // Serious faking of the master version change between the two file uploads. :). I was having too much problem trying to do an intervening upload right here.
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                             XCTFail()
                             return
                         }
@@ -97,7 +97,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
@@ -174,7 +174,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                             XCTFail()
                             return
                         }
@@ -201,7 +201,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         var masterVersion:MasterVersionInt!
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
@@ -280,7 +280,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
                 singleUploadsCompleted += 1
                 if singleUploadsCompleted == 1 {
                     CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+                        guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                             XCTFail()
                             return
                         }

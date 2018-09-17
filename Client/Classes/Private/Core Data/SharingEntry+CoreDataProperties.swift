@@ -2,7 +2,7 @@
 //  SharingEntry+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 9/4/18.
+//  Created by Christopher G Prince on 9/16/18.
 //
 //
 
@@ -16,9 +16,9 @@ extension SharingEntry {
         return NSFetchRequest<SharingEntry>(entityName: "SharingEntry")
     }
 
-    @NSManaged public var sharingGroupUUID: String?
-    @NSManaged public var sharingGroupName: String?
-    @NSManaged public var deletedOnServer: Bool
+    @NSManaged public var removedFromGroup: Bool
     @NSManaged public var masterVersion: Int64
+    @NSManaged public var sharingGroupName: String?
+    @NSManaged public var sharingGroupUUID: String?
 
 }

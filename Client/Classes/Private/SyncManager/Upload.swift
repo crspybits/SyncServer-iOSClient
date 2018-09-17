@@ -23,6 +23,7 @@ class Upload {
     
     enum NextResult {
         case started
+        case noOperation
         case noUploads
         case allUploadsCompleted
         case error(SyncServerError)
@@ -33,6 +34,7 @@ class Upload {
         case appMetaDataUploaded(uft: UploadFileTracker)
         case uploadDeletion(fileUUID:String)
         case sharingGroupCreated
+        case userRemovedFromSharingGroup
         case masterVersionUpdate
         case error(SyncServerError)
     }
@@ -51,6 +53,7 @@ class Upload {
         var numberSharingGroupOperations:Int!
         var uploadFileTracker: UploadFileTracker!
         var sharingGroupUploadTracker: SharingGroupUploadTracker!
+        var sharingGroupOperation: SharingGroupUploadTracker.SharingGroupOperation!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID)
@@ -88,6 +91,7 @@ class Upload {
             case .some(let sgut as SharingGroupUploadTracker):
                 sgut.status = .uploading
                 sharingGroupUploadTracker = sgut
+                sharingGroupOperation = sgut.sharingGroupOperation
             default:
                 assert(false)
                 break
@@ -126,22 +130,81 @@ class Upload {
             return uploadDeletion(nextToUpload:uploadFileTracker, uploadQueue:uploadQueue, masterVersion:masterVersion)
             
         case .sharingGroup:
-            return uploadSharingGroupOperation(nextToUpload: sharingGroupUploadTracker)
+            switch sharingGroupOperation! {
+            case .create:
+                return createSharingGroup(nextToUpload: sharingGroupUploadTracker)
+            case .update:
+                return updateSharingGroup(nextToUpload: sharingGroupUploadTracker)
+            case .removeUser:
+                return removeUserFromSharingGroup(nextToUpload: sharingGroupUploadTracker, uploadQueue:uploadQueue, masterVersion: masterVersion)
+            }
         }
     }
     
-    private func uploadSharingGroupOperation(nextToUpload: SharingGroupUploadTracker) -> NextResult {
+    private func removeUserFromSharingGroup(nextToUpload: SharingGroupUploadTracker, uploadQueue:UploadQueue, masterVersion: MasterVersionInt) -> NextResult {
+        var sharingGroupUUID: String!
+
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            sharingGroupUUID = nextToUpload.sharingGroupUUID
+        }
+        
+        ServerAPI.session.removeUserFromSharingGroup(sharingGroupUUID: sharingGroupUUID, masterVersion: masterVersion) { response in
+            switch response {
+            case .success(let result):
+                if let masterVersionUpdate = result {
+                    self.masterVersionUpdate(uploadQueue:uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
+                }
+                else {
+                    var completionResult:NextCompletion?
+
+                    CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                        nextToUpload.status = .uploaded
+                        
+                        do {
+                            try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                        } catch (let error) {
+                            completionResult = .error(.coreDataError(error))
+                            return
+                        }
+                        
+                        completionResult = .userRemovedFromSharingGroup
+                    }
+
+                    self.completion?(completionResult!)
+                }
+            case .error(let error):
+                self.uploadError(.otherError(error), nextToUpload: nextToUpload)
+            }
+        }
+        
+        return .started
+    }
+    
+    private func updateSharingGroup(nextToUpload: SharingGroupUploadTracker) -> NextResult {
+        var result: NextResult = .noOperation
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            // Delayed until we do the DoneUploads.
+            nextToUpload.status = .delayed
+            
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let error) {
+                result = .error(.coreDataError(error))
+                return
+            }
+        }
+        
+        return result
+    }
+    
+    private func createSharingGroup(nextToUpload: SharingGroupUploadTracker) -> NextResult {
         var sharingGroupUUID: String!
         var sharingGroupName: String?
-        var nextResult:NextResult?
-        
+
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             sharingGroupUUID = nextToUpload.sharingGroupUUID
             sharingGroupName = nextToUpload.sharingGroupName
-        }
-        
-        guard nextResult == nil else {
-            return nextResult!
         }
         
         ServerAPI.session.createSharingGroup(sharingGroupUUID: sharingGroupUUID, sharingGroupName: sharingGroupName) { error in
@@ -415,13 +478,32 @@ class Upload {
     private func masterVersionUpdate(uploadQueue:UploadQueue, masterVersionUpdate: MasterVersionInt, sharingGroupUUID: String) {
         var completionResult:NextCompletion?
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            // Simplest method for now: Mark all uft's as .notStarted
+            // Simplest method for now: Mark all upload trackers as .notStarted
             // TODO: *4* This could be better-- performance-wise, it doesn't make sense to do all the uploads over again.
-            _ = uploadQueue.uploadFileTrackers.map { uft in
+            uploadQueue.uploadFileTrackers.forEach { uft in
                 uft.status = .notStarted
             }
+    
+            /* [3] SGUT's are more complicated.
+                a) creation of sharing group:
+                    Cannot cause a master version update. If done, don't do again.
+                b) sharing group update:
+                    No problem if done > once.
+                c) removal of user from sharing group:
+                    Can cause a master version update. But will be the only thing in the queue. So, do again if caused a master version update.
+            */
+            uploadQueue.sharingGroupUploadTrackers.forEach { sgut in
+                switch sgut.sharingGroupOperation {
+                case .create:
+                    break
+                case .update:
+                    sgut.status = .notStarted
+                case .removeUser:
+                    sgut.status = .notStarted
+                }
+            }
 
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 completionResult = .error(.generic("Could not get Sharing Entry."))
                 return
             }
@@ -476,9 +558,46 @@ class Upload {
     func doneUploads(sharingGroupUUID: String, completion:((DoneUploadsCompletion)->())?) {
         var masterVersion:MasterVersionInt!
         var sharingEntry:SharingEntry!
+        var errorCheckingForSharingGroupUpdate = false
+        var sharingGroupNameUpdate: String?
+        var sharingGroupUpdate: SharingGroupUploadTracker?
+
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID)
+            guard !sharingEntry.removedFromGroup else {
+                sharingEntry = nil
+                return
+            }
+            
             masterVersion = sharingEntry.masterVersion
+            
+            // See if we need to do a sharing group update along with the DoneUploads.
+            let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID)
+            guard uploadQueue != nil else {
+                errorCheckingForSharingGroupUpdate = true
+                return
+            }
+
+            let updates = uploadQueue!.sharingGroupUploadTrackers.filter {$0.sharingGroupOperation == .update}
+            if updates.count > 0 {
+                if updates.count > 1 {
+                    errorCheckingForSharingGroupUpdate = true
+                    Log.error("More than one sharing group update in same queue!")
+                    return
+                }
+                
+                sharingGroupNameUpdate = updates[0].sharingGroupName
+                sharingGroupUpdate = updates[0]
+                sharingGroupUpdate!.status = .uploading
+                
+                do {
+                    try CoreData.sessionNamed(Constants.coreDataName).context.save()
+                } catch (let error) {
+                    errorCheckingForSharingGroupUpdate = true
+                    Log.error("Error saving change to sharing group: \(error)")
+                    return
+                }
+            }
         }
         
         if sharingEntry == nil {
@@ -486,7 +605,12 @@ class Upload {
             return
         }
         
-        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) { (result, error) in
+        if errorCheckingForSharingGroupUpdate {
+            completion?(.error(.generic("There was an error checking for a sharing group name update.")))
+            return
+        }
+        
+        ServerAPI.session.doneUploads(serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, sharingGroupNameUpdate: sharingGroupNameUpdate) { (result, error) in
             guard error == nil else {
                 completion?(.error(error!))
                 return
@@ -498,6 +622,12 @@ class Upload {
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     // Master version was incremented on the server as part of normal doneUploads operation. Update ours locally.
                     sharingEntry.masterVersion += 1
+                    
+                    // If we did a sharing group name update on the server, apply it locally so we're in sync on sharing group names. (And don't have to do another sync() to apply the update.
+                    if let sharingGroupNameUpdate = sharingGroupNameUpdate {
+                        sharingEntry.sharingGroupName = sharingGroupNameUpdate
+                        sharingGroupUpdate!.status = .uploaded
+                    }
                     
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
@@ -513,31 +643,21 @@ class Upload {
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
                 var completionResult:DoneUploadsCompletion?
+                var uploadQueue: UploadQueue!
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    guard let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) else {
+                    uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID)
+                    guard uploadQueue != nil else {
                         completionResult = .error(.generic("Failed on getHeadSyncQueue"))
                         return
                     }
-                    
-                    // Simplest method for now: Mark all uft's as .notStarted
-                    // TODO: *4* This could be better-- performance-wise, it doesn't make sense to do all the uploads over again.
-                    _ = uploadQueue.uploadFileTrackers.map { uft in
-                        uft.status = .notStarted
-                    }
-
-                    sharingEntry.masterVersion = masterVersionUpdate
-                    
-                    do {
-                        try CoreData.sessionNamed(Constants.coreDataName).context.save()
-                    } catch (let error) {
-                        completionResult = .error(.coreDataError(error))
-                        return
-                    }
-                                        
-                    completionResult = .masterVersionUpdate
                 } // end perform
                 
-                completion?(completionResult!)
+                if completionResult != nil {
+                    completion?(completionResult!)
+                    return
+                }
+                
+                self.masterVersionUpdate(uploadQueue:uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
             }
         }
     }

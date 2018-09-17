@@ -16,6 +16,10 @@ public class SharingGroupUploadTracker: Tracker, CoreDataModel, AllOperations {
     
     enum Status : String {
         case notStarted
+        
+        // Just for sharing group updates.
+        case delayed
+        
         case uploading
         case uploaded
     }
@@ -54,5 +58,9 @@ public class SharingGroupUploadTracker: Tracker, CoreDataModel, AllOperations {
         let sgut = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! SharingGroupUploadTracker
         sgut.status = .notStarted
         return sgut
+    }
+    
+    func remove() {        
+        CoreData.sessionNamed(Constants.coreDataName).remove(self)
     }
 }

@@ -6,14 +6,14 @@ PODS:
   - Bolts/AppLinks (1.9.0):
     - Bolts/Tasks
   - Bolts/Tasks (1.9.0)
-  - FacebookCore (0.3.2):
-    - Bolts (~> 1.8)
-    - FBSDKCoreKit (~> 4.35)
-  - FacebookLogin (0.3.2):
-    - Bolts (~> 1.8)
-    - FacebookCore (~> 0.3.2)
-    - FBSDKCoreKit (~> 4.35)
-    - FBSDKLoginKit (~> 4.35)
+  - FacebookCore (0.3.3):
+    - Bolts (~> 1.9)
+    - FBSDKCoreKit (~> 4.36)
+  - FacebookLogin (0.3.3):
+    - Bolts (~> 1.9)
+    - FacebookCore (~> 0.3.3)
+    - FBSDKCoreKit (~> 4.36)
+    - FBSDKLoginKit (~> 4.36)
   - FBSDKCoreKit (4.36.0):
     - Bolts (~> 1.7)
   - FBSDKLoginKit (4.36.0):
@@ -34,7 +34,7 @@ PODS:
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.0)
     - SyncServer/Lite (= 17.0.0)
-  - SyncServer-Shared (9.1.1):
+  - SyncServer-Shared (9.2.1):
     - Gloss (~> 1.2)
   - SyncServer/Dropbox (17.0.0):
     - Gloss (~> 1.2)
@@ -60,7 +60,7 @@ PODS:
 DEPENDENCIES:
   - SMCoreLib (~> 1.3)
   - SyncServer (from `..`)
-  - SyncServer-Shared (~> 9.1)
+  - SyncServer-Shared (~> 9.2)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -90,8 +90,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
-  FacebookCore: fe93222bb70346730ef33b061d493e9e7a7cb1f5
-  FacebookLogin: a4e225974791c82836765a294582b4778baffc07
+  FacebookCore: 9ecbe48cfd37c91a93add7f8cec2b4a2c50a1eec
+  FacebookLogin: bdaea5789e9b364fa8a1990ba3bbba4fd2197415
   FBSDKCoreKit: 3b8e6570eedb443f9fc4af196a7bf39f18e3a3d8
   FBSDKLoginKit: 8bccb6064708ab2f4251a7fc4e3b6d8d00ad91ba
   Gloss: 4e036074610fdb993abcb958ebcd7332588e2333
@@ -102,8 +102,8 @@ SPEC CHECKSUMS:
   SwiftyBeaver: 86a40205740357f2a091724fbbe29b927ef3f4d4
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
   SyncServer: 8365a49db9c0127706b895ad1e3a9a0ced8dcafe
-  SyncServer-Shared: dd12045d7db6e40ad08b75eea48ce3ee0045969a
+  SyncServer-Shared: 30f5896bcdc4aa4d2c5d4a8b233f45e5cd29d6e5
 
-PODFILE CHECKSUM: 965b593157cf356e9d03f8aa0630ec3a7a8ce65a
+PODFILE CHECKSUM: 5e3f62670f2e83c2e5bca0c05d906b95308ec46f
 
 COCOAPODS: 1.5.3

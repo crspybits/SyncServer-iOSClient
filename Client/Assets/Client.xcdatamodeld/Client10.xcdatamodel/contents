@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14135" systemVersion="17E202" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14135" systemVersion="17G65" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="DirectoryEntry" representedClassName="DirectoryEntry" syncable="YES">
         <attribute name="appMetaData" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="appMetaDataVersionInternal" optional="YES" attributeType="Integer 32" usesScalarValueType="NO" syncable="YES"/>
@@ -44,8 +44,8 @@
         <attribute name="serverURLKey" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <entity name="SharingEntry" representedClassName="SharingEntry" syncable="YES">
-        <attribute name="deletedOnServer" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="masterVersion" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="removedFromGroup" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="sharingGroupName" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="sharingGroupUUID" optional="YES" attributeType="String" syncable="YES"/>
     </entity>

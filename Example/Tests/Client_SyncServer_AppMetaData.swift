@@ -290,6 +290,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == updatedAttr.appMetaData)
             XCTAssert(directoryEntries[0].appMetaDataVersion == 0)
         }
+        
+        assertUploadTrackersAreReset()
     }
     
     func testVersion1AppMetaDataOnlyUploadWorks() {

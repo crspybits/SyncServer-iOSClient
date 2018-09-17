@@ -532,17 +532,20 @@ class CoreDataTests: TestCase {
     }
     
     func testCleanupUploads() {
+        let sharingGroupUUID = UUID().uuidString
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let uft1 = UploadFileTracker.newObject() as! UploadFileTracker
             uft1.status = .uploaded
+            uft1.sharingGroupUUID = sharingGroupUUID
             
             let uft2 = UploadFileTracker.newObject() as! UploadFileTracker
             uft2.status = .uploaded
+            uft2.sharingGroupUUID = sharingGroupUUID
             
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
         }
         
-        SyncManager.cleanupUploads()
+        SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let ufts = UploadFileTracker.fetchAll().filter {$0.status == .uploaded}

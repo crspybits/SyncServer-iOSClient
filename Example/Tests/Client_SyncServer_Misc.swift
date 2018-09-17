@@ -59,7 +59,7 @@ class Client_SyncServer_Misc: TestCase {
         var masterVersion: MasterVersionInt!
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }

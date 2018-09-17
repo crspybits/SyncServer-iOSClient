@@ -50,6 +50,8 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID)
+        
+        assertUploadTrackersAreReset()
     }
     
     func testThatUploadingASingleCopyFileWorks() {
@@ -61,6 +63,8 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadASingleFile(copy:true, sharingGroupUUID: sharingGroupUUID)
+        
+        assertUploadTrackersAreReset()
     }
     
     func uploadTwoSeparateFilesWorks(copy:Bool, sharingGroupUUID: String) {

@@ -105,6 +105,35 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    func assertUploadTrackersAreReset() {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let uploadTrackers = UploadFileTracker.fetchAll()
+            guard uploadTrackers.count == 0 else {
+                XCTFail()
+                return
+            }
+            
+            let sharingTrackers = SharingGroupUploadTracker.fetchAll()
+            guard sharingTrackers.count == 0 else {
+                XCTFail()
+                return
+            }
+            
+            let queues = UploadQueue.fetchAll()
+            guard queues.count <= 1 else {
+                XCTFail()
+                return
+            }
+            
+            if queues.count == 1 {
+                guard queues[0].uploadTrackers.count == 0 else {
+                    XCTFail()
+                    return
+                }
+            }
+        }
+    }
+    
     func setupTest(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
         if !updateSharingGroupsWithSync() {
             XCTFail()
@@ -139,7 +168,7 @@ class TestCase: XCTestCase {
         var result: MasterVersionInt?
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
@@ -155,7 +184,7 @@ class TestCase: XCTestCase {
         var result = false
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
@@ -172,7 +201,7 @@ class TestCase: XCTestCase {
         var result = false
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
@@ -994,7 +1023,7 @@ class TestCase: XCTestCase {
                 XCTFail()
             }
         }
-        
+
         if uploadCopy {
             try! SyncServer.session.uploadCopy(localFile: url, withAttributes: attr)
             // To truly exercise the `copy` characteristics-- delete the file now.

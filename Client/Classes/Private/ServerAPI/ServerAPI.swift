@@ -369,7 +369,7 @@ class ServerAPI {
     }
     
     // I'm providing a numberOfDeletions parameter here because the duration of these requests varies, if we're doing deletions, based on the number of items we're deleting.
-    func doneUploads(serverMasterVersion:MasterVersionInt!, sharingGroupUUID: String, numberOfDeletions:UInt = 0, completion:((DoneUploadsResult?, SyncServerError?)->(Void))?) {
+    func doneUploads(serverMasterVersion:MasterVersionInt!, sharingGroupUUID: String, numberOfDeletions:UInt = 0, sharingGroupNameUpdate: String? = nil, completion:((DoneUploadsResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.doneUploads
         
         // See https://developer.apple.com/reference/foundation/nsurlsessionconfiguration/1408259-timeoutintervalforrequest
@@ -382,6 +382,10 @@ class ServerAPI {
         var params = [String : Any]()
         params[ServerEndpoint.masterVersionKey] = serverMasterVersion
         params[ServerEndpoint.sharingGroupUUIDKey] = sharingGroupUUID
+        
+        if let sharingGroupNameUpdate = sharingGroupNameUpdate {
+            params[DoneUploadsRequest.sharingGroupNameKey] = sharingGroupNameUpdate
+        }
         
 #if DEBUG
         if let testLockSync = delegate?.doneUploadsRequestTestLockSync(forServerAPI: self) {

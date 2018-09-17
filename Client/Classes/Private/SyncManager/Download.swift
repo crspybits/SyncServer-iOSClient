@@ -406,7 +406,7 @@ class Download {
             DownloadFileTracker.removeAll()
             DownloadContentGroup.removeAll()
             
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 nextCompletionResult = .error(.generic("Could not get Sharing Entry."))
                 return
             }

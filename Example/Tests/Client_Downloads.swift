@@ -246,7 +246,7 @@ class Client_Downloads: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Fake an incorrect master version.
-            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
+            guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
                 return
             }
