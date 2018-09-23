@@ -639,6 +639,10 @@ class Upload {
                     completionResult = .doneUploads(numberTransferred: numberTransferred)
                 }
                 
+                if let _ = sharingGroupNameUpdate {
+                    EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                }
+                
                 completion?(completionResult!)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):

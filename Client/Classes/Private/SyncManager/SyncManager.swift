@@ -233,35 +233,35 @@ class SyncManager {
             return
         }
         
-        let nextResult = Upload.session.next(sharingGroupUUID: sharingGroupUUID, first: first) {[weak self] nextCompletion in
+        let nextResult = Upload.session.next(sharingGroupUUID: sharingGroupUUID, first: first) {[unowned self] nextCompletion in
             switch nextCompletion {
             case .fileUploaded(let attr, let uft):
-                self?.contentWasUploaded(attr: attr, uft: uft)
+                self.contentWasUploaded(attr: attr, uft: uft)
 
             case .appMetaDataUploaded(uft: let uft):
-                self?.contentWasUploaded(attr: nil, uft: uft)
+                self.contentWasUploaded(attr: nil, uft: uft)
                 
             case .uploadDeletion(let fileUUID):
-                if let selfObj = self {
-                    EventDesired.reportEvent(.singleUploadDeletionComplete(fileUUID: fileUUID), mask: selfObj.desiredEvents, delegate: selfObj.delegate)
-                    // Recursively see if there is a next upload to do.
-                    selfObj.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
-                }
+                EventDesired.reportEvent(.singleUploadDeletionComplete(fileUUID: fileUUID), mask: self.desiredEvents, delegate: self.delegate)
+                // Recursively see if there is a next upload to do.
+                self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 
             case .sharingGroupCreated:
-                self?.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
+                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
             
             case .userRemovedFromSharingGroup:
+                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
                 // No need to check for pending uploads-- this will have been the only operation in the queue. And don't do done uploads-- that will fail because we're no longer in the sharing group (and wouldn't do anything even if we were).
                 SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
-                self?.callback?(nil)
+                self.callback?(nil)
                 
             case .masterVersionUpdate:
                 // Things have changed on the server. Check for downloads again. Don't go all the way back to `start` because we know that we don't have queued downloads.
-                self?.checkForDownloads(sharingGroupUUID: sharingGroupUUID)
+                self.checkForDownloads(sharingGroupUUID: sharingGroupUUID)
                 
             case .error(let error):
-                self?.callback?(error)
+                self.callback?(error)
             }
         }
         
@@ -306,7 +306,8 @@ class SyncManager {
             assert(false)
             
         case .sharingGroup:
-            EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+            // Event reported with the specific operation.
+            break
         }
         
         // Recursively see if there is a next upload to do.

@@ -16,7 +16,13 @@ public class SyncServer {
     public static let session = SyncServer()
     
     private var syncOperating = false
-    private var delayedSync = false
+    
+    private struct DelayedSync {
+        let sharingGroupUUID: String
+        let completion:(()->())?
+    }
+    
+    private var delayedSync = [DelayedSync]()
     private var stoppingSync = false
     
 #if DEBUG
@@ -86,7 +92,7 @@ public class SyncServer {
         
         CoreData.registerSession(coreDataSession, forName: Constants.coreDataName)
         Migrations.session.run()
-
+        
         Network.session().appStartup()
         ServerAPI.session.baseURL = serverURL.absoluteString
         
@@ -135,7 +141,9 @@ public class SyncServer {
         1. the 2nd and following updates must have the same mimeType as the first version of the file.
         2. If the attr.appMetaData is given as nil, and an earlier version had non-nil appMetaData, then the nil appMetaData is ignored-- i.e., the existing app meta data is not set to nil.
      
-        The sharingGroupId (in the `SyncAttributes`) for a series of files up until a sync() operation must be the same. If you want to change to dealing with a different sharing group, you must call sync().
+        The sharingGroupUUID (in the `SyncAttributes`) for a series of files up until a sync() operation must be the same. If you want to change to dealing with a different sharing group, you must call sync().
+     
+        A single file (a single fileUUID) can only be stored in a single sharingGroupUUID. It is an error to attempt to upload the same fileUUID to a different sharingGroupUUID.
      
         `Warning`: If you indicate that the mime type is "text/plain", and you are using Google Drive and the text contains unusual characters, you may run into problems-- e.g., downloading the files may fail.
      
@@ -193,6 +201,11 @@ public class SyncServer {
                 guard let entryMimeTypeString = entry!.mimeType,
                     let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
                     errorToThrow = SyncServerError.noMimeType
+                    return
+                }
+                
+                guard entry!.sharingGroupUUID == attr.sharingGroupUUID else {
+                    errorToThrow = SyncServerError.sharingGroupUUIDInconsistent
                     return
                 }
                 
@@ -307,6 +320,11 @@ public class SyncServer {
             guard let entryMimeTypeString = entry.mimeType,
                 let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
                 errorToThrow = SyncServerError.noMimeType
+                return
+            }
+            
+            guard entry.sharingGroupUUID == attr.sharingGroupUUID else {
+                errorToThrow = SyncServerError.sharingGroupUUIDInconsistent
                 return
             }
             
@@ -789,7 +807,8 @@ public class SyncServer {
             // [2]
             if syncOperating {
                 EventDesired.reportEvent(.syncDelayed, mask: self.eventsDesired, delegate: self.delegate)
-                delayedSync = true
+                let delayed = DelayedSync(sharingGroupUUID: sharingGroupUUID, completion: completion)
+                delayedSync += [delayed]
                 doStart = false
             }
             else {
@@ -806,12 +825,12 @@ public class SyncServer {
         }
     }
     
-    /** Stop an ongoing sync operation. This will stop the operation at the next "natural" stopping point. E.g., after a next download completes. No effect if no ongoing sync operation. Any delayed sync is cancelled.
+    /** Stop an ongoing sync operation. This will stop the operation at the next "natural" stopping point. E.g., after a next download completes. No effect if no ongoing sync operation. Any delayed sync(s) are cancelled.
     */
     public func stopSync() {
         Synchronized.block(self) {
             if syncOperating {
-                delayedSync = false
+                delayedSync = []
                 stoppingSync = true
                 SyncManager.session.stopSync = true
             }
@@ -1113,7 +1132,7 @@ public class SyncServer {
             
             // There was an error. Not much point in continuing.
             Synchronized.block(self) {
-                self.delayedSync = false
+                self.delayedSync = []
                 self.syncOperating = false
             }
             
@@ -1124,24 +1143,26 @@ public class SyncServer {
         completion?()
         EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
 
-        var doStart = false
-    
+        var nextSharingGroupUUID: String!
+        var nextCompletion:(()->())?
+        
         Synchronized.block(self) { [unowned self] in
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                if !self.stoppingSync && (Upload.haveSyncQueue(forSharingGroupUUID: sharingGroupUUID) || self.delayedSync) {
-                    self.delayedSync = false
-                    doStart = true
-                }
-                else {
+                if self.stoppingSync {
                     self.syncOperating = false
+                    self.stoppingSync = false
+                    return
+                } else if self.delayedSync.count > 0 {
+                    let delayed = self.delayedSync.first!
+                    nextSharingGroupUUID = delayed.sharingGroupUUID
+                    nextCompletion = delayed.completion
+                    self.delayedSync = self.delayedSync.tail()
                 }
             }
-            
-            self.stoppingSync = false
         }
     
-        if doStart {
-            self.start(sharingGroupUUID: sharingGroupUUID, completion:completion)
+        if nextSharingGroupUUID != nil {
+            self.start(sharingGroupUUID: nextSharingGroupUUID, completion:nextCompletion)
         }
     }
     

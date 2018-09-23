@@ -971,7 +971,7 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func uploadSingleFileUsingSync(sharingGroupUUID: String, fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
+    func uploadSingleFileUsingSync(sharingGroupUUID: String, fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, sharingGroupOperationExpected: Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         var originalURL:SMRelativeLocalURL
@@ -1001,10 +1001,16 @@ class TestCase: XCTestCase {
         attr.fileGroupUUID = fileGroupUUID
         
         SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
+        
+        if sharingGroupOperationExpected {
+            SyncServer.session.eventsDesired.insert(.sharingGroupUploadOperationCompleted)
+        }
+        
         var expectation1:XCTestExpectation!
         var expectation2:XCTestExpectation!
         var expectation3:XCTestExpectation!
-        
+        var expectation4:XCTestExpectation!
+
         syncServerEventOccurred = {event in
             switch event {
             case .syncDone:
@@ -1018,6 +1024,9 @@ class TestCase: XCTestCase {
                 XCTAssert(attr.fileUUID == fileUUID)
                 XCTAssert(attr.mimeType == .text)
                 expectation3.fulfill()
+                
+            case .sharingGroupUploadOperationCompleted:
+                expectation4.fulfill()
                 
             default:
                 XCTFail()
@@ -1048,6 +1057,10 @@ class TestCase: XCTestCase {
         expectation1 = self.expectation(description: "test1")
         expectation2 = self.expectation(description: "test2")
         expectation3 = self.expectation(description: "test3")
+        
+        if sharingGroupOperationExpected {
+            expectation4 = self.expectation(description: "test4")
+        }
         
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
