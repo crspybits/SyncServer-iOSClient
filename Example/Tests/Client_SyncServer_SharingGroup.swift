@@ -521,6 +521,16 @@ class Client_SyncServer_SharingGroup: TestCase {
         return sharingGroups.map {$0.sharingGroupUUID}
     }
     
+    func testGetMultipleSharingGroups() {
+        let number = 3
+        guard let sharingGroupUUIDs = getMultipleSharingGroups(numberNeeded: number) else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssert(sharingGroupUUIDs.count >= number)
+    }
+    
     /*
         What happens if: With one sharing group, you do a sync operation. Then, the app crashes without completing the sync, say with some ongoing uploads or downloads. And you try to do a sync with another sharing group. The issue here I think is that the sync has stopped with one sharing group and will have to be restarted. A simulation of this could be:
         1) Upload 2 files to sharing group 1. Sync.
@@ -599,7 +609,7 @@ class Client_SyncServer_SharingGroup: TestCase {
             }
         }
         
-        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID2)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID1)
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
@@ -613,7 +623,7 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
             return
         }
-    
+
         let sharingGroupUUID1 = sharingGroupUUIDs[0]
         let sharingGroupUUID2 = sharingGroupUUIDs[1]
 
@@ -643,12 +653,15 @@ class Client_SyncServer_SharingGroup: TestCase {
                         XCTAssert(attr1.sharingGroupUUID == attr.sharingGroupUUID)
                     case 2, 3:
                         XCTAssert(attr2.fileUUID == attr.fileUUID || attr3.fileUUID == attr.fileUUID)
-                        XCTAssert(attr1.sharingGroupUUID == attr.sharingGroupUUID)
+                        XCTAssert(attr2.sharingGroupUUID == attr.sharingGroupUUID)
                     default:
                         XCTFail()
                     }
                 }
-                expectation2.fulfill()
+                
+                if numberUploads == 3 {
+                    expectation2.fulfill()
+                }
 
             default:
                 XCTFail()
@@ -800,29 +813,17 @@ class Client_SyncServer_SharingGroup: TestCase {
         let sharingGroupUUID3 = sharingGroupUUIDs[2]
         let sharingGroupUUID4 = sharingGroupUUIDs[3]
 
-        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
-
-        // group2
-        guard let masterVersion_group2 = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID2) else {
-            XCTFail()
-            return
-        }
+        var numberSyncDone = 0
+        var numberDownloadsDone = 0
+        var numberUploadsDone = 0
         
         let fileUUID_group2 = UUID().uuidString
-
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID_group2, serverMasterVersion: masterVersion_group2) else {
-            return
-        }
-        
-        doneUploads(masterVersion: masterVersion_group2, sharingGroupUUID: sharingGroupUUID2, expectedNumberUploads: 1)
-        
-        // group3
         let attrGroup3 = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: sharingGroupUUID3, mimeType: .text)
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attrGroup3)
-        
-        // group4
         let fileUUID_group4 = UUID().uuidString
+        let attrGroup4 = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: sharingGroupUUID4, mimeType: .text)
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
+        // Do blocking work for group 4
         guard let masterVersion_group4 = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID4) else {
             XCTFail()
             return
@@ -833,21 +834,28 @@ class Client_SyncServer_SharingGroup: TestCase {
         }
 
         doneUploads(masterVersion: masterVersion_group4, sharingGroupUUID: sharingGroupUUID4, expectedNumberUploads: 1)
-
-        let attrGroup4 = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: sharingGroupUUID4, mimeType: .text)
-        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attrGroup4)
         
+        // Similarly, blocking work for group2
+        guard let masterVersion_group2 = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID2) else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID_group2, serverMasterVersion: masterVersion_group2) else {
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion_group2, sharingGroupUUID: sharingGroupUUID2, expectedNumberUploads: 1)
+        
+        // Now that we've done the blocking work, we can do a set of expectations/blocking work here.
+
         SyncServer.session.eventsDesired = [.syncDone, .singleFileUploadComplete]
         
         let expectation1 = self.expectation(description: "test1")
         let expectation2 = self.expectation(description: "test2")
         let expectation3 = self.expectation(description: "test2")
-
-        var numberSyncDone = 0
-        var numberDownloadsDone = 0
-        var numberUploadsDone = 0
-
-        syncServerEventOccurred = {event in
+        
+        syncServerEventOccurred = { event in
             switch event {
             case .syncDone:
                 numberSyncDone += 1
@@ -905,7 +913,13 @@ class Client_SyncServer_SharingGroup: TestCase {
         
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID1)
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID2)
+        
+        // group3
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attrGroup3)
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID3)
+
+        // group4
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attrGroup4)
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID4)
 
         waitForExpectations(timeout: 20.0, handler: nil)
