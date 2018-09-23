@@ -144,6 +144,8 @@ class TestCase: XCTestCase {
         if !updateSharingGroupsWithSync() {
             XCTFail()
         }
+        
+        print("Test")
     }
     
     @discardableResult
@@ -1000,10 +1002,14 @@ class TestCase: XCTestCase {
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         
-        SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
-        
+        SyncServer.session.delegate = self
+
         if sharingGroupOperationExpected {
-            SyncServer.session.eventsDesired.insert(.sharingGroupUploadOperationCompleted)
+            SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete,
+                    .sharingGroupUploadOperationCompleted]
+        }
+        else {
+            SyncServer.session.eventsDesired = [.syncDone, .contentUploadsCompleted, .singleFileUploadComplete]
         }
         
         var expectation1:XCTestExpectation!

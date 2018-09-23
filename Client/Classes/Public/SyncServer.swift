@@ -1141,7 +1141,6 @@ public class SyncServer {
         }
     
         completion?()
-        EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
 
         var nextSharingGroupUUID: String!
         var nextCompletion:(()->())?
@@ -1149,17 +1148,21 @@ public class SyncServer {
         Synchronized.block(self) { [unowned self] in
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 if self.stoppingSync {
-                    self.syncOperating = false
                     self.stoppingSync = false
-                    return
                 } else if self.delayedSync.count > 0 {
                     let delayed = self.delayedSync.first!
                     nextSharingGroupUUID = delayed.sharingGroupUUID
                     nextCompletion = delayed.completion
                     self.delayedSync = self.delayedSync.tail()
+                    return
                 }
+
+                self.syncOperating = false
             }
         }
+        
+        // Reporting .syncDone here (instead of immediately after the completion) so that we have, if there is no successive next sync operation pending, syncOperation == false.
+        EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
     
         if nextSharingGroupUUID != nil {
             self.start(sharingGroupUUID: nextSharingGroupUUID, completion:nextCompletion)

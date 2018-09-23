@@ -196,6 +196,12 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
+        // Need to re-initialize our local info about sharing groups. We've lost that.
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
         let shouldSaveExp = self.expectation(description: "shouldSaveExp")
 
         self.deviceUUID = Foundation.UUID()

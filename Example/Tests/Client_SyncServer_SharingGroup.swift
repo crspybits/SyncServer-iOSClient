@@ -509,8 +509,8 @@ class Client_SyncServer_SharingGroup: TestCase {
     func getMultipleSharingGroups(numberNeeded: Int) -> [String]? {
         var sharingGroups = SyncServer.session.sharingGroups
         
-        while numberNeeded < sharingGroups.count {
-            guard let _ =  createSharingGroup() else {
+        while numberNeeded > sharingGroups.count {
+            guard let _ = createSharingGroup() else {
                 XCTFail()
                 return nil
             }
@@ -524,7 +524,7 @@ class Client_SyncServer_SharingGroup: TestCase {
     /*
         What happens if: With one sharing group, you do a sync operation. Then, the app crashes without completing the sync, say with some ongoing uploads or downloads. And you try to do a sync with another sharing group. The issue here I think is that the sync has stopped with one sharing group and will have to be restarted. A simulation of this could be:
         1) Upload 2 files to sharing group 1. Sync.
-        2) Stop sync.
+        2) Stop sync after the first upload completes.
         3) Upload a file to sharing group 2. Sync.
         4) Resume sync on sharing group 1. Sync.
         Make sure all works appropriately.
@@ -544,6 +544,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         let attr1 = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: sharingGroupUUID1, mimeType: .text)
         let attr2 = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: sharingGroupUUID1, mimeType: .text)
         
+        SyncServer.session.delegate = self
         SyncServer.session.eventsDesired = [.syncDone, .singleFileUploadComplete]
         
         let expectation1 = self.expectation(description: "test1")
