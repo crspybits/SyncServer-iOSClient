@@ -219,6 +219,11 @@ class ServerAPI_Sharing: TestCase {
             return
         }
         
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
         guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
