@@ -746,6 +746,21 @@ public class SyncServer {
         
         return result
     }
+
+    /// Synchronize the `sharingGroups` property with the server. This is also done when `sync` is called. Doesn't abide by `stopSync` and runs independently of any `sync`s taking place.
+    public func syncSharingGroups(completion: ((SyncServerError?)->())? = nil) {
+        Download.session.onlyUpdateSharingGroups() { error in
+            if let error = error {
+                Thread.runSync(onMainThread: {[unowned self] in
+                    self.delegate?.syncServerErrorOccurred(error: error)
+                })
+            }
+            
+            Thread.runSync(onMainThread: {
+                completion?(error)
+            })
+        }
+    }
     
     /**
         If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued (if any), and will wait until after the current sync is done, and try again.

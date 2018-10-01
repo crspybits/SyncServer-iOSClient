@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '17.0.0'
+  s.version          = '17.0.1'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -45,7 +45,7 @@ Pod::Spec.new do |s|
   s.subspec 'Dropbox' do |dropbox|
     dropbox.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_DROPBOX_SIGNIN' }
-    dropbox.dependency 'SwiftyDropbox', '~> 4.3'
+    dropbox.dependency 'SwiftyDropbox', '~> 4.6'
   end
 
   s.subspec 'Google' do |google|

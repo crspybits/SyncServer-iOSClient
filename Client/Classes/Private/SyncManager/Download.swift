@@ -20,7 +20,7 @@ class Download {
     }
     
     // Need some way to bootstrap our record of sharing groups so that we have sharing group UUID(s) so the client can use the regular sync method.
-    func onlyUpdateSharingGroups( completion:((SyncServerError?)->())? = nil) {
+    func onlyUpdateSharingGroups(completion:((SyncServerError?)->())? = nil) {
         ServerAPI.session.index(sharingGroupUUID: nil) { response in
             var indexResult:ServerAPI.IndexResult!
             switch response {
