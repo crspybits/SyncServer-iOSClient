@@ -99,7 +99,7 @@ class SyncManager {
             
         case .noDownloadsOrDeletions:
             checkForDownloads(sharingGroupUUID: sharingGroupUUID)
-
+            
         case .error(let error):
             callback?(SyncServerError.otherError(error))
             
@@ -108,7 +108,20 @@ class SyncManager {
             return
             
         case .allDownloadsCompleted:
+            resetSharingEntry(forSharingGroupUUID: sharingGroupUUID)
             checkForPendingUploads(sharingGroupUUID: sharingGroupUUID, first: true)
+        }
+    }
+    
+    private func resetSharingEntry(forSharingGroupUUID sharingGroupUUID: String) {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            if let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) {
+                sharingEntry.syncNeeded = false
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            }
+            else {
+                Log.error("Could not find SharingEntry with sharingGroupUUID:  \(sharingGroupUUID)")
+            }
         }
     }
     
@@ -211,8 +224,9 @@ class SyncManager {
         Download.session.check(sharingGroupUUID: sharingGroupUUID) { checkCompletion in
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
+                self.resetSharingEntry(forSharingGroupUUID: sharingGroupUUID)
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID, first: true)
-            
+                
             case .downloadsAvailable(numberOfContentDownloads:let numberContentDownloads, numberOfDownloadDeletions:let numberDownloadDeletions):
                 // This is not redundant with the `willStartDownloads` reporting in `Download.session.next` because we're calling start with first=false (implicitly), so willStartDownloads will not get reported twice.
                 EventDesired.reportEvent(
@@ -433,7 +447,7 @@ class SyncManager {
     // 4/22/18; I ran into the need for this during a crash Dany was having. For some reason there were 10 uft's on his app that were marked as uploaded. But for some reason had never been deleted. I'm calling this from places where there should not be uft's in this state-- so they should be removed. This is along the lines of garbage collection. Not sure why it's needed...
     // Not marking this as `private` so I can add a test case.
     static func cleanupUploads(sharingGroupUUID: String) {
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {        
             let uploadedUfts = UploadFileTracker.fetchAll().filter
                 { $0.status == .uploaded && $0.sharingGroupUUID == sharingGroupUUID}
             uploadedUfts.forEach { uft in

@@ -151,17 +151,25 @@ class TestCase: XCTestCase {
     @discardableResult
     func updateSharingGroupsWithSync() -> Bool {
         var result = false
-        let expectation = self.expectation(description: "test")
 
-        Download.session.onlyUpdateSharingGroups { error in
-            if error == nil {
+        SyncServer.session.eventsDesired = [.syncDone]
+
+        let syncDone = self.expectation(description: "test")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
                 result = true
+                syncDone.fulfill()
+                
+            default:
+                XCTFail()
             }
-            
-            expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 40.0, handler: nil)
+        try! SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
         
         return result
     }

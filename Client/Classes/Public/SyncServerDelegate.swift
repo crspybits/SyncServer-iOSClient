@@ -35,7 +35,7 @@ public enum SyncEvent {
     
     case refreshingCredentials
     
-    // Called when sharing groups operations occur because of downloads (i.e., changes by other users).
+    /// Called when sharing groups operations occur because of downloads (i.e., changes by other users). `updated` has the specific meaning that SyncServer `updateSharingGroup` was performed by another app.
     case sharingGroups(created: [SharingGroup], updated: [SharingGroup], deleted: [SharingGroup])
     
     case sharingGroupUploadOperationCompleted

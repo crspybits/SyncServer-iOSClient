@@ -29,6 +29,9 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         // Has the current user been removed from this group?
         se.removedFromGroup = false
         
+        // If we are creating the object because the local user created the sharing group, sync with the server is not needed.
+        se.syncNeeded = false
+        
         se.masterVersion = 0
         return se
     }
@@ -70,6 +73,9 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
                     }
                     if found.masterVersion != sharingGroup.masterVersion {
                         found.masterVersion = sharingGroup.masterVersion!
+                        
+                        // The master version on the server changed from what we know about. Need to sync with server to get updates.
+                        found.syncNeeded = true
                     }
                 }
                 else {
@@ -77,6 +83,10 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
                     sharingEntry.sharingGroupUUID = sharingGroupUUID
                     sharingEntry.sharingGroupName = sharingGroup.sharingGroupName
                     sharingEntry.masterVersion = sharingGroup.masterVersion!
+                    
+                    // This is a sharing group we (the client) didn't know about previously: Need to sync with the server to get files etc. for the sharing group.
+                    sharingEntry.syncNeeded = true
+                    
                     newSharingGroups += [sharingGroup]
                 }
             }
@@ -89,6 +99,9 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
             if filtered.count == 0 {
                 // We're no longer a member of this sharing group.
                 localSharingGroup.removedFromGroup = true
+                
+                // Not going to mark localSharingGroup as `syncNeeded`. We're not a member of it now-- we'd get an error if we tried to sync with this sharing group.
+                
                 let deletedSharingGroup = SharingGroup()!
                 deletedSharingGroup.sharingGroupUUID = localSharingGroup.sharingGroupUUID
                 deletedSharingGroup.sharingGroupName = localSharingGroup.sharingGroupName

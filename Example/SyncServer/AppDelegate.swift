@@ -26,6 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Log.minLevel = .verbose
         
         let plist = try! PlistDictLoader(plistFileNameInBundle: Consts.serverPlistFile)
+        
+        // On AWS: https://testing.syncserver.cprince.com
         let urlString = try! plist.getString(varName: "ServerURL")
         let serverURL = URL(string: urlString)!
         let cloudFolderName = try! plist.getString(varName: "CloudFolderName")
