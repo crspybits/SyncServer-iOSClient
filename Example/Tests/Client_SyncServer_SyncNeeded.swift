@@ -10,6 +10,7 @@ import XCTest
 @testable import SyncServer
 import SMCoreLib
 import Foundation
+import SyncServer_Shared
 
 class Client_SyncServer_SyncNeeded: TestCase {
     override func setUp() {
@@ -20,15 +21,6 @@ class Client_SyncServer_SyncNeeded: TestCase {
     override func tearDown() {
         super.tearDown()
     }
-    
-    /*
-        d) app meta data for a file uploaded by another client.
-            For a sharing group we already know about.
-        e) file deletion by another client.
-            For a sharing group we already know about.
-     
-        Reset should occur in each case after a sync with the sharingGroupUUID.
-    */
     
     func syncNeeded(forSharingGroupUUID sharingGroupUUID: String) -> Bool? {
         let filteredGroups = SyncServer.session.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
@@ -122,7 +114,7 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         
-        // Just for a baseline-- so we know !syncNeeded at the start.
+        // Just for a baseline-- so we have !syncNeeded at the start.
         sync(forSharingGroupUUID: sharingGroupUUID)
         
         guard let syncNeeded1 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
@@ -159,8 +151,214 @@ class Client_SyncServer_SyncNeeded: TestCase {
     
     // New file or file version uploaded by another client. For a sharing group we already know about.
     func testNewFileUploadedByAnotherClient() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        // For a baseline-- so we have !syncNeeded at the start.
+        sync(forSharingGroupUUID: sharingGroupUUID)
+        
+        guard let syncNeeded1 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded1)
+        
+        let fileUUID = UUID().uuidString
+        let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
+        
+        guard let (_, _) = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 0) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded2 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(syncNeeded2)
+        
+        // Download the file; flag should get reset.
+        syncServerFileGroupDownloadComplete = nil
+        
+        sync(forSharingGroupUUID: sharingGroupUUID)
+        
+        guard let syncNeeded3 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded3)
     }
     
     func testNewFileVersionUploadedByAnotherClient() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded1 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded1)
+        
+        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, fileGroupUUID: attr.fileGroupUUID) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded2 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(syncNeeded2)
+        
+        // Download the file version; flag should get reset.
+        syncServerFileGroupDownloadComplete = nil
+        
+        sync(forSharingGroupUUID: sharingGroupUUID)
+        
+        guard let syncNeeded3 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded3)
+    }
+    
+    // App meta data for a file uploaded by another client; For a sharing group we already know about.
+    func testAppMetaDataUploadedByAnotherClient() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded1 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded1)
+        
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        let appMetaData = AppMetaData(version: 0, contents: "Foo123Bar")
+        guard uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: attr.fileUUID, sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded2 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(syncNeeded2)
+        
+        // Download the app meta data; flag should get reset.
+        syncServerFileGroupDownloadComplete = nil
+        sync(forSharingGroupUUID: sharingGroupUUID)
+        
+        guard let syncNeeded3 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded3)
+    }
+
+    // File deletion by another client; For a sharing group we already know about.
+    func testFileDeletionByAnotherClient() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded1 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded1)
+        
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: attr.fileUUID, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
+        uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion)
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let syncNeeded2 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(syncNeeded2)
+        
+        // Download the deletion; flag should get reset.
+        syncServerFileGroupDownloadComplete = nil
+        sync(forSharingGroupUUID: sharingGroupUUID)
+        
+        guard let syncNeeded3 = syncNeeded(forSharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        XCTAssert(!syncNeeded3)
     }
 }
