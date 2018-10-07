@@ -618,6 +618,7 @@ public class SyncServer {
                 let newSharingEntry = SharingEntry.newObject() as! SharingEntry
                 newSharingEntry.sharingGroupUUID = sharingGroupUUID
                 newSharingEntry.sharingGroupName = sharingGroupName
+                newSharingEntry.permission = .admin
                 
                 let tracker = SharingGroupUploadTracker.newObject() as! SharingGroupUploadTracker
                 tracker.sharingGroupUUID = sharingGroupUUID
@@ -745,7 +746,7 @@ public class SyncServer {
             let filteredSharingEntries = SharingEntry.fetchAll().filter
                 {!$0.removedFromGroup}
             result = filteredSharingEntries.map {
-                return SharingGroup(sharingGroupUUID: $0.sharingGroupUUID!, sharingGroupName: $0.sharingGroupName, syncNeeded: $0.syncNeeded)
+                return SharingGroup(sharingGroupUUID: $0.sharingGroupUUID!, sharingGroupName: $0.sharingGroupName, permission: $0.permission, syncNeeded: $0.syncNeeded)
             }
         }
         

@@ -2,7 +2,7 @@
 //  SharingEntry+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 10/2/18.
+//  Created by Christopher G Prince on 10/6/18.
 //
 //
 
@@ -21,5 +21,6 @@ extension SharingEntry {
     @NSManaged public var sharingGroupName: String?
     @NSManaged public var sharingGroupUUID: String?
     @NSManaged public var syncNeeded: Bool
+    @NSManaged public var permissionInternal: String?
 
 }

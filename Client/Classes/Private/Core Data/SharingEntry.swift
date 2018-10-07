@@ -23,6 +23,25 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         return "SharingEntry"
     }
     
+    var permission: Permission! {
+        get {
+            if let permissionInternal = permissionInternal {
+                return Permission(rawValue: permissionInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        set {
+            if newValue == nil {
+                permissionInternal = nil
+            }
+            else {
+                permissionInternal = newValue.rawValue
+            }
+        }
+    }
+    
     public class func newObject() -> NSManagedObject {
         let se = CoreData.sessionNamed(Constants.coreDataName).newObject(withEntityName: self.entityName()) as! SharingEntry
         
@@ -33,6 +52,8 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         se.syncNeeded = false
         
         se.masterVersion = 0
+        se.permission = .read
+        
         return se
     }
     
@@ -83,6 +104,7 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
                     sharingEntry.sharingGroupUUID = sharingGroupUUID
                     sharingEntry.sharingGroupName = sharingGroup.sharingGroupName
                     sharingEntry.masterVersion = sharingGroup.masterVersion!
+                    sharingEntry.permission = sharingGroup.permission
                     
                     // This is a sharing group we (the client) didn't know about previously: Need to sync with the server to get files etc. for the sharing group.
                     sharingEntry.syncNeeded = true

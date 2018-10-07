@@ -56,7 +56,8 @@ extension SyncServer {
     public struct SharingGroup {
         public let sharingGroupUUID: String
         public let sharingGroupName: String?
-        
+        public let permission: Permission
+
         /// Does the SyncServer sync method need to be called with this sharingGroupUUID to get possible updates?
         public let syncNeeded: Bool
     }
