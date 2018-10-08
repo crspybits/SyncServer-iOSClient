@@ -81,6 +81,7 @@ class TestCase: XCTestCase {
     var syncServerMustResolveContentDownloadConflict:((_ content: ServerContentType, _ downloadedContentAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
 
     var syncServerFileGroupDownloadComplete: (([DownloadOperation])->())!
+    var syncServerSharingGroupsDownloaded: ((_ created: [SyncServer.SharingGroup], _ updated: [SyncServer.SharingGroup], _ deleted: [SyncServer.SharingGroup])->())?
 
     override func setUp() {
         super.setUp()
@@ -1248,6 +1249,10 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
+    func syncServerSharingGroupsDownloaded(created: [SyncServer.SharingGroup], updated: [SyncServer.SharingGroup], deleted: [SyncServer.SharingGroup]) {
+        syncServerSharingGroupsDownloaded?(created, updated, deleted)
+    }
+    
     func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
         syncServerFileGroupDownloadComplete?(group)
     }

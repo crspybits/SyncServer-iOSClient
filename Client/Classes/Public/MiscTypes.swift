@@ -59,7 +59,15 @@ extension SyncServer {
         public let permission: Permission
 
         /// Does the SyncServer sync method need to be called with this sharingGroupUUID to get possible updates?
-        public let syncNeeded: Bool
+        public let syncNeeded: Bool?
+        
+        static func from(sharingGroup: SyncServer_Shared.SharingGroup) -> SharingGroup {
+            return SharingGroup(sharingGroupUUID: sharingGroup.sharingGroupUUID!, sharingGroupName: sharingGroup.sharingGroupName, permission: sharingGroup.permission!, syncNeeded: nil)
+        }
+        
+        static func from(sharingGroups: [SyncServer_Shared.SharingGroup]) -> [SharingGroup] {
+            return sharingGroups.map {from(sharingGroup: $0)}
+        }
     }
 }
 

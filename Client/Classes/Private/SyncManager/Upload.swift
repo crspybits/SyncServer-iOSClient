@@ -640,7 +640,8 @@ class Upload {
                 }
                 
                 if let _ = sharingGroupNameUpdate {
-                    EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                    EventDesired.reportEvent(
+                        .sharingGroupUploadOperationCompleted(sharingGroupUUID: sharingGroupUUID, operation: .update), mask: self.desiredEvents, delegate: self.delegate)
                 }
                 
                 completion?(completionResult!)

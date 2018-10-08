@@ -24,7 +24,7 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     override func viewDidLoad() {
         super.viewDidLoad()
         SyncServer.session.delegate = self
-        SyncServer.session.eventsDesired = [.sharingGroups]
+        SyncServer.session.eventsDesired = []
         
         googleSignInButton = SetupSignIn.session.googleSignIn.setupSignInButton(params: ["delegate": self])
         SetupSignIn.session.googleSignIn.delegate = self
@@ -174,7 +174,24 @@ extension ViewController : GenericSignInDelegate {
     }
 }
 
-extension ViewController : SyncServerDelegate {    
+extension ViewController : SyncServerDelegate {
+    func syncServerSharingGroupsDownloaded(created: [SyncServer.SharingGroup], updated: [SyncServer.SharingGroup], deleted: [SyncServer.SharingGroup]) {
+        if SyncServer.backgroundTest.boolValue {
+            SyncServer.backgroundTest.boolValue = false
+            let sharingGroups = SyncServer.session.sharingGroups
+
+            guard sharingGroups.count > 0 else {
+                Log.error("Failed getting sharing groups1")
+                return
+            }
+            
+            let sharingGroup = sharingGroups[0]
+            let sharingGroupUUID = sharingGroup.sharingGroupUUID
+            
+            try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        }
+    }
+    
     func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
     }
     
@@ -186,27 +203,6 @@ extension ViewController : SyncServerDelegate {
     
     func syncServerEventOccurred(event: SyncEvent) {
         syncServerEventOccurred?(event)
-        
-        switch event {
-        case .sharingGroups:
-            if SyncServer.backgroundTest.boolValue {
-                SyncServer.backgroundTest.boolValue = false
-                let sharingGroups = SyncServer.session.sharingGroups
-
-                guard sharingGroups.count > 0 else {
-                    Log.error("Failed getting sharing groups1")
-                    return
-                }
-                
-                let sharingGroup = sharingGroups[0]
-                let sharingGroupUUID = sharingGroup.sharingGroupUUID
-                
-                try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
-            }
-            
-        default:
-            break
-        }
     }
     
     func syncServerErrorOccurred(error:SyncServerError) {

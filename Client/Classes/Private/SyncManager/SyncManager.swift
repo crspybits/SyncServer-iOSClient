@@ -261,11 +261,13 @@ class SyncManager {
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 
             case .sharingGroupCreated:
-                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                EventDesired.reportEvent(
+                    .sharingGroupUploadOperationCompleted(sharingGroupUUID: sharingGroupUUID, operation: .creation), mask: self.desiredEvents, delegate: self.delegate)
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
             
             case .userRemovedFromSharingGroup:
-                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                EventDesired.reportEvent(
+                    .sharingGroupUploadOperationCompleted(sharingGroupUUID: sharingGroupUUID, operation: .userRemoval), mask: self.desiredEvents, delegate: self.delegate)
                 // No need to check for pending uploads-- this will have been the only operation in the queue. And don't do done uploads-- that will fail because we're no longer in the sharing group (and wouldn't do anything even if we were).
                 SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
                 self.callback?(nil)

@@ -39,8 +39,12 @@ class Download {
                 CoreData.sessionNamed(Constants.coreDataName).saveContext()
             }
             
-            if sharingGroupUpdates != nil {
-                EventDesired.reportEvent(.sharingGroups(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer), mask: self.desiredEvents, delegate: self.delegate)
+            Log.msg("sharingGroupUpdates: \(String(describing: sharingGroupUpdates))")
+            
+            if let sharingGroupUpdates = sharingGroupUpdates {
+                Thread.runSync(onMainThread: {
+                    self.delegate?.syncServerSharingGroupsDownloaded(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer)
+                })
             }
             
             completion?(nil)
@@ -103,7 +107,9 @@ class Download {
             }
             
             if sharingGroupUpdates != nil {
-                EventDesired.reportEvent(.sharingGroups(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer), mask: self.desiredEvents, delegate: self.delegate)
+                Thread.runSync(onMainThread: {
+                    self.delegate?.syncServerSharingGroupsDownloaded(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer)
+                })
             }
             
             completion?(completionResult)

@@ -738,7 +738,7 @@ public class SyncServer {
         }
     }
     
-    /// The sharing groups that the user is currently a member of, and known to the server.
+    /// The sharing groups that the user is currently a member of, and known to the server. `syncNeeded` in sharing groups will be non-nil.
     public var sharingGroups: [SharingGroup] {
         var result: [SharingGroup]!
         

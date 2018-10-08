@@ -74,9 +74,9 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
     // Determine which, if any, sharing groups (a) have been deleted, or (b) have had name changes.
     
     struct Updates {
-        let deletedOnServer:[SharingGroup]
-        let newSharingGroups:[SharingGroup]
-        let updatedSharingGroups:[SharingGroup]
+        let deletedOnServer:[SyncServer.SharingGroup]
+        let newSharingGroups:[SyncServer.SharingGroup]
+        let updatedSharingGroups:[SyncServer.SharingGroup]
     }
     
     // We're being passed the list of sharing groups in which the user is still a member. (Notably, if a sharing group has been removed from a group, it will not be in this list, so we haven't handle this specially).
@@ -90,6 +90,7 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
                 if let found = fetchObjectWithUUID(uuid: sharingGroupUUID) {
                     if found.sharingGroupName != sharingGroup.sharingGroupName {
                         found.sharingGroupName = sharingGroup.sharingGroupName
+                        
                         updatedSharingGroups += [sharingGroup]
                     }
                     if found.masterVersion != sharingGroup.masterVersion {
@@ -127,15 +128,19 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
                 let deletedSharingGroup = SharingGroup()!
                 deletedSharingGroup.sharingGroupUUID = localSharingGroup.sharingGroupUUID
                 deletedSharingGroup.sharingGroupName = localSharingGroup.sharingGroupName
+                deletedSharingGroup.permission = localSharingGroup.permission
                 deletedOnServer += [deletedSharingGroup]
             }
         }
         
-        if deletedOnServer.count > 0 || newSharingGroups.count > 0 || updatedSharingGroups.count > 0 {
+        if deletedOnServer.count == 0 && newSharingGroups.count == 0 && updatedSharingGroups.count == 0 {
             return nil
         }
         else {
-            return Updates(deletedOnServer: deletedOnServer, newSharingGroups: newSharingGroups, updatedSharingGroups: updatedSharingGroups)
+            return Updates(
+                deletedOnServer: SyncServer.SharingGroup.from(sharingGroups: deletedOnServer),
+                newSharingGroups: SyncServer.SharingGroup.from(sharingGroups: newSharingGroups),
+                updatedSharingGroups: SyncServer.SharingGroup.from(sharingGroups: updatedSharingGroups))
         }
     }
 }

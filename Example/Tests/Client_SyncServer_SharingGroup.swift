@@ -106,7 +106,9 @@ class Client_SyncServer_SharingGroup: TestCase {
                 result = sharingGroupUUID
                 expectation1.fulfill()
                 
-            case .sharingGroupUploadOperationCompleted:
+            case .sharingGroupUploadOperationCompleted(sharingGroupUUID: let uploadedSharingGroupUUID, operation: let operation):
+                XCTAssert(sharingGroupUUID == uploadedSharingGroupUUID)
+                XCTAssert(operation == .creation)
                 expectation2.fulfill()
                 
             default:
@@ -121,61 +123,77 @@ class Client_SyncServer_SharingGroup: TestCase {
         return result
     }
     
-    func createSharingGroupUsingSyncWorks(name: String?) {
+    // Returns sharingGroupUUID
+    @discardableResult
+    func createSharingGroupUsingSyncWorks(name: String?) -> String? {
+        var coreDataResult = true
         let initialNumberSharingGroups = SyncServer.session.sharingGroups.count
         
         guard let sharingGroupUUID = createSharingGroup(name: name) else {
             XCTFail()
-            return
+            return nil
         }
         
         // Check the local sharing groups-- should have our new one.
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
+                coreDataResult = false
                 return
             }
             
             XCTAssert(sharingEntry.sharingGroupName == name)
         }
         
+        if !coreDataResult {
+            return nil
+        }
+        
         assertUploadTrackersAreReset()
         
         guard initialNumberSharingGroups + 1 == SyncServer.session.sharingGroups.count else {
             XCTFail()
-            return
+            return nil
         }
         
         let filtered = SyncServer.session.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
         guard filtered.count == 1, filtered[0].sharingGroupName == name else {
             XCTFail()
-            return
+            return nil
         }
         
         guard updateSharingGroupsWithSync() else {
             XCTFail()
-            return
+            return nil
         }
         
         // Should still have our new one.
+        
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID), !sharingEntry.removedFromGroup else {
                 XCTFail()
+                coreDataResult = false
                 return
             }
             XCTAssert(sharingEntry.sharingGroupName == name)
         }
         
+        if !coreDataResult {
+            return nil
+        }
+        
         guard initialNumberSharingGroups + 1 == SyncServer.session.sharingGroups.count else {
             XCTFail()
-            return
+            return nil
         }
         
         let filtered2 = SyncServer.session.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
         guard filtered2.count == 1, filtered[0].sharingGroupName == name else {
             XCTFail()
-            return
+            return nil
         }
+        
+        return sharingGroupUUID
     }
     
     func testCreateSharingGroupWithoutNameUsingSyncWorks() {
@@ -374,7 +392,9 @@ class Client_SyncServer_SharingGroup: TestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .sharingGroupUploadOperationCompleted:
+            case .sharingGroupUploadOperationCompleted(sharingGroupUUID: let uploadedSharingGroupUUID, operation: let operation):
+                XCTAssert(sharingGroupUUID == uploadedSharingGroupUUID)
+                XCTAssert(operation == .userRemoval)
                 expectation2.fulfill()
                 
             default:
@@ -922,6 +942,68 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attrGroup4)
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID4)
 
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    // 1) We create a sharing group, 2) Another client removes us from that sharing group, 3) When we sync we get the download callback that the sharing group was removed.
+    func testThatWeGetDelegateCallbackWhenOtherClientDeletesSharingGroup() {
+        // 1)
+        guard let sharingGroupUUID = createSharingGroupUsingSyncWorks(name: nil) else {
+            XCTFail()
+            return
+        }
+        
+        // 2)
+        guard let fileIndexResult = getFileIndex(sharingGroupUUID: nil),
+            fileIndexResult.sharingGroups.count > 0 else {
+            XCTFail()
+            return
+        }
+        
+        let filtered = fileIndexResult.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
+        guard filtered.count == 1 else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroup = filtered[0]
+        
+        if let _ = removeUserFromSharingGroup(sharingGroupUUID: sharingGroup.sharingGroupUUID!, masterVersion: sharingGroup.masterVersion!) {
+            XCTFail()
+            return
+        }
+        
+        // 3)
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let expectation1 = self.expectation(description: "test1")
+        let expectation2 = self.expectation(description: "test2")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        syncServerSharingGroupsDownloaded = { created, updated, deleted in
+            XCTAssert(created.count == 0)
+            XCTAssert(updated.count == 0)
+            if deleted.count == 1 {
+                XCTAssert(deleted[0].sharingGroupUUID == sharingGroupUUID)
+            }
+            else {
+                XCTFail()
+            }
+            self.syncServerSharingGroupsDownloaded = nil
+            expectation2.fulfill()
+        }
+
+        try! SyncServer.session.sync()
+        
         waitForExpectations(timeout: 20.0, handler: nil)
     }
 }
