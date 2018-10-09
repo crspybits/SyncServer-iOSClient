@@ -57,6 +57,10 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         return se
     }
     
+    func toSharingGroup() -> SyncServer.SharingGroup {
+        return SyncServer.SharingGroup(sharingGroupUUID: sharingGroupUUID!, sharingGroupName: sharingGroupName, permission: permission, syncNeeded: syncNeeded)
+    }
+    
     class func fetchObjectWithUUID(uuid:String) -> SharingEntry? {
         let managedObject = CoreData.fetchObjectWithUUID(uuid, usingUUIDKey: UUID_KEY, fromEntityName: self.entityName(), coreDataSession: CoreData.sessionNamed(Constants.coreDataName))
         return managedObject as? SharingEntry

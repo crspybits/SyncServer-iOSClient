@@ -31,7 +31,7 @@ public enum SyncEvent {
         case userRemoval
         case update
     }
-    case sharingGroupUploadOperationCompleted(sharingGroupUUID: String, operation:SharingGroupUploadOperation)
+    case sharingGroupUploadOperationCompleted(sharingGroup: SyncServer.SharingGroup, operation:SharingGroupUploadOperation)
     
     case syncDelayed
     case syncStarted

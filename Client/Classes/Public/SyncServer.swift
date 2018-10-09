@@ -746,7 +746,7 @@ public class SyncServer {
             let filteredSharingEntries = SharingEntry.fetchAll().filter
                 {!$0.removedFromGroup}
             result = filteredSharingEntries.map {
-                return SharingGroup(sharingGroupUUID: $0.sharingGroupUUID!, sharingGroupName: $0.sharingGroupName, permission: $0.permission, syncNeeded: $0.syncNeeded)
+                return $0.toSharingGroup()
             }
         }
         
@@ -886,34 +886,6 @@ public class SyncServer {
         }
         
         return attr!
-    }
-    
-    /// Object returned by call to `getStats`.
-    public struct Stats {
-        /// file downloads and/or appMetaData downloads.
-        public let contentDownloadsAvailable:Int
-        
-        public let downloadDeletionsAvailable:Int
-    }
-    
-    /**
-        This information is for general purpose use (e.g., UI) and makes no guarantees about files to be downloaded when you next do a `sync` operation.
-    
-        - parameters:
-            - completion: Gives stats about downloads that are currently available; gives nil if there was an error.
-    */
-    public func getStats(sharingGroupUUID: String, completion:@escaping (Stats?)->()) {
-        Download.session.onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
-            switch onlyCheckResult {
-            case .error(let error):
-                Log.error("Error on Download onlyCheck: \(error)")
-                completion(nil)
-            
-            case .checkResult(downloadSet: let downloadSet):
-                let stats = Stats(contentDownloadsAvailable: downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count, downloadDeletionsAvailable: downloadSet.downloadDeletions.count)
-                completion(stats)
-            }
-        }
     }
     
     /// The type of reset to perform with a call to `reset`.

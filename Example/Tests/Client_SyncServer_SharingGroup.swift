@@ -106,8 +106,8 @@ class Client_SyncServer_SharingGroup: TestCase {
                 result = sharingGroupUUID
                 expectation1.fulfill()
                 
-            case .sharingGroupUploadOperationCompleted(sharingGroupUUID: let uploadedSharingGroupUUID, operation: let operation):
-                XCTAssert(sharingGroupUUID == uploadedSharingGroupUUID)
+            case .sharingGroupUploadOperationCompleted(sharingGroup: let sharingGroup, operation: let operation):
+                XCTAssert(sharingGroup.sharingGroupUUID == sharingGroupUUID)
                 XCTAssert(operation == .creation)
                 expectation2.fulfill()
                 
@@ -392,8 +392,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             case .syncDone:
                 expectation1.fulfill()
                 
-            case .sharingGroupUploadOperationCompleted(sharingGroupUUID: let uploadedSharingGroupUUID, operation: let operation):
-                XCTAssert(sharingGroupUUID == uploadedSharingGroupUUID)
+            case .sharingGroupUploadOperationCompleted(sharingGroup: let sharingGroup, operation: let operation):
+                XCTAssert(sharingGroup.sharingGroupUUID == sharingGroupUUID)
                 XCTAssert(operation == .userRemoval)
                 expectation2.fulfill()
                 
