@@ -30,6 +30,8 @@ Pod::Spec.new do |s|
   s.dependency 'SyncServer-Shared', '~> 9.2'
 
   s.default_subspec = 'Lite'
+
+  s.swift_version = '3.2'
   
   s.subspec 'Lite' do |lite|
     # subspec for users who don't want the sign-in's they don't use.

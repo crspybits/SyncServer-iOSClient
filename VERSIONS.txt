@@ -3,6 +3,7 @@ SyncServer-iOSClient
 Version 17.1.0
 	* Added sync method without sharingGroupUUID parameter-- to only sync sharing groups.
 	* Removed getStats(sharingGroupUUID: String, completion:@escaping (Stats?)->()) method-- because a) it's no longer needed for SharedImages due to the change in badge UI/UX, and b) because it's not consistent with the sync operation (with no callbacks) in the rest of the interface. Also, some of this information is now available from the `sharingGroups` property through syncNeeded.
+	* Swift 3.2 is needed for this library, but Swift 4.2 is needed for some dependencies-- so this needs to be built with at least Xcode 10.
 
 Version 17.0.1 (9/23/18)
 	* Fixed git hub tagging.
