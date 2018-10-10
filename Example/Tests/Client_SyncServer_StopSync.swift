@@ -492,6 +492,9 @@ class Client_SyncServer_StopSync: TestCase {
         // 2) Do the first stop sync
         let shouldSaveDownloadExp1 = self.expectation(description: "ShouldSaveDownload1")
     
+        SyncServer.session.delegate = self
+        SyncServer.session.eventsDesired = []
+    
         syncServerFileGroupDownloadComplete = { group in
             if group.count == 1, case .file(let url) = group[0].type {
                 let attr = group[0].attr
@@ -507,14 +510,15 @@ class Client_SyncServer_StopSync: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
     
         waitForExpectations(timeout: 10.0, handler: nil)
-    
+
         // 3) Delete remaining file-- Don't use the client sync interface so that we force a master version update that we're not aware of in the context of the client sync interface.
-    let fileToDelete = ServerAPI.FileToDelete(fileUUID: files[0].uuid, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
+        let fileToDelete = ServerAPI.FileToDelete(fileUUID: files[0].uuid, fileVersion: 0, sharingGroupUUID: sharingGroupUUID)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
-    doneUploads(masterVersion: masterVersion+1, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        doneUploads(masterVersion: masterVersion+1, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
     
         // 4) Do another sync. Should not get a download deletion callback because the client doesn't know about that file.
-    
+
+        SyncServer.session.delegate = self
         SyncServer.session.eventsDesired = [.syncDone]
     
         let syncDoneExp = self.expectation(description: "SyncDone")

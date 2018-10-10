@@ -18,7 +18,12 @@ public class SyncServer {
     private var syncOperating = false
     
     private struct DelayedSync {
-        let sharingGroupUUID: String
+        enum SyncType {
+            case regular(sharingGroupUUID: String)
+            case sharingGroupsOnly
+        }
+        
+        let syncType: SyncType
         let completion:(()->())?
     }
     
@@ -613,6 +618,7 @@ public class SyncServer {
                 let newSharingEntry = SharingEntry.newObject() as! SharingEntry
                 newSharingEntry.sharingGroupUUID = sharingGroupUUID
                 newSharingEntry.sharingGroupName = sharingGroupName
+                newSharingEntry.permission = .admin
                 
                 let tracker = SharingGroupUploadTracker.newObject() as! SharingGroupUploadTracker
                 tracker.sharingGroupUUID = sharingGroupUUID
@@ -732,7 +738,7 @@ public class SyncServer {
         }
     }
     
-    /// The sharing groups that the user is currently a member of, and known to the server.
+    /// The sharing groups that the user is currently a member of, and known to the server. `syncNeeded` in sharing groups will be non-nil.
     public var sharingGroups: [SharingGroup] {
         var result: [SharingGroup]!
         
@@ -740,7 +746,7 @@ public class SyncServer {
             let filteredSharingEntries = SharingEntry.fetchAll().filter
                 {!$0.removedFromGroup}
             result = filteredSharingEntries.map {
-                return SharingGroup(sharingGroupUUID: $0.sharingGroupUUID!, sharingGroupName: $0.sharingGroupName)
+                return $0.toSharingGroup()
             }
         }
         
@@ -748,17 +754,21 @@ public class SyncServer {
     }
     
     /**
-        If no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued (if any), and will wait until after the current sync is done, and try again.
+        Operates in one of two modes:
+     
+        1) If you give a non-nil sharingGroupUUID, if no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued (if any) for the sharingGroupUUID, and will wait until after the current sync is done, and try again. Also synchronizes the `sharingGroups` property with the server.
+     
+        2) If you give a nil-sharingGroupUUID, only synchronizes the `sharingGroups` property. Doesn't do pending downloads or uploads etc. And doesn't close a collection of queued operations.
      
         If a stopSync is currently pending, then this call will be ignored.
      
         Non-blocking in all cases.
     */
-    public func sync(sharingGroupUUID: String) throws {
+    public func sync(sharingGroupUUID: String? = nil) throws {
         try sync(sharingGroupUUID:sharingGroupUUID, completion:nil)
     }
     
-    func sync(sharingGroupUUID: String, completion:(()->())?) throws {
+    func sync(sharingGroupUUID: String?, completion:(()->())?) throws {
         var doStart = true
         
         var errorToThrow: Error?
@@ -770,51 +780,61 @@ public class SyncServer {
                 return
             }
             
-            // 5/24/18; The positioning of this block of code has given me some consternation. It *must* come before block [2] below-- because the `sync` operation must do a sync, and `movePendingSyncToSynced` is core to what the sync operation is-- any delay aspect just doesn't trigger it with the `start` operation. HOWEVER, I found that https://github.com/crspybits/SharedImages/issues/101 was due to a deadlock of performAndWait calls. So, I've ended up with a rather different means of dealing with Core Data synchronization in the form of `CoreDataSync` used below.
-            CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                var haveUploads = false
-                do {
-                    let pendingSync = try Upload.pendingSync()
-                    if pendingSync.uploadTrackers.count > 0  {
-                        // This is redundant with some checking I've done already, but want to make doubly certain if we're doing a remove user operation, we only have one pending operation.
-                        if let sgut = pendingSync.uploadTrackers[0] as? SharingGroupUploadTracker,
-                            sgut.sharingGroupOperation == .removeUser,
-                            pendingSync.uploadTrackers.count > 1 {
-                            errorToThrow = SyncServerError.generic("Attempt to remove sharing group user, but other operations also in queue!")
-                            return
+            if let sharingGroupUUID = sharingGroupUUID {
+                // 5/24/18; The positioning of this block of code has given me some consternation. It *must* come before block [2] below-- because the `sync` operation must do a sync, and `movePendingSyncToSynced` is core to what the sync operation is-- any delay aspect just doesn't trigger it with the `start` operation. HOWEVER, I found that https://github.com/crspybits/SharedImages/issues/101 was due to a deadlock of performAndWait calls. So, I've ended up with a rather different means of dealing with Core Data synchronization in the form of `CoreDataSync` used below.
+                CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                    var haveUploads = false
+                    do {
+                        let pendingSync = try Upload.pendingSync()
+                        if pendingSync.uploadTrackers.count > 0  {
+                            // This is redundant with some checking I've done already, but want to make doubly certain if we're doing a remove user operation, we only have one pending operation.
+                            if let sgut = pendingSync.uploadTrackers[0] as? SharingGroupUploadTracker,
+                                sgut.sharingGroupOperation == .removeUser,
+                                pendingSync.uploadTrackers.count > 1 {
+                                errorToThrow = SyncServerError.generic("Attempt to remove sharing group user, but other operations also in queue!")
+                                return
+                            }
+                            
+                            haveUploads = true
+                            try Upload.movePendingSyncToSynced(sharingGroupUUID: sharingGroupUUID)
                         }
-                        
-                        haveUploads = true
-                        try Upload.movePendingSyncToSynced(sharingGroupUUID: sharingGroupUUID)
-                    }
-                } catch (let error) {
-                    errorToThrow = error
-                    return
-                }
-                
-                if !haveUploads {
-                    guard self.knownSharingGroupUUID(sharingGroupUUID) else {
-                        errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
+                    } catch (let error) {
+                        errorToThrow = error
                         return
                     }
+                    
+                    if !haveUploads {
+                        guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+                            errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
+                            return
+                        }
+                    }
                 }
-            }
-            
-            if errorToThrow != nil {
-                return
-            }
+                
+                if errorToThrow != nil {
+                    return
+                }
+            } // end non-nil sharingGroupUUID
             
             // [2]
             if syncOperating {
                 EventDesired.reportEvent(.syncDelayed, mask: self.eventsDesired, delegate: self.delegate)
-                let delayed = DelayedSync(sharingGroupUUID: sharingGroupUUID, completion: completion)
+                
+                var delayed:DelayedSync
+                if let sharingGroupUUID = sharingGroupUUID {
+                    delayed = DelayedSync(syncType: .regular(sharingGroupUUID: sharingGroupUUID), completion: completion)
+                }
+                else {
+                    delayed = DelayedSync(syncType: .sharingGroupsOnly, completion: completion)
+                }
                 delayedSync += [delayed]
+                
                 doStart = false
             }
             else {
                 syncOperating = true
             }
-        }
+        } // end Synchronized block
         
         if errorToThrow != nil {
             throw errorToThrow!
@@ -866,34 +886,6 @@ public class SyncServer {
         }
         
         return attr!
-    }
-    
-    /// Object returned by call to `getStats`.
-    public struct Stats {
-        /// file downloads and/or appMetaData downloads.
-        public let contentDownloadsAvailable:Int
-        
-        public let downloadDeletionsAvailable:Int
-    }
-    
-    /**
-        This information is for general purpose use (e.g., UI) and makes no guarantees about files to be downloaded when you next do a `sync` operation.
-    
-        - parameters:
-            - completion: Gives stats about downloads that are currently available; gives nil if there was an error.
-    */
-    public func getStats(sharingGroupUUID: String, completion:@escaping (Stats?)->()) {
-        Download.session.onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
-            switch onlyCheckResult {
-            case .error(let error):
-                Log.error("Error on Download onlyCheck: \(error)")
-                completion(nil)
-            
-            case .checkResult(downloadSet: let downloadSet):
-                let stats = Stats(contentDownloadsAvailable: downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count, downloadDeletionsAvailable: downloadSet.downloadDeletions.count)
-                completion(stats)
-            }
-        }
     }
     
     /// The type of reset to perform with a call to `reset`.
@@ -1088,43 +1080,49 @@ public class SyncServer {
         return results
     }
     
-    private func start(sharingGroupUUID: String, completion:(()->())?) {
+    private func start(sharingGroupUUID: String?, completion:(()->())?) {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
-        /* Two options here:
-            a) The sharing group exists on the server -- normal sync where we do downloads followed by uploads.
-            b) The sharing group doesn't exist-- we're creating a sharing group. By-pass any downloads -- there aren't any for a sharing group that doesn't exist yet -- and just do uploads.
-        */
-        
-        var sharingGroupExistsOnServer = true
+        if let sharingGroupUUID = sharingGroupUUID {
+            /* Two options here:
+                a) The sharing group exists on the server -- normal sync where we do downloads followed by uploads.
+                b) The sharing group doesn't exist-- we're creating a sharing group. By-pass any downloads -- there aren't any for a sharing group that doesn't exist yet -- and just do uploads.
+            */
+            var sharingGroupExistsOnServer = true
 
-        Synchronized.block(self) {
-            CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                // Check the head tracker on uploads to see if we're doing a) or b)
-                if let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) {
-                    let sharingGroupTrackers = uploadQueue.sharingGroupUploadTrackers
-                    if sharingGroupTrackers.count > 0 && sharingGroupTrackers[0].sharingGroupOperation == .create {
-                        sharingGroupExistsOnServer = false
+            Synchronized.block(self) {
+                CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                    // Check the head tracker on uploads to see if we're doing a) or b)
+                    if let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) {
+                        let sharingGroupTrackers = uploadQueue.sharingGroupUploadTrackers
+                        if sharingGroupTrackers.count > 0 && sharingGroupTrackers[0].sharingGroupOperation == .create {
+                            sharingGroupExistsOnServer = false
+                        }
                     }
+                    // Else: No upload queue; presumably the sharing group exists.
                 }
-                // Else: No upload queue; presumably the sharing group exists.
+            }
+            
+            if sharingGroupExistsOnServer {
+                SyncManager.session.start(sharingGroupUUID: sharingGroupUUID, first: true) { error in
+                    self.syncDone(error: error, completion: completion)
+                }
+            }
+            else {
+                SyncManager.session.sharingGroupDoesNotExistSync(sharingGroupUUID: sharingGroupUUID) { error in
+                    self.syncDone(error: error, completion: completion)
+                }
             }
         }
-        
-        if sharingGroupExistsOnServer {
-            SyncManager.session.start(sharingGroupUUID: sharingGroupUUID, first: true) { error in
-                self.syncDone(sharingGroupUUID: sharingGroupUUID, error: error, completion: completion)
-            }
-        }
-        else {
-            SyncManager.session.sharingGroupDoesNotExistSync(sharingGroupUUID: sharingGroupUUID) { error in
-                self.syncDone(sharingGroupUUID: sharingGroupUUID, error: error, completion: completion)
+        else { // nil sharingGroupUUID
+            Download.session.onlyUpdateSharingGroups() { error in
+                self.syncDone(error: error, completion: completion)
             }
         }
     }
     
-    private func syncDone(sharingGroupUUID: String, error: SyncServerError?, completion:(()->())?) {
+    private func syncDone(error: SyncServerError?, completion:(()->())?) {
         if error != nil {
             Thread.runSync(onMainThread: {
                 self.delegate?.syncServerErrorOccurred(error: error!)
@@ -1142,7 +1140,7 @@ public class SyncServer {
     
         completion?()
 
-        var nextSharingGroupUUID: String!
+        var nextSharingGroupUUID: String?
         var nextCompletion:(()->())?
         
         Synchronized.block(self) { [unowned self] in
@@ -1151,8 +1149,15 @@ public class SyncServer {
                     self.stoppingSync = false
                 } else if self.delayedSync.count > 0 {
                     let delayed = self.delayedSync.first!
-                    nextSharingGroupUUID = delayed.sharingGroupUUID
                     nextCompletion = delayed.completion
+                    
+                    switch delayed.syncType {
+                    case .regular(sharingGroupUUID: let sharingGroupUUID):
+                        nextSharingGroupUUID = sharingGroupUUID
+                    case .sharingGroupsOnly:
+                        break
+                    }
+                    
                     self.delayedSync = self.delayedSync.tail()
                     return
                 }

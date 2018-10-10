@@ -25,6 +25,7 @@
 		832F2009200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
 		833B17931FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */; };
+		8343F03421645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */; };
 		8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */; };
 		8344CC2B1E5FDD1800BEB263 /* Client_Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */; };
 		8351E4A9210192500052548E /* Client_SyncServer_Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */; };
@@ -115,6 +116,7 @@
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_Failure.swift; sourceTree = "<group>"; };
 		833B17921FF3481800AF1863 /* Client_SyncManager_WIllStartUploads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_WIllStartUploads.swift; sourceTree = "<group>"; };
+		8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_SyncNeeded.swift; sourceTree = "<group>"; };
 		8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_UploadDeletion.swift; sourceTree = "<group>"; };
 		8344CC2A1E5FDD1800BEB263 /* Client_Downloads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_Downloads.swift; sourceTree = "<group>"; };
 		8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Misc.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */,
 				8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */,
 				8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */,
 				832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */,
@@ -426,6 +429,7 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = GX4J9DAT49;
 						LastSwiftMigration = 0820;
 					};
 					607FACE41AFB9204008FA782 = {
@@ -662,6 +666,7 @@
 				839A0A4E20A2CE5C00F0AD63 /* Client_FileGroup.swift in Sources */,
 				83F37A301E51120B00479175 /* ServerAPI_DownloadFile.swift in Sources */,
 				835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */,
+				8343F03421645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -801,7 +806,7 @@
 			baseConfigurationReference = A5DC520778F7EB9A2C2C2CA7 /* Pods-SyncServer_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = GX4J9DAT49;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",
@@ -841,7 +846,7 @@
 			baseConfigurationReference = 950FA6AEF6E79D1648CC8B07 /* Pods-SyncServer_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = GX4J9DAT49;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire\"",

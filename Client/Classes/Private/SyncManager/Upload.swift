@@ -558,6 +558,7 @@ class Upload {
     func doneUploads(sharingGroupUUID: String, completion:((DoneUploadsCompletion)->())?) {
         var masterVersion:MasterVersionInt!
         var sharingEntry:SharingEntry!
+        var sharingGroup:SyncServer.SharingGroup!
         var errorCheckingForSharingGroupUpdate = false
         var sharingGroupNameUpdate: String?
         var sharingGroupUpdate: SharingGroupUploadTracker?
@@ -569,6 +570,7 @@ class Upload {
                 return
             }
             
+            sharingGroup = sharingEntry.toSharingGroup()
             masterVersion = sharingEntry.masterVersion
             
             // See if we need to do a sharing group update along with the DoneUploads.
@@ -640,7 +642,8 @@ class Upload {
                 }
                 
                 if let _ = sharingGroupNameUpdate {
-                    EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                    EventDesired.reportEvent(
+                        .sharingGroupUploadOperationCompleted(sharingGroup: sharingGroup, operation: .update), mask: self.desiredEvents, delegate: self.delegate)
                 }
                 
                 completion?(completionResult!)

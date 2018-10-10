@@ -99,7 +99,7 @@ class SyncManager {
             
         case .noDownloadsOrDeletions:
             checkForDownloads(sharingGroupUUID: sharingGroupUUID)
-
+            
         case .error(let error):
             callback?(SyncServerError.otherError(error))
             
@@ -108,7 +108,20 @@ class SyncManager {
             return
             
         case .allDownloadsCompleted:
+            resetSharingEntry(forSharingGroupUUID: sharingGroupUUID)
             checkForPendingUploads(sharingGroupUUID: sharingGroupUUID, first: true)
+        }
+    }
+    
+    private func resetSharingEntry(forSharingGroupUUID sharingGroupUUID: String) {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            if let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) {
+                sharingEntry.syncNeeded = false
+                CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            }
+            else {
+                Log.error("Could not find SharingEntry with sharingGroupUUID:  \(sharingGroupUUID)")
+            }
         }
     }
     
@@ -211,8 +224,9 @@ class SyncManager {
         Download.session.check(sharingGroupUUID: sharingGroupUUID) { checkCompletion in
             switch checkCompletion {
             case .noDownloadsOrDeletionsAvailable:
+                self.resetSharingEntry(forSharingGroupUUID: sharingGroupUUID)
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID, first: true)
-            
+                
             case .downloadsAvailable(numberOfContentDownloads:let numberContentDownloads, numberOfDownloadDeletions:let numberDownloadDeletions):
                 // This is not redundant with the `willStartDownloads` reporting in `Download.session.next` because we're calling start with first=false (implicitly), so willStartDownloads will not get reported twice.
                 EventDesired.reportEvent(
@@ -233,6 +247,32 @@ class SyncManager {
             return
         }
         
+        func getSharingGroup(sharingGroupUUID: String, removedFromGroupOK: Bool = false) -> SyncServer.SharingGroup? {
+            var sharingEntry:SharingEntry!
+            var sharingGroup: SyncServer.SharingGroup!
+            
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID)
+                Log.msg("getSharingGroup: \(String(describing: sharingEntry)); \(removedFromGroupOK)")
+                
+                if !removedFromGroupOK {
+                    guard !sharingEntry.removedFromGroup else {
+                        sharingEntry = nil
+                        return
+                    }
+                }
+                
+                sharingGroup = sharingEntry.toSharingGroup()
+            }
+
+            if sharingEntry == nil {
+                callback?(.generic("Could not get sharing entry."))
+                return nil
+            }
+            
+            return sharingGroup
+        }
+        
         let nextResult = Upload.session.next(sharingGroupUUID: sharingGroupUUID, first: first) {[unowned self] nextCompletion in
             switch nextCompletion {
             case .fileUploaded(let attr, let uft):
@@ -247,11 +287,19 @@ class SyncManager {
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 
             case .sharingGroupCreated:
-                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                guard let sharingGroup = getSharingGroup(sharingGroupUUID: sharingGroupUUID) else {
+                    return
+                }
+                EventDesired.reportEvent(
+                    .sharingGroupUploadOperationCompleted(sharingGroup: sharingGroup, operation: .creation), mask: self.desiredEvents, delegate: self.delegate)
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
             
             case .userRemovedFromSharingGroup:
-                EventDesired.reportEvent(.sharingGroupUploadOperationCompleted, mask: self.desiredEvents, delegate: self.delegate)
+                guard let sharingGroup = getSharingGroup(sharingGroupUUID: sharingGroupUUID, removedFromGroupOK: true) else {
+                    return
+                }
+                EventDesired.reportEvent(
+                    .sharingGroupUploadOperationCompleted(sharingGroup: sharingGroup, operation: .userRemoval), mask: self.desiredEvents, delegate: self.delegate)
                 // No need to check for pending uploads-- this will have been the only operation in the queue. And don't do done uploads-- that will fail because we're no longer in the sharing group (and wouldn't do anything even if we were).
                 SyncManager.cleanupUploads(sharingGroupUUID: sharingGroupUUID)
                 self.callback?(nil)
@@ -433,7 +481,7 @@ class SyncManager {
     // 4/22/18; I ran into the need for this during a crash Dany was having. For some reason there were 10 uft's on his app that were marked as uploaded. But for some reason had never been deleted. I'm calling this from places where there should not be uft's in this state-- so they should be removed. This is along the lines of garbage collection. Not sure why it's needed...
     // Not marking this as `private` so I can add a test case.
     static func cleanupUploads(sharingGroupUUID: String) {
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {        
             let uploadedUfts = UploadFileTracker.fetchAll().filter
                 { $0.status == .uploaded && $0.sharingGroupUUID == sharingGroupUUID}
             uploadedUfts.forEach { uft in

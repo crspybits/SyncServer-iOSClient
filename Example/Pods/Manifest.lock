@@ -6,56 +6,56 @@ PODS:
   - Bolts/AppLinks (1.9.0):
     - Bolts/Tasks
   - Bolts/Tasks (1.9.0)
-  - FacebookCore (0.3.3):
+  - FacebookCore (0.4.0):
     - Bolts (~> 1.9)
     - FBSDKCoreKit (~> 4.36)
-  - FacebookLogin (0.3.3):
+  - FacebookLogin (0.4.0):
     - Bolts (~> 1.9)
-    - FacebookCore (~> 0.3.3)
+    - FacebookCore (~> 0.4)
     - FBSDKCoreKit (~> 4.36)
     - FBSDKLoginKit (~> 4.36)
-  - FBSDKCoreKit (4.36.0):
+  - FBSDKCoreKit (4.37.0):
     - Bolts (~> 1.7)
-  - FBSDKLoginKit (4.36.0):
+  - FBSDKLoginKit (4.37.0):
     - FBSDKCoreKit
   - Gloss (1.2.4)
   - GoogleSignIn (0.1.2)
   - HPTextViewTapGestureRecognizer (0.1)
   - Reachability (3.2)
-  - SMCoreLib (1.3.2):
+  - SMCoreLib (1.3.3):
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
-  - SwiftyBeaver (1.6.3)
+  - SwiftyBeaver (1.6.1)
   - SwiftyDropbox (4.6.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (17.0.0):
+  - SyncServer (17.0.1):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 9.0)
-    - SyncServer/Lite (= 17.0.0)
+    - SyncServer-Shared (~> 9.2)
+    - SyncServer/Lite (= 17.0.1)
   - SyncServer-Shared (9.2.1):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (17.0.0):
+  - SyncServer/Dropbox (17.0.1):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SwiftyDropbox (~> 4.3)
-    - SyncServer-Shared (~> 9.0)
-  - SyncServer/Facebook (17.0.0):
+    - SwiftyDropbox (~> 4.6)
+    - SyncServer-Shared (~> 9.2)
+  - SyncServer/Facebook (17.0.1):
     - FacebookCore
     - FacebookLogin
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 9.0)
-  - SyncServer/Google (17.0.0):
+    - SyncServer-Shared (~> 9.2)
+  - SyncServer/Google (17.0.1):
     - Gloss (~> 1.2)
     - GoogleSignIn (~> 0.1)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 9.0)
-  - SyncServer/Lite (17.0.0):
+    - SyncServer-Shared (~> 9.2)
+  - SyncServer/Lite (17.0.1):
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
-    - SyncServer-Shared (~> 9.0)
+    - SyncServer-Shared (~> 9.2)
 
 DEPENDENCIES:
   - SMCoreLib (~> 1.3)
@@ -76,11 +76,11 @@ SPEC REPOS:
     - Gloss
     - HPTextViewTapGestureRecognizer
     - Reachability
+    - SwiftyBeaver
     - SwiftyDropbox
   https://github.com/crspybits/Specs.git:
     - GoogleSignIn
     - SMCoreLib
-    - SwiftyBeaver
     - SyncServer-Shared
 
 EXTERNAL SOURCES:
@@ -90,18 +90,18 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
-  FacebookCore: 9ecbe48cfd37c91a93add7f8cec2b4a2c50a1eec
-  FacebookLogin: bdaea5789e9b364fa8a1990ba3bbba4fd2197415
-  FBSDKCoreKit: 3b8e6570eedb443f9fc4af196a7bf39f18e3a3d8
-  FBSDKLoginKit: 8bccb6064708ab2f4251a7fc4e3b6d8d00ad91ba
+  FacebookCore: 770e57cfe250a4de4458b682191c0ff062dee247
+  FacebookLogin: eb0f2251aca835a94d70a5f7e580edc46d1e1603
+  FBSDKCoreKit: fe5f3474499a81963e11e3f3a5c753d0a95ca2b4
+  FBSDKLoginKit: 2f7249686d1e30ce8a5ef5400eedf50b3e3df332
   Gloss: 4e036074610fdb993abcb958ebcd7332588e2333
   GoogleSignIn: c9fa579a8da31ea46b82627c259ccb2b1bf22bab
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  SMCoreLib: 1fc2a916a45470cf41deb193bc509432b1987efc
-  SwiftyBeaver: 86a40205740357f2a091724fbbe29b927ef3f4d4
+  SMCoreLib: ab21fe40ff76b2cc5e873122a96b1ad22ebe02bc
+  SwiftyBeaver: ccfcdf85a04d429f1633f668650b0ce8020bda3a
   SwiftyDropbox: 8af645e744de6f17b4e9fdeba21365b8dc55a542
-  SyncServer: 8365a49db9c0127706b895ad1e3a9a0ced8dcafe
+  SyncServer: faa1402c19e773285810c250439c6c263a95e9be
   SyncServer-Shared: 30f5896bcdc4aa4d2c5d4a8b233f45e5cd29d6e5
 
 PODFILE CHECKSUM: 5e3f62670f2e83c2e5bca0c05d906b95308ec46f

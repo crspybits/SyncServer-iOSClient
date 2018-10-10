@@ -159,6 +159,8 @@ public class SyncServerUser {
                     let sharingEntry = SharingEntry.newObject() as! SharingEntry
                     sharingEntry.sharingGroupUUID = sharingGroupUUID
                     sharingEntry.sharingGroupName = sharingGroupName
+                    sharingEntry.permission = .admin
+                    
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
                     } catch (let error) {

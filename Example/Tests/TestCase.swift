@@ -81,6 +81,7 @@ class TestCase: XCTestCase {
     var syncServerMustResolveContentDownloadConflict:((_ content: ServerContentType, _ downloadedContentAttributes: SyncAttributes, _ uploadConflict: SyncServerConflict<ContentDownloadResolution>)->())?
 
     var syncServerFileGroupDownloadComplete: (([DownloadOperation])->())!
+    var syncServerSharingGroupsDownloaded: ((_ created: [SyncServer.SharingGroup], _ updated: [SyncServer.SharingGroup], _ deleted: [SyncServer.SharingGroup])->())?
 
     override func setUp() {
         super.setUp()
@@ -151,17 +152,26 @@ class TestCase: XCTestCase {
     @discardableResult
     func updateSharingGroupsWithSync() -> Bool {
         var result = false
-        let expectation = self.expectation(description: "test")
 
-        Download.session.onlyUpdateSharingGroups { error in
-            if error == nil {
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        
+        let syncDone = self.expectation(description: "testUpdateSharingGroupsWithSync")
+        
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
                 result = true
+                syncDone.fulfill()
+                
+            default:
+                XCTFail()
             }
-            
-            expectation.fulfill()
         }
         
-        waitForExpectations(timeout: 40.0, handler: nil)
+        try! SyncServer.session.sync()
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
         
         return result
     }
@@ -216,7 +226,7 @@ class TestCase: XCTestCase {
     }
     
     func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String?) -> Bool {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testCreateSharingGroup")
 
         var sharingGroupResult:Bool = false
         
@@ -235,7 +245,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func updateSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt, sharingGroupName: String) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testUpdateSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
 
@@ -257,7 +267,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func removeSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testRemoveSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
         
@@ -279,7 +289,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func removeUserFromSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testRemoveUserFromSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
         
@@ -1240,6 +1250,10 @@ extension TestCase : ServerAPIDelegate {
 }
 
 extension TestCase : SyncServerDelegate {
+    func syncServerSharingGroupsDownloaded(created: [SyncServer.SharingGroup], updated: [SyncServer.SharingGroup], deleted: [SyncServer.SharingGroup]) {
+        syncServerSharingGroupsDownloaded?(created, updated, deleted)
+    }
+    
     func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
         syncServerFileGroupDownloadComplete?(group)
     }
