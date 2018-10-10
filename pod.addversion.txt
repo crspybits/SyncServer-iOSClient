@@ -10,7 +10,7 @@ pod lib lint --sources="https://github.com/crspybits/Specs.git,https://github.co
 # 3) push updated revision of pod to its repo
 
 # 4) push a new tag:
-RELEASE_TAG="17.0.0"
+RELEASE_TAG="17.1.0"
 git add -A
 git commit -m "version $RELEASE_TAG"
 git tag -a "$RELEASE_TAG" -m "version $RELEASE_TAG"
