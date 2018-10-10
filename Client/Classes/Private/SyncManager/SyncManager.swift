@@ -247,22 +247,30 @@ class SyncManager {
             return
         }
         
-        var sharingEntry:SharingEntry!
-        var sharingGroup: SyncServer.SharingGroup!
-        
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID)
-            guard !sharingEntry.removedFromGroup else {
-                sharingEntry = nil
-                return
+        func getSharingGroup(sharingGroupUUID: String, removedFromGroupOK: Bool = false) -> SyncServer.SharingGroup? {
+            var sharingEntry:SharingEntry!
+            var sharingGroup: SyncServer.SharingGroup!
+            
+            CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID)
+                Log.msg("getSharingGroup: \(String(describing: sharingEntry)); \(removedFromGroupOK)")
+                
+                if !removedFromGroupOK {
+                    guard !sharingEntry.removedFromGroup else {
+                        sharingEntry = nil
+                        return
+                    }
+                }
+                
+                sharingGroup = sharingEntry.toSharingGroup()
+            }
+
+            if sharingEntry == nil {
+                callback?(.generic("Could not get sharing entry."))
+                return nil
             }
             
-            sharingGroup = sharingEntry.toSharingGroup()
-        }
-        
-        if sharingEntry == nil {
-            callback?(.generic("Could not get sharing entry."))
-            return
+            return sharingGroup
         }
         
         let nextResult = Upload.session.next(sharingGroupUUID: sharingGroupUUID, first: first) {[unowned self] nextCompletion in
@@ -279,11 +287,17 @@ class SyncManager {
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
                 
             case .sharingGroupCreated:
+                guard let sharingGroup = getSharingGroup(sharingGroupUUID: sharingGroupUUID) else {
+                    return
+                }
                 EventDesired.reportEvent(
                     .sharingGroupUploadOperationCompleted(sharingGroup: sharingGroup, operation: .creation), mask: self.desiredEvents, delegate: self.delegate)
                 self.checkForPendingUploads(sharingGroupUUID: sharingGroupUUID)
             
             case .userRemovedFromSharingGroup:
+                guard let sharingGroup = getSharingGroup(sharingGroupUUID: sharingGroupUUID, removedFromGroupOK: true) else {
+                    return
+                }
                 EventDesired.reportEvent(
                     .sharingGroupUploadOperationCompleted(sharingGroup: sharingGroup, operation: .userRemoval), mask: self.desiredEvents, delegate: self.delegate)
                 // No need to check for pending uploads-- this will have been the only operation in the queue. And don't do done uploads-- that will fail because we're no longer in the sharing group (and wouldn't do anything even if we were).

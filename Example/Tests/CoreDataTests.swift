@@ -203,7 +203,7 @@ class CoreDataTests: TestCase {
         let attr = SyncAttributes(fileUUID: uuid, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
         try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
         
-        let exp = expectation(description: "test")
+        let exp = expectation(description: "testLogAllTracking")
         
         SyncServer.session.logAllTracking() {
             // Read the file from disk and see if the trailing marker is present.
@@ -216,7 +216,7 @@ class CoreDataTests: TestCase {
                 return
             }
 
-            XCTAssert(fileContents.contains(SyncServer.trailingMarker), "\(fileContents)")
+            XCTAssert(fileContents.contains(SyncServer.trailingMarker), "\(String(describing: fileContents))")
             
             exp.fulfill()
         }

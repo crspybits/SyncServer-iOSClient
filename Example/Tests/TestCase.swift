@@ -154,8 +154,9 @@ class TestCase: XCTestCase {
         var result = false
 
         SyncServer.session.eventsDesired = [.syncDone]
-
-        let syncDone = self.expectation(description: "test")
+        SyncServer.session.delegate = self
+        
+        let syncDone = self.expectation(description: "testUpdateSharingGroupsWithSync")
         
         syncServerEventOccurred = {event in
             switch event {
@@ -225,7 +226,7 @@ class TestCase: XCTestCase {
     }
     
     func createSharingGroup(sharingGroupUUID: String, sharingGroupName: String?) -> Bool {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testCreateSharingGroup")
 
         var sharingGroupResult:Bool = false
         
@@ -244,7 +245,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func updateSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt, sharingGroupName: String) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testUpdateSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
 
@@ -266,7 +267,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func removeSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testRemoveSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
         
@@ -288,7 +289,7 @@ class TestCase: XCTestCase {
     
     // nil is the expected result
     func removeUserFromSharingGroup(sharingGroupUUID: String, masterVersion: MasterVersionInt) -> MasterVersionInt? {
-        let expectation = self.expectation(description: "test")
+        let expectation = self.expectation(description: "testRemoveUserFromSharingGroup")
 
         var masterVersionUpdate:MasterVersionInt?
         

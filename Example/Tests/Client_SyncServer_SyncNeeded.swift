@@ -80,7 +80,7 @@ class Client_SyncServer_SyncNeeded: TestCase {
     func sync(forSharingGroupUUID sharingGroupUUID: String) {
         SyncServer.session.eventsDesired = [.syncDone]
 
-        let syncDone = self.expectation(description: "test")
+        let syncDone = self.expectation(description: "testSyncDone")
         
         syncServerEventOccurred = {event in
             switch event {
