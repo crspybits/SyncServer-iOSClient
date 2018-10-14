@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 17.2.0 (10/13/18)
+	* Added migration table.
+
 Version 17.1.0 (10/9/18)
 	* Added sync method without sharingGroupUUID parameter-- to only sync sharing groups.
 	* Removed getStats(sharingGroupUUID: String, completion:@escaping (Stats?)->()) method-- because a) it's no longer needed for SharedImages due to the change in badge UI/UX, and b) because it's not consistent with the sync operation (with no callbacks) in the rest of the interface. Also, some of this information is now available from the `sharingGroups` property through syncNeeded.
