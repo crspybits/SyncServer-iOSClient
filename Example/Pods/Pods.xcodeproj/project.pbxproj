@@ -369,6 +369,7 @@
 		83138049E955D6ECAD9611F4AC734407 /* BFWebViewAppLinkResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C4E7C97A8827365080B66CD31EDBC3E /* BFWebViewAppLinkResolver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		834F4D9819C6010E611A7E151B8899C3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5A7669BBB3AFDD9F967A3988EE71A7D /* Foundation.framework */; };
 		8358FB19F06EB8052641C756EB796D2C /* MiscTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA34572051EA0FC50FAB26A9DD6DD678 /* MiscTypes.swift */; };
+		835CA4B2217D92220064165F /* Hashing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835CA4B1217D92220064165F /* Hashing.swift */; };
 		8364AFBB35EA87205B97D5168881822D /* LazyFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 94601258190A0B9E096D68088C181654 /* LazyFrame.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		83F528D855F095703DA4D6B83492A38D /* AppEventsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344025C7266D58BA0186710043D7C590 /* AppEventsLogger.swift */; };
 		8448C014FF62BAF749ED0EE7B0EC1A3E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5A7669BBB3AFDD9F967A3988EE71A7D /* Foundation.framework */; };
@@ -1412,6 +1413,7 @@
 		82D3AC0B9E40EE10DAD1AA24FD700625 /* FBSDKAppLinkReturnToRefererView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKAppLinkReturnToRefererView.m; path = FBSDKCoreKit/FBSDKCoreKit/FBSDKAppLinkReturnToRefererView.m; sourceTree = "<group>"; };
 		82F66BF3FE4EC04F285F41524746BD14 /* Tracker+CoreDataProperties.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Tracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		833F75E0B0A5B7CCF0BBEEF6999BDC98 /* Bolts.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = Bolts.modulemap; sourceTree = "<group>"; };
+		835CA4B1217D92220064165F /* Hashing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hashing.swift; sourceTree = "<group>"; };
 		839DBC540A733BBD295B9A9A89C9ACC5 /* FBSDKTimeSpentData.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = FBSDKTimeSpentData.m; path = FBSDKCoreKit/FBSDKCoreKit/Internal/AppEvents/FBSDKTimeSpentData.m; sourceTree = "<group>"; };
 		83FE1513F27FE776AB23B8BF4F4E7C56 /* GraphRequest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GraphRequest.swift; path = Sources/Core/GraphRequest/GraphRequest.swift; sourceTree = "<group>"; };
 		841C63E6D0588CD0812FAC453F4F9097 /* Timeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Timeline.swift; path = Source/Timeline.swift; sourceTree = "<group>"; };
@@ -2714,6 +2716,14 @@
 			path = ../..;
 			sourceTree = "<group>";
 		};
+		835CA4B0217D91AC0064165F /* Cloud Storage Extras */ = {
+			isa = PBXGroup;
+			children = (
+				835CA4B1217D92220064165F /* Hashing.swift */,
+			);
+			path = "Cloud Storage Extras";
+			sourceTree = "<group>";
+		};
 		849B5D4FDA7E218269FAF9498DB9EF88 /* Gloss */ = {
 			isa = PBXGroup;
 			children = (
@@ -3036,6 +3046,7 @@
 				D6ACF81ADA9312F85E8B21A34F2E543C /* Constants.swift */,
 				D36C38D4A6972F96AF553D46DC651E43 /* Directory.swift */,
 				09251A1DEACE205371AEA4720359D3C9 /* FilesMisc.swift */,
+				835CA4B0217D91AC0064165F /* Cloud Storage Extras */,
 				300946345F35C1C8453B2068153B7F8A /* Core Data */,
 				905BC8A6154324019CF4589844A021F4 /* ServerAPI */,
 				87C87523C18643B1A432799939E5DECC /* SyncManager */,
@@ -4219,6 +4230,7 @@
 				12B057FA7DC8E844A90E8A2705E0A155 /* SyncServerConflict.swift in Sources */,
 				358CC08B503350FB30BA2E07267C25D3 /* SyncServerDelegate.swift in Sources */,
 				5A54FF5CCC8AF12B920C2C398FBE901B /* SyncServerError.swift in Sources */,
+				835CA4B2217D92220064165F /* Hashing.swift in Sources */,
 				2059889A776C0DA25668ABD412CAF5C2 /* SyncServerUser.swift in Sources */,
 				591F6C255784A153AC73DF503F59083F /* Tracker+CoreDataProperties.swift in Sources */,
 				01A96B8ED8536AE370508B1805AB830F /* Tracker.swift in Sources */,
@@ -4823,7 +4835,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.2;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -5015,7 +5027,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.2;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";

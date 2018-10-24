@@ -35,6 +35,8 @@
 		835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */; };
 		835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */; };
 		835C61121E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */; };
+		835CA4B4217D941E0064165F /* milky-way-nasa.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 835CA4B3217D941E0064165F /* milky-way-nasa.jpg */; };
+		835CA4B6217D94810064165F /* HashingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835CA4B5217D94810064165F /* HashingTests.swift */; };
 		8363160C2001D2C200F8E55B /* BackgroundTaskTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8363160B2001D2C200F8E55B /* BackgroundTaskTest.swift */; };
 		836D4BD61E10728D005209F2 /* HealthCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BD51E10728D005209F2 /* HealthCheck.swift */; };
 		836D4BE21E11AF8C005209F2 /* SetupSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */; };
@@ -127,6 +129,8 @@
 		835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager.swift; sourceTree = "<group>"; };
 		835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_NetworkLoss.swift; sourceTree = "<group>"; };
 		835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_DownloadDeletion.swift; sourceTree = "<group>"; };
+		835CA4B3217D941E0064165F /* milky-way-nasa.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "milky-way-nasa.jpg"; sourceTree = "<group>"; };
+		835CA4B5217D94810064165F /* HashingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashingTests.swift; sourceTree = "<group>"; };
 		8363160B2001D2C200F8E55B /* BackgroundTaskTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskTest.swift; sourceTree = "<group>"; };
 		836D4BD51E10728D005209F2 /* HealthCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HealthCheck.swift; sourceTree = "<group>"; };
 		836D4BE11E11AF8C005209F2 /* SetupSignIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetupSignIn.swift; sourceTree = "<group>"; };
@@ -262,6 +266,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				835CA4B5217D94810064165F /* HashingTests.swift */,
 				8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */,
 				8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */,
 				8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */,
@@ -294,6 +299,7 @@
 				8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */,
 				83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */,
 				83F37A2F1E51120B00479175 /* ServerAPI_DownloadFile.swift */,
+				835CA4B3217D941E0064165F /* milky-way-nasa.jpg */,
 				83F37A231E46E8C700479175 /* Cat.jpg */,
 				831DE3CB1EDA850F0084070F /* LargerCat.jpg */,
 				831DE3CC1EDA850F0084070F /* SmallerCat.jpg */,
@@ -491,6 +497,7 @@
 			files = (
 				83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */,
 				83D829D01F70B8B30030E9F7 /* UploadMe2.txt in Resources */,
+				835CA4B4217D941E0064165F /* milky-way-nasa.jpg in Resources */,
 				83F37A241E46E8C700479175 /* Cat.jpg in Resources */,
 				831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */,
 				831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */,
@@ -638,6 +645,7 @@
 				83F37A1A1E44478100479175 /* FileIndex.swift in Sources */,
 				838ED40C1ED2B46200078E9F /* Performance.swift in Sources */,
 				8378D9C21E95F29700470D49 /* ServerAPI_SingleError.swift in Sources */,
+				835CA4B6217D94810064165F /* HashingTests.swift in Sources */,
 				837244561E419EE600155E89 /* TestCase.swift in Sources */,
 				838C2DC22023EF5F00AB1F26 /* ServerVersion.swift in Sources */,
 				8344CC211E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift in Sources */,
