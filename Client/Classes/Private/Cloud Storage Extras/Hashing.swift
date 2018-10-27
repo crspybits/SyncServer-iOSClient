@@ -23,16 +23,17 @@ class Hashing {
         return Data(bytes: hash)
     }
     
+    private static let dropboxBlockSize = 1024 * 1024 * 4
+
     // Method: https://www.dropbox.com/developers/reference/content-hash
     static func generateDropbox(fromLocalFile localFile: URL) -> String? {
-        let blockSize = 1024 * 1024 * 4
 
         guard let inputStream = InputStream(url: localFile) else {
             Log.msg("Error opening input stream: \(localFile)")
             return nil
         }
 
-        var inputBuffer = [UInt8](repeating: 0, count: blockSize)
+        var inputBuffer = [UInt8](repeating: 0, count: dropboxBlockSize)
         inputStream.open()
         defer {
             inputStream.close()
@@ -41,7 +42,7 @@ class Hashing {
         var concatenatedSHAs = Data()
         
         while true {
-            let length = inputStream.read(&inputBuffer, maxLength: blockSize)
+            let length = inputStream.read(&inputBuffer, maxLength: dropboxBlockSize)
             if length == 0 {
                 // EOF
                 break
@@ -61,10 +62,42 @@ class Hashing {
         return hexString
     }
     
+    static func generateDropbox(fromData data: Data) -> String? {
+        var concatenatedSHAs = Data()
+        
+        var remainingLength = data.count
+        if remainingLength == 0 {
+            return nil
+        }
+        
+        var startIndex = data.startIndex
+
+        while true {
+            let nextBlockSize = min(remainingLength, dropboxBlockSize)
+            let endIndex = startIndex.advanced(by: nextBlockSize)
+            let range = startIndex..<endIndex
+            startIndex = endIndex
+            remainingLength -= nextBlockSize
+
+            let sha = sha256(data: data[range])
+            concatenatedSHAs.append(sha)
+            
+            if remainingLength == 0 {
+                break
+            }
+        }
+        
+        let finalSHA = sha256(data: concatenatedSHAs)
+        let hexString = finalSHA.map { String(format: "%02hhx", $0) }.joined()
+
+        return hexString
+    }
+    
+    private static let googleBufferSize = 1024 * 1024
+    
+    // I'm having problems with this computing checksums in some cases. Using FileMD5Hash instead.
     // From https://stackoverflow.com/questions/42935148/swift-calculate-md5-checksum-for-large-files
     static func generateMD5(fromURL url: URL) -> String? {
-        let bufferSize = 1024 * 1024
-
         do {
             // Open file for reading:
             let file = try FileHandle(forReadingFrom: url)
@@ -78,7 +111,8 @@ class Hashing {
 
             // Read up to `bufferSize` bytes, until EOF is reached, and update MD5 context:
             while autoreleasepool(invoking: {
-                let data = file.readData(ofLength: bufferSize)
+                let data = file.readData(ofLength: googleBufferSize)
+                print("data.count: \(data.count)")
                 if data.count > 0 {
                     data.withUnsafeBytes {
                         _ = CC_MD5_Update(&context, $0, numericCast(data.count))
@@ -102,5 +136,28 @@ class Hashing {
             Log.msg("Cannot open file: " + error.localizedDescription)
             return nil
         }
+    }
+    
+    static func generateMD5(fromData data: Data) -> String? {
+        if data.count == 0 {
+            return nil
+        }
+
+        // Create and initialize MD5 context:
+        var context = CC_MD5_CTX()
+        CC_MD5_Init(&context)
+
+        data.withUnsafeBytes {
+            _ = CC_MD5_Update(&context, $0, numericCast(data.count))
+        }
+
+        // Compute the MD5 digest:
+        var digest = Data(count: Int(CC_MD5_DIGEST_LENGTH))
+        digest.withUnsafeMutableBytes {
+            _ = CC_MD5_Final($0, &context)
+        }
+
+        let hexString = digest.map { String(format: "%02hhx", $0) }.joined()
+        return hexString
     }
 }

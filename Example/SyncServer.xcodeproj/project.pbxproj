@@ -18,7 +18,6 @@
 		8310F81A200DAC5D00EB38E8 /* UploadMe4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8310F819200DAC5C00EB38E8 /* UploadMe4.txt */; };
 		831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CB1EDA850F0084070F /* LargerCat.jpg */; };
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
-		831EEC4920021D82001821B9 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831EEC4820021D81001821B9 /* Cat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
 		832E947120B0BEEF00586BB3 /* Client_GetAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */; };
 		832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */; };
@@ -35,7 +34,6 @@
 		835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */; };
 		835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */; };
 		835C61121E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */; };
-		835CA4B4217D941E0064165F /* milky-way-nasa.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 835CA4B3217D941E0064165F /* milky-way-nasa.jpg */; };
 		835CA4B6217D94810064165F /* HashingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835CA4B5217D94810064165F /* HashingTests.swift */; };
 		8363160C2001D2C200F8E55B /* BackgroundTaskTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8363160B2001D2C200F8E55B /* BackgroundTaskTest.swift */; };
 		836D4BD61E10728D005209F2 /* HealthCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836D4BD51E10728D005209F2 /* HealthCheck.swift */; };
@@ -52,6 +50,8 @@
 		839966FB207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839966FA207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift */; };
 		8399F61A2104604200865C34 /* Client_SyncServer_SharingGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */; };
 		839A0A4E20A2CE5C00F0AD63 /* Client_FileGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839A0A4D20A2CE5C00F0AD63 /* Client_FileGroup.swift */; };
+		839BD62221842859007C3E27 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 839BD62121842859007C3E27 /* Cat.jpg */; };
+		839BD62421842879007C3E27 /* milky-way-nasa.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 839BD62321842879007C3E27 /* milky-way-nasa.jpg */; };
 		83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */; };
 		83CD30831E15880000A0C7AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30811E15880000A0C7AD /* GoogleService-Info.plist */; };
 		83CD30841E15880000A0C7AD /* Server.plist in Resources */ = {isa = PBXBuildFile; fileRef = 83CD30821E15880000A0C7AD /* Server.plist */; };
@@ -68,7 +68,6 @@
 		83F37A1A1E44478100479175 /* FileIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F37A191E44478100479175 /* FileIndex.swift */; };
 		83F37A201E46D40500479175 /* UploadFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F37A1F1E46D40500479175 /* UploadFile.swift */; };
 		83F37A221E46D52500479175 /* UploadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = 83F37A211E46D52500479175 /* UploadMe.txt */; };
-		83F37A241E46E8C700479175 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 83F37A231E46E8C700479175 /* Cat.jpg */; };
 		83F37A301E51120B00479175 /* ServerAPI_DownloadFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F37A2F1E51120B00479175 /* ServerAPI_DownloadFile.swift */; };
 		83F55F811E58D59D00759578 /* ServerAPI_GetUploads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */; };
 		83F882131E6E5FDD008F644A /* Client_SyncServer_Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */; };
@@ -110,7 +109,6 @@
 		8310F819200DAC5C00EB38E8 /* UploadMe4.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe4.txt; sourceTree = "<group>"; };
 		831DE3CB1EDA850F0084070F /* LargerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = LargerCat.jpg; sourceTree = "<group>"; };
 		831DE3CC1EDA850F0084070F /* SmallerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SmallerCat.jpg; sourceTree = "<group>"; };
-		831EEC4820021D81001821B9 /* Cat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = Cat.jpg; path = Tests/Cat.jpg; sourceTree = SOURCE_ROOT; };
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
 		832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_GetAttributes.swift; sourceTree = "<group>"; };
 		832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_MultiVersionFiles.swift; sourceTree = "<group>"; };
@@ -129,7 +127,6 @@
 		835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager.swift; sourceTree = "<group>"; };
 		835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_NetworkLoss.swift; sourceTree = "<group>"; };
 		835C61111E653D7D003E9AF8 /* Client_SyncManager_DownloadDeletion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager_DownloadDeletion.swift; sourceTree = "<group>"; };
-		835CA4B3217D941E0064165F /* milky-way-nasa.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "milky-way-nasa.jpg"; sourceTree = "<group>"; };
 		835CA4B5217D94810064165F /* HashingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashingTests.swift; sourceTree = "<group>"; };
 		8363160B2001D2C200F8E55B /* BackgroundTaskTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskTest.swift; sourceTree = "<group>"; };
 		836D4BD51E10728D005209F2 /* HealthCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HealthCheck.swift; sourceTree = "<group>"; };
@@ -146,6 +143,8 @@
 		839966FA207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_AppMetaData.swift; sourceTree = "<group>"; };
 		8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_SharingGroup.swift; sourceTree = "<group>"; };
 		839A0A4D20A2CE5C00F0AD63 /* Client_FileGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_FileGroup.swift; sourceTree = "<group>"; };
+		839BD62121842859007C3E27 /* Cat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Cat.jpg; sourceTree = "<group>"; };
+		839BD62321842879007C3E27 /* milky-way-nasa.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "milky-way-nasa.jpg"; sourceTree = "<group>"; };
 		83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CatBehaviors.jpg; sourceTree = "<group>"; };
 		83CD30811E15880000A0C7AD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		83CD30821E15880000A0C7AD /* Server.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Server.plist; sourceTree = "<group>"; };
@@ -160,7 +159,6 @@
 		83F37A191E44478100479175 /* FileIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileIndex.swift; sourceTree = "<group>"; };
 		83F37A1F1E46D40500479175 /* UploadFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadFile.swift; sourceTree = "<group>"; };
 		83F37A211E46D52500479175 /* UploadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UploadMe.txt; sourceTree = "<group>"; };
-		83F37A231E46E8C700479175 /* Cat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Cat.jpg; sourceTree = "<group>"; };
 		83F37A2F1E51120B00479175 /* ServerAPI_DownloadFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_DownloadFile.swift; sourceTree = "<group>"; };
 		83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_GetUploads.swift; sourceTree = "<group>"; };
 		83F882121E6E5FDD008F644A /* Client_SyncServer_Sync.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Sync.swift; sourceTree = "<group>"; };
@@ -251,13 +249,14 @@
 		607FACD31AFB9204008FA782 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				831EEC4820021D81001821B9 /* Cat.jpg */,
 				8301895220196F21004951D4 /* UploadMe.txt */,
 				83D95CA31E6B546500DF3BF3 /* UploadMe2.txt */,
 				83D95CA51E6C8EBC00DF3BF3 /* UploadMe3.txt */,
 				8310F819200DAC5C00EB38E8 /* UploadMe4.txt */,
 				607FACD41AFB9204008FA782 /* Info.plist */,
+				839BD62121842859007C3E27 /* Cat.jpg */,
 				83CD30811E15880000A0C7AD /* GoogleService-Info.plist */,
+				839BD62321842879007C3E27 /* milky-way-nasa.jpg */,
 				83CD30821E15880000A0C7AD /* Server.plist */,
 			);
 			name = "Supporting Files";
@@ -299,8 +298,6 @@
 				8344CC201E5FC67700BEB263 /* ServerAPI_UploadDeletion.swift */,
 				83F55F801E58D59D00759578 /* ServerAPI_GetUploads.swift */,
 				83F37A2F1E51120B00479175 /* ServerAPI_DownloadFile.swift */,
-				835CA4B3217D941E0064165F /* milky-way-nasa.jpg */,
-				83F37A231E46E8C700479175 /* Cat.jpg */,
 				831DE3CB1EDA850F0084070F /* LargerCat.jpg */,
 				831DE3CC1EDA850F0084070F /* SmallerCat.jpg */,
 				83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */,
@@ -484,9 +481,10 @@
 				8301895320196F21004951D4 /* UploadMe.txt in Resources */,
 				83CD30841E15880000A0C7AD /* Server.plist in Resources */,
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
+				839BD62421842879007C3E27 /* milky-way-nasa.jpg in Resources */,
 				607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */,
 				8310F81A200DAC5D00EB38E8 /* UploadMe4.txt in Resources */,
-				831EEC4920021D82001821B9 /* Cat.jpg in Resources */,
+				839BD62221842859007C3E27 /* Cat.jpg in Resources */,
 				83CD30831E15880000A0C7AD /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -497,8 +495,6 @@
 			files = (
 				83B5F78B1F09E4AB0069A1D7 /* CatBehaviors.jpg in Resources */,
 				83D829D01F70B8B30030E9F7 /* UploadMe2.txt in Resources */,
-				835CA4B4217D941E0064165F /* milky-way-nasa.jpg in Resources */,
-				83F37A241E46E8C700479175 /* Cat.jpg in Resources */,
 				831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */,
 				831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */,
 				83D829D11F70B8B60030E9F7 /* UploadMe3.txt in Resources */,
@@ -566,6 +562,7 @@
 				"${BUILT_PRODUCTS_DIR}/FBSDKLoginKit/FBSDKLoginKit.framework",
 				"${BUILT_PRODUCTS_DIR}/FacebookCore/FacebookCore.framework",
 				"${BUILT_PRODUCTS_DIR}/FacebookLogin/FacebookLogin.framework",
+				"${BUILT_PRODUCTS_DIR}/FileMD5Hash/FileMD5Hash.framework",
 				"${BUILT_PRODUCTS_DIR}/Gloss/Gloss.framework",
 				"${PODS_ROOT}/GoogleSignIn/Framework/GoogleSignIn.framework",
 				"${BUILT_PRODUCTS_DIR}/HPTextViewTapGestureRecognizer/HPTextViewTapGestureRecognizer.framework",
@@ -584,6 +581,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBSDKLoginKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FacebookCore.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FacebookLogin.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FileMD5Hash.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Gloss.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleSignIn.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/HPTextViewTapGestureRecognizer.framework",
@@ -839,7 +837,7 @@
 					"$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2",
 				);
 				INFOPLIST_FILE = SyncServer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" -D SYNCSERVER_GOOGLE_SIGNIN";
@@ -879,7 +877,7 @@
 					"$(PODS_TARGET_SRCROOT)/SDKs/google_signin_sdk_4_1_2",
 				);
 				INFOPLIST_FILE = SyncServer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN $(inherited) \"-D\" \"COCOAPODS\" -D SYNCSERVER_GOOGLE_SIGNIN";
@@ -904,7 +902,7 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.$(PRODUCT_NAME:rfc1034identifier)";
@@ -927,7 +925,7 @@
 				DEVELOPMENT_TEAM = BH68R29JBE;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
