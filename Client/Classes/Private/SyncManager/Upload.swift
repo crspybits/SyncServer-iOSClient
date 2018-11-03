@@ -623,7 +623,7 @@ class Upload {
                 var completionResult:DoneUploadsCompletion?
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     // Master version was incremented on the server as part of normal doneUploads operation. Update ours locally.
-                    sharingEntry.masterVersion += 1
+                    sharingEntry.masterVersion += MasterVersionInt(1)
                     
                     // If we did a sharing group name update on the server, apply it locally so we're in sync on sharing group names. (And don't have to do another sync() to apply the update.
                     if let sharingGroupNameUpdate = sharingGroupNameUpdate {

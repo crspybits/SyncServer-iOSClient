@@ -31,6 +31,7 @@ public class DownloadFileTracker: FileTracker, AllOperations {
         }
     }
     
+    // Storing the cloudStorageType in the DownloadFileTracker so we can populate the DirectoryEntry's with the cloud storage type on a download.
     var cloudStorageType: CloudStorageType? {
         get {
             if let cloudStorageTypeInternal = cloudStorageTypeInternal {

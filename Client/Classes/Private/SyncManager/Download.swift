@@ -356,7 +356,6 @@ class Download {
                     nextToDownload.status = .downloaded
                     
                     nextToDownload.localURL = downloadedFile.url
-                    nextToDownload.checkSum = downloadedFile.checkSum
                     nextToDownload.cloudStorageType = downloadedFile.cloudStorageType
                     nextToDownload.contentsChangedOnServer = downloadedFile.contentsChangedOnServer
                     
