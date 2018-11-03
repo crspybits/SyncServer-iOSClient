@@ -178,7 +178,7 @@ class SyncManager {
                         var contentType:DownloadOperation.OperationType!
                         switch dft.operation! {
                         case .file:
-                            contentType = .file(dft.localURL!)
+                            contentType = .file(dft.localURL!, contentsChanged: dft.contentsChangedOnServer)
                         case .appMetaData:
                             contentType = .appMetaData
                         case .deletion:

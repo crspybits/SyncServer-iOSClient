@@ -35,7 +35,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return nil
         }
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [attr.fileUUID])
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
@@ -51,7 +51,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == expectedVersion)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
         return url
@@ -124,8 +124,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID, fileSize: nil),
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID,
         ])
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -142,7 +142,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(dirEntry.fileVersion == version)
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: version, checkSum: "")
         
         // Expecting last file contents uploaded.
         let url = urls[urls.count - 1]
@@ -209,7 +209,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         var downloadCount = 0
         
         syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file(let url) = group[0].type {
+            if group.count == 1, case .file(let url, let contentsChanged) = group[0].type {
+                XCTAssert(!contentsChanged)
                 let attr = group[0].attr
                 downloadCount += 1
                 guard let originalURL = urls[attr.fileUUID] else {
@@ -855,7 +856,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -1519,7 +1520,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: attr.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, undelete: true) else {
             XCTFail()
             return
         }
@@ -1591,7 +1592,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let (_, file) = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:fileURL as URL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -1733,7 +1734,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let fileVersion:FileVersionInt = 1
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         let appMetaData2 = AppMetaData(version: 1, contents: "OtherAppMetaData")
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: fileVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:appMetaData2, fileVersion: fileVersion) else {
             XCTFail()
             return
         }

@@ -169,6 +169,11 @@ class TestCase: XCTestCase {
             }
         }
         
+        syncServerErrorOccurred = { error in
+            XCTFail("error: \(error)")
+            syncDone.fulfill()
+        }
+        
         try! SyncServer.session.sync()
         
         waitForExpectations(timeout: 10.0, handler: nil)
@@ -334,31 +339,29 @@ class TestCase: XCTestCase {
         var fileVersion:FileVersionInt = 0
         let fileUUID = UUID().uuidString
     
-        guard let (_, fileResult) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let fileResult = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return nil
         }
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
     
-        var resultFileSize:Int64?
         var resultFile:ServerAPI.File?
         
         while fileVersion < version {
             masterVersion += 1
             fileVersion += 1
         
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
+            guard let file = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion, fileGroupUUID: fileGroupUUID) else {
                 XCTFail()
                 return nil
             }
             
-            resultFileSize = fileSize
             resultFile = file
             
             doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         }
         
-        guard let file = resultFile, let fileSize = resultFileSize else {
+        guard let file = resultFile else {
             XCTFail()
             return nil
         }
@@ -387,7 +390,7 @@ class TestCase: XCTestCase {
             XCTFail()
         }
         
-        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
         
         return fileResult
     }
@@ -454,7 +457,7 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func getFileIndex(sharingGroupUUID: String? = nil, expectedFiles:[(fileUUID:String, fileSize:Int64?)] = [], errorExpected: Bool = false, callback:((FileInfo)->())? = nil) -> ServerAPI.IndexResult? {
+    func getFileIndex(sharingGroupUUID: String? = nil, expectedFileUUIDs:[String] = [], errorExpected: Bool = false, callback:((FileInfo)->())? = nil) -> ServerAPI.IndexResult? {
         let expectation1 = self.expectation(description: "fileIndex")
         
         var fileInfoResult: ServerAPI.IndexResult?
@@ -477,7 +480,7 @@ class TestCase: XCTestCase {
                 return
             }
             
-            for (fileUUID, fileSize) in expectedFiles {
+            for fileUUID in expectedFileUUIDs {
                 let result = fileInfoResult?.fileIndex?.filter { file in
                     file.fileUUID == fileUUID
                 }
@@ -488,13 +491,7 @@ class TestCase: XCTestCase {
                     return
                 }
             
-                if fileSize != nil {
-                    guard result![0].fileSizeBytes == fileSize else {
-                        XCTFail()
-                        fileInfoResult = nil
-                        return
-                    }
-                }
+                XCTAssert(result![0].cloudStorageType != nil)
             }
             
             if let fileIndex = fileInfoResult?.fileIndex {
@@ -511,23 +508,22 @@ class TestCase: XCTestCase {
         return fileInfoResult
     }
     
-    func getUploads(sharingGroupUUID: String, expectedFiles:[(fileUUID:String, fileSize:Int64?)], callback:((FileInfo)->())? = nil) {
+    func getUploads(sharingGroupUUID: String, expectedFileUUIDs:[String], callback:((FileInfo)->())? = nil) {
         let expectation1 = self.expectation(description: "getUploads")
         
         ServerAPI.session.getUploads(sharingGroupUUID: sharingGroupUUID) { (uploads, error) in
             XCTAssert(error == nil)
             
-            XCTAssert(expectedFiles.count == uploads?.count)
+            XCTAssert(expectedFileUUIDs.count == uploads?.count)
             
-            for (fileUUID, fileSize) in expectedFiles {
+            for fileUUID in expectedFileUUIDs {
                 let result = uploads?.filter { file in
                     file.fileUUID == fileUUID
                 }
                 
                 XCTAssert(result!.count == 1)
-                if fileSize != nil {
-                    XCTAssert(result![0].fileSizeBytes == fileSize)
-                }
+                // FileInfo objects don't have cloud storage type when returned from GetUploads
+                XCTAssert(result![0].cloudStorageType == nil)
             }
             
             for curr in 0..<uploads!.count {
@@ -542,7 +538,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> (fileSize: Int64, ServerAPI.File)? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> ServerAPI.File? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -558,31 +554,27 @@ class TestCase: XCTestCase {
         else {
             finalDeviceUUID = theDeviceUUID!
         }
-        
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion)
-        
-        // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
-        guard let fileData = try? Data(contentsOf: file.localURL) else {
+
+        guard let cloudStorageType = TestCase.currTestAccount.accountType.toCloudStorageType() else {
             XCTFail()
             return nil
         }
         
-        let expectation = self.expectation(description: "upload")
-        var fileSize:Int64?
+        guard let checkSum = Hashing.hashOf(url: fileURL, for: cloudStorageType) else {
+            XCTFail()
+            return nil
+        }
         
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion, checkSum: checkSum)
+        
+        let expectation = self.expectation(description: "upload")
+
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion, undelete: undelete) { uploadFileResult, error in
             if expectError {
                 XCTAssert(error != nil)
             }
             else {
                 XCTAssert(error == nil)
-                if case .success(let size, _, _) = uploadFileResult! {
-                    XCTAssert(Int64(fileData.count) == size)
-                    fileSize = size
-                }
-                else {
-                    XCTFail("\(uploadFileResult!)")
-                }
             }
             
             expectation.fulfill()
@@ -590,12 +582,7 @@ class TestCase: XCTestCase {
         
         waitForExpectations(timeout: 60.0, handler: nil)
         
-        if fileSize == nil {
-            return nil
-        }
-        else {
-            return (fileSize!, file)
-        }
+        return file
     }
     
     func uploadFile(fileName:String, fileExtension:String, sharingGroupUUID: String, mimeType:MimeType, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, withExpectation expectation:XCTestExpectation) {
@@ -609,31 +596,25 @@ class TestCase: XCTestCase {
         }
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
-
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
         
-        // Just to get the size-- this is redundant with the file read in ServerAPI.session.uploadFile
-        guard let fileData = try? Data(contentsOf: file.localURL) else {
+        guard let signIn = SignInManager.session.currentSignIn,
+            signIn.userType == .owning,
+            let cloudStorageType = signIn.cloudStorageType else {
             XCTFail()
             return
         }
         
+        guard let checkSum = Hashing.hashOf(url: fileURL, for: cloudStorageType) else {
+            XCTFail()
+            return
+        }
+
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0, checkSum: checkSum)
+        
         Log.special("ServerAPI.session.uploadFile")
         
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion) { uploadFileResult, error in
-        
-            if error == nil {
-                if case .success(let size, _, _) = uploadFileResult! {
-                    XCTAssert(Int64(fileData.count) == size)
-                }
-                else {
-                    XCTFail()
-                }
-            }
-            else {
-                XCTFail()
-            }
-            
+            XCTAssert(error == nil, "\(String(describing: error))")
             expectation.fulfill()
         }
     }
@@ -823,7 +804,7 @@ class TestCase: XCTestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
@@ -833,7 +814,8 @@ class TestCase: XCTestCase {
         var downloadCount = 0
         
         syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file(let url) = group[0].type {
+            if group.count == 1, case .file(let url, let contentsChanged) = group[0].type {
+                XCTAssert(!contentsChanged)
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
                 XCTAssert(self.filesHaveSameContents(url1: file.localURL, url2: url as URL))
@@ -881,7 +863,7 @@ class TestCase: XCTestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return nil
         }
         
@@ -891,8 +873,8 @@ class TestCase: XCTestCase {
         let fileToDelete = ServerAPI.FileToDelete(fileUUID: file.fileUUID, fileVersion: file.fileVersion, sharingGroupUUID: sharingGroupUUID)
         uploadDeletion(fileToDelete: fileToDelete, masterVersion: masterVersion+1)
         
-        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID, fileSize: nil)
+        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID
         ]) { fileInfo in
             XCTAssert(fileInfo.deleted)
         }
@@ -908,14 +890,14 @@ class TestCase: XCTestCase {
 
         self.doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        self.getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: []) { file in
+        self.getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: []) { file in
             XCTAssert(file.fileUUID != fileUUID)
         }
         
         var foundDeletedFile = false
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID, fileSize: nil)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID
         ]) { file in
             if file.fileUUID == fileUUID {
                 foundDeletedFile = true
@@ -938,16 +920,16 @@ class TestCase: XCTestCase {
             actualFileUUID = UUID().uuidString
         }
         
-        guard let (fileSize, file) = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let file = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             return
         }
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
     }
     
-    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, sharingGroupUUID: String, appMetaData:AppMetaData? = nil, fileSize:Int64? = nil) {
+    func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, sharingGroupUUID: String, appMetaData:AppMetaData? = nil, expectedCheckSum:String? = nil) {
         let expectation = self.expectation(description: "doneUploads")
 
         let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: file.fileUUID, fileVersion: file.fileVersion, appMetaDataVersion: appMetaData?.version)
@@ -964,8 +946,8 @@ class TestCase: XCTestCase {
                 if appMetaData != nil {
                     XCTAssert(downloadedFile.appMetaData == appMetaData)
                 }
-                if fileSize != nil {
-                    XCTAssert(fileSize == downloadedFile.fileSizeBytes)
+                if let expectedCheckSum = expectedCheckSum {
+                    XCTAssert(expectedCheckSum == downloadedFile.checkSum)
                 }
             }
             else {
@@ -1062,9 +1044,8 @@ class TestCase: XCTestCase {
                     return nil
                 }
             } catch (let error) {
-                Log.error("\(error)")
                 if errorExpected != UploadSingleFileUsingSyncError.uploadImmutable {
-                    XCTFail()
+                    XCTFail("\(error)")
                 }
                 return nil
             }
@@ -1120,7 +1101,7 @@ class TestCase: XCTestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData) else {
             return nil
         }
         

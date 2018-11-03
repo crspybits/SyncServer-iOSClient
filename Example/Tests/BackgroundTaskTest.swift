@@ -70,7 +70,7 @@ class BackgroundTaskTest: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
 
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil) else {
             return
         }
         

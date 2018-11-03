@@ -30,14 +30,14 @@ class Client_SyncServer_FileUpload: TestCase {
             return
         }
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: attr.fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [attr.fileUUID])
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
@@ -112,9 +112,9 @@ class Client_SyncServer_FileUpload: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID1, fileSize: nil),
-            (fileUUID: fileUUID2, fileSize: nil)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID1,
+            fileUUID2
         ])
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -122,10 +122,10 @@ class Client_SyncServer_FileUpload: TestCase {
             return
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
@@ -200,7 +200,7 @@ class Client_SyncServer_FileUpload: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [fileUUID])
         
         // Download the file and make sure it corresponds to url2
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
@@ -208,7 +208,7 @@ class Client_SyncServer_FileUpload: TestCase {
             return
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
@@ -343,14 +343,14 @@ class Client_SyncServer_FileUpload: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [(fileUUID: fileUUID, fileSize: nil)])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [fileUUID])
         
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
         
-        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file = ServerAPI.File(localURL: nil, fileUUID: fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
@@ -465,9 +465,9 @@ class Client_SyncServer_FileUpload: TestCase {
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID1, fileSize: nil),
-            (fileUUID: fileUUID2, fileSize: nil)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID1,
+            fileUUID2
         ])
         
         // Download and check the files
@@ -476,10 +476,10 @@ class Client_SyncServer_FileUpload: TestCase {
             return
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url1 as URL, file: file1, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url2 as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     

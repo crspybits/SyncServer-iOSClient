@@ -62,7 +62,7 @@ class ServerAPI_Sharing: TestCase {
                 return
             }
 
-            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!, cloudFolderName: self.cloudFolderName) { accessToken, sharingGroupId, error in
+            ServerAPI.session.redeemSharingInvitation(sharingInvitationUUID: sharingInvitationUUID!, cloudFolderName: self.cloudFolderName) { accessToken, sharingGroupUUID, error in
                 XCTAssert(error != nil)
                 expectation.fulfill()
             }

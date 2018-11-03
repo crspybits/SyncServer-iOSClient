@@ -161,7 +161,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         let fileUUID2 = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let file2 = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }

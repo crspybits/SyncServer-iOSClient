@@ -18,6 +18,7 @@
 		8310F81A200DAC5D00EB38E8 /* UploadMe4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8310F819200DAC5C00EB38E8 /* UploadMe4.txt */; };
 		831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CB1EDA850F0084070F /* LargerCat.jpg */; };
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
+		83224B79218D473B009C6492 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 839BD62121842859007C3E27 /* Cat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
 		832E947120B0BEEF00586BB3 /* Client_GetAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */; };
 		832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */; };
@@ -499,6 +500,7 @@
 				831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */,
 				83D829D11F70B8B60030E9F7 /* UploadMe3.txt in Resources */,
 				83F37A171E4445CB00479175 /* Server.plist in Resources */,
+				83224B79218D473B009C6492 /* Cat.jpg in Resources */,
 				83F37A221E46D52500479175 /* UploadMe.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

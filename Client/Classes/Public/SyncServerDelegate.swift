@@ -171,7 +171,8 @@ public struct DownloadOperation {
         case appMetaData
     
         /// May also include an appMetaData update. In the context, see the `SyncAttributes`.
-        case file(SMRelativeLocalURL)
+        /// contentsChanged: Did the contents of the file change while the file was "at rest" in cloud storage? e.g., this would happen if the user directly modified a Google Drive file used by the app. If this is true, you can be certain that the file changed. If this is false, it is possible (though less likely) the file changed. This lack of certainty is due to the use of checksums in making this determination.
+        case file(SMRelativeLocalURL, contentsChanged: Bool)
         
         case deletion
     }

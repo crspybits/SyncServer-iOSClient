@@ -37,16 +37,6 @@ public class DirectoryEntry: NSManagedObject, CoreDataModel, AllOperations {
             appMetaDataVersionInternal = newValue == nil ? nil : NSNumber(value: newValue!)
         }
     }
-
-    public var sharingGroupId: Int64? {
-        get {
-            return sharingGroupIdInternal?.int64Value
-        }
-        
-        set {
-            sharingGroupIdInternal = newValue == nil ? nil : NSNumber(value: newValue!)
-        }
-    }
     
     // Setting this assumes the file has also been deleted on the server.
     public var deletedLocally:Bool {
@@ -70,6 +60,21 @@ public class DirectoryEntry: NSManagedObject, CoreDataModel, AllOperations {
         }
         else {
             return appMetaDataVersion! + 1
+        }
+    }
+    
+    var cloudStorageType: CloudStorageType? {
+        get {
+            if let cloudStorageTypeInternal = cloudStorageTypeInternal {
+                return CloudStorageType(rawValue: cloudStorageTypeInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        
+        set {
+            cloudStorageTypeInternal = newValue?.rawValue
         }
     }
     

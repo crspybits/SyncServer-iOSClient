@@ -33,10 +33,23 @@ class Download {
             
             let sharingGroups = indexResult.sharingGroups
             var sharingGroupUpdates: SharingEntry.Updates!
+            var throwError: Error?
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                sharingGroupUpdates = SharingEntry.update(serverSharingGroups: sharingGroups)
+                do {
+                    sharingGroupUpdates = try SharingEntry.update(serverSharingGroups: sharingGroups)
+                }
+                catch (let error) {
+                    throwError = error
+                    return
+                }
+                
                 CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            }
+            
+            if let throwError = throwError {
+                completion?(SyncServerError.otherError(throwError))
+                return
             }
             
             Log.msg("sharingGroupUpdates: \(String(describing: sharingGroupUpdates))")
@@ -94,7 +107,7 @@ class Download {
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
-                    sharingGroupUpdates = SharingEntry.update(serverSharingGroups: sharingGroups)
+                    sharingGroupUpdates = try SharingEntry.update(serverSharingGroups: sharingGroups)
                     let downloadSet =
                         try Directory.session.checkFileIndex(serverFileIndex: fileIndex)
                     completionResult =
@@ -343,11 +356,11 @@ class Download {
                     nextToDownload.status = .downloaded
                     
                     nextToDownload.localURL = downloadedFile.url
-                    nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
+                    nextToDownload.checkSum = downloadedFile.checkSum
+                    nextToDownload.cloudStorageType = downloadedFile.cloudStorageType
+                    nextToDownload.contentsChangedOnServer = downloadedFile.contentsChangedOnServer
                     
                     CoreData.sessionNamed(Constants.coreDataName).saveContext()
-                    
-                    // TODO: Not using downloadedFile.fileSizeBytes. Why?
                     
                     // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
                     

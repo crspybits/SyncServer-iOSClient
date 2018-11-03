@@ -31,6 +31,21 @@ public class DownloadFileTracker: FileTracker, AllOperations {
         }
     }
     
+    var cloudStorageType: CloudStorageType? {
+        get {
+            if let cloudStorageTypeInternal = cloudStorageTypeInternal {
+                return CloudStorageType(rawValue: cloudStorageTypeInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        
+        set {
+            cloudStorageTypeInternal = newValue?.rawValue
+        }
+    }
+    
     var attr: SyncAttributes {
         let mimeType = MimeType(rawValue: self.mimeType!)!
         var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID!, mimeType: mimeType, creationDate: creationDate! as Date, updateDate: updateDate! as Date)

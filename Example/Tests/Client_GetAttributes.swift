@@ -64,7 +64,7 @@ class Client_GetAttributes: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, uploadedAttr) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let uploadedAttr = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         

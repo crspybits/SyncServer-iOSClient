@@ -140,7 +140,19 @@ class ServerAPI_UploadFile: TestCase {
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: .text, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0)
+        guard let signIn = SignInManager.session.currentSignIn,
+            signIn.userType == .owning,
+            let cloudStorageType = signIn.cloudStorageType else {
+            XCTFail()
+            return
+        }
+        
+        guard let checkSum = Hashing.hashOf(url: fileURL, for: cloudStorageType) else {
+            XCTFail()
+            return
+        }
+        
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: .text, deviceUUID: deviceUUID.uuidString, appMetaData: nil, fileVersion: 0, checkSum: checkSum)
         
         var uploadResult:ServerAPI.UploadFileResult?
         
@@ -163,7 +175,7 @@ class ServerAPI_UploadFile: TestCase {
         
         if uploadResult != nil {
             switch uploadResult! {
-            case .success(sizeInBytes: _, creationDate: let creationDate, updateDate: let updateDate):
+            case .success(creationDate: let creationDate, updateDate: let updateDate):
                 XCTAssert(serverDateTimeBefore <= creationDate && creationDate <= serverDateTimeAfter)
                 XCTAssert(serverDateTimeBefore <= updateDate && updateDate <= serverDateTimeAfter)
             default:
@@ -191,7 +203,7 @@ class ServerAPI_UploadFile: TestCase {
         let fileGroupUUID = UUID().uuidString
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion, fileGroupUUID: fileGroupUUID) else {
             XCTFail()
             return
         }

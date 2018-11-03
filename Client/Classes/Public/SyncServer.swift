@@ -185,14 +185,17 @@ public class SyncServer {
                 return
             }
             
-            guard self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
+            guard let sharingEntry = self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
                 errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                 return
             }
-            
+                        
             var entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID)
             
             var fileGroupUUID:String?
+            
+            // Will remain nil if the entry is new, up until when we compute the checksum.
+            var cloudStorageType: CloudStorageType?
             
             if nil == entry {
                 entry = (DirectoryEntry.newObject() as! DirectoryEntry)
@@ -203,6 +206,7 @@ public class SyncServer {
                 fileGroupUUID = attr.fileGroupUUID
             }
             else {
+                cloudStorageType = entry!.cloudStorageType!
                 guard let entryMimeTypeString = entry!.mimeType,
                     let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
                     errorToThrow = SyncServerError.noMimeType
@@ -245,6 +249,16 @@ public class SyncServer {
             newUft.operation = .file
             newUft.fileGroupUUID = fileGroupUUID
             
+            do {
+                newUft.checkSum = try self.makeCheckSum(cloudStorageType: &cloudStorageType, url: fileURL as URL, sharingEntry: sharingEntry)
+            }
+            catch (let error) {
+                errorToThrow = error
+                return
+            }
+            
+            entry!.cloudStorageType = cloudStorageType!
+
             if copy {
                 // Make a copy of the file
                 guard let copyOfFileURL = FilesMisc.newTempFileURL() else {
@@ -268,12 +282,40 @@ public class SyncServer {
             // The file version to upload will be determined immediately before the upload so not assigning the fileVersion property of `newUft` yet. See https://github.com/crspybits/SyncServerII/issues/12
             // Similarly, the appMetaData version will be determined immediately before the upload.
             
+            // This does a Core Data save.
             errorToThrow = self.tryToAddUploadFileTracker(attr: attr, newUft: newUft)
         } // end perform
         
         guard errorToThrow == nil else {
             throw errorToThrow!
         }
+    }
+    
+    // cloudStorageType is passed nil when we are creating a new file. It only changes if passed nil.
+    // Call this from within a Core Data perform block.
+    private func makeCheckSum(cloudStorageType: inout CloudStorageType?, url: URL, sharingEntry: SharingEntry) throws -> String {
+    
+        guard let signIn = SignInManager.session.currentSignIn else {
+            throw SyncServerError.generic("No current signed in user when trying to compute checksum!")
+        }
+
+        if cloudStorageType == nil {
+            switch signIn.userType {
+            case .owning:
+                // An owning user is creating a new file; v0 file's have the cloud storage type of this, the owning user.
+                cloudStorageType = signIn.cloudStorageType!
+            case .sharing:
+                // A sharing user is creating a new file; v0 files have the cloud storage type of the "parent" owning user-- for the particular sharing group.
+                cloudStorageType = sharingEntry.cloudStorageType!
+            }
+        }
+        // Else: v1 or greater of file; it already has a cloud storage type.
+
+        guard let checkSum = Hashing.hashOf(url: url, for: cloudStorageType!) else {
+            throw SyncServerError.couldNotComputeHash
+        }
+        
+        return checkSum
     }
     
     /**
@@ -301,7 +343,7 @@ public class SyncServer {
         var errorToThrow:Error?
 
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
+            guard let _ = self.knownSharingGroupUUID(attr.sharingGroupUUID) else {
                 errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                 return
             }
@@ -370,16 +412,16 @@ public class SyncServer {
     }
     
     // Do this in a Core Data perform block.
-    private func knownSharingGroupUUID(_ sharingGroupUUID: String) -> Bool {
+    private func knownSharingGroupUUID(_ sharingGroupUUID: String) -> SharingEntry? {
         guard let sharingEntry = SharingEntry.fetchObjectWithUUID(uuid: sharingGroupUUID) else {
-            return false
+            return nil
         }
         
         if sharingEntry.removedFromGroup {
-            return false
+            return nil
         }
         
-        return true
+        return sharingEntry
     }
     
     // Do this in a Core Data perform block.
@@ -423,6 +465,7 @@ public class SyncServer {
     }
     
     // Do this in a Core Data perform block.
+    // This does a Core Data save.
     private func tryToAddUploadFileTracker(attr:SyncAttributes, newUft: UploadFileTracker) -> Error? {
         var errorToThrow: Error?
         
@@ -518,7 +561,7 @@ public class SyncServer {
             throw SyncServerError.noSharingGroupUUID
         }
         
-        guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+        guard let _ = self.knownSharingGroupUUID(sharingGroupUUID) else {
             throw SyncServerError.generic("Unknown sharing group UUID")
         }
         
@@ -565,7 +608,6 @@ public class SyncServer {
                 let newUft = UploadFileTracker.newObject() as! UploadFileTracker
                 newUft.operation = .deletion
                 newUft.fileUUID = uuid
-                newUft.sharingGroupId = entry.sharingGroupId
                 newUft.sharingGroupUUID = entry.sharingGroupUUID
 
                 /* [1]: `entry.fileVersion` will be nil if we are in the process of uploading a new file. Which causes the following to fail:
@@ -648,7 +690,7 @@ public class SyncServer {
         var errorToThrow: SyncServerError?
         Synchronized.block(self) {
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+                guard let _ = self.knownSharingGroupUUID(sharingGroupUUID) else {
                     errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                     return
                 }
@@ -688,7 +730,7 @@ public class SyncServer {
         var errorToThrow: SyncServerError?
         Synchronized.block(self) {
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+                guard let _ = self.knownSharingGroupUUID(sharingGroupUUID) else {
                     errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                     return
                 }
@@ -804,7 +846,7 @@ public class SyncServer {
                     }
                     
                     if !haveUploads {
-                        guard self.knownSharingGroupUUID(sharingGroupUUID) else {
+                        guard let _ = self.knownSharingGroupUUID(sharingGroupUUID) else {
                             errorToThrow = SyncServerError.generic("Unknown sharing group UUID")
                             return
                         }

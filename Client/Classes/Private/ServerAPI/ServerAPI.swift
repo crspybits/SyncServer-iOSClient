@@ -276,10 +276,11 @@ class ServerAPI {
         let deviceUUID:String!
         let appMetaData:AppMetaData?
         let fileVersion:FileVersionInt!
+        let checkSum:String
     }
     
     enum UploadFileResult {
-        case success(sizeInBytes:Int64, creationDate: Date, updateDate: Date)
+        case success(creationDate: Date, updateDate: Date)
         case serverMasterVersionUpdate(Int64)
     }
     
@@ -288,14 +289,15 @@ class ServerAPI {
     func uploadFile(file:File, serverMasterVersion:MasterVersionInt, undelete:Bool = false, completion:((UploadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.uploadFile
 
-        Log.special("file.fileUUID: \(file.fileUUID)")
+        Log.special("file.fileUUID: \(String(describing: file.fileUUID))")
 
         var params:[String : Any] = [
             UploadFileRequest.fileUUIDKey: file.fileUUID,
             UploadFileRequest.mimeTypeKey: file.mimeType.rawValue,
             UploadFileRequest.fileVersionKey: file.fileVersion,
             UploadFileRequest.masterVersionKey: serverMasterVersion,
-            ServerEndpoint.sharingGroupUUIDKey: file.sharingGroupUUID
+            ServerEndpoint.sharingGroupUUIDKey: file.sharingGroupUUID,
+            UploadFileRequest.checkSumKey: file.checkSum
         ]
         
         if file.fileVersion == 0 {
@@ -346,12 +348,12 @@ class ServerAPI {
                         return
                     }
                     
-                    guard let size = uploadFileResponse.size, let creationDate = uploadFileResponse.creationDate, let updateDate = uploadFileResponse.updateDate else {
+                    guard let creationDate = uploadFileResponse.creationDate, let updateDate = uploadFileResponse.updateDate else {
                         completion?(nil, .noExpectedResultKey)
                         return
                     }
                     
-                    completion?(UploadFileResult.success(sizeInBytes:size, creationDate: creationDate, updateDate: updateDate), nil)
+                    completion?(UploadFileResult.success(creationDate: creationDate, updateDate: updateDate), nil)
                 }
                 else {
                     completion?(nil, .couldNotObtainHeaderParameters)
@@ -423,8 +425,10 @@ class ServerAPI {
     
     struct DownloadedFile {
         let url: SMRelativeLocalURL
-        let fileSizeBytes:Int64
         let appMetaData:AppMetaData?
+        let checkSum:String // in cloud storage
+        let cloudStorageType:CloudStorageType
+        let contentsChangedOnServer: Bool
     }
     
     enum DownloadFileResult {
@@ -472,15 +476,30 @@ class ServerAPI {
                         return
                     }
 
-                    if let fileSizeBytes = downloadFileResponse.fileSizeBytes {
+                    if let checkSum = downloadFileResponse.checkSum,
+                        let cloudStorageTypeRaw = downloadFileResponse.cloudStorageType,
+                        let cloudStorageType = CloudStorageType(rawValue: cloudStorageTypeRaw),
+                        let contentsChanged = downloadFileResponse.contentsChanged {
+
                         guard resultURL != nil else {
                             completion?(nil, .resultURLObtainedWasNil)
                             return
                         }
                         
+                        guard let hash = Hashing.hashOf(url: resultURL! as URL, for: cloudStorageType) else {
+                            completion?(nil, .couldNotComputeHash)
+                            return
+                        }
+                        
+                        guard hash == checkSum else {
+                            // Considering this to be a networking error and not something we want to pass up to the client app. This shouldn't happen in normal operation.
+                            completion?(nil, .networkingHashMismatch)
+                            return
+                        }
+
                         let appMetaData = AppMetaData(version: fileNamingObject.appMetaDataVersion, contents: downloadFileResponse.appMetaData)
                         
-                        let downloadedFile = DownloadedFile(url: resultURL!, fileSizeBytes: fileSizeBytes, appMetaData: appMetaData)
+                        let downloadedFile = DownloadedFile(url: resultURL!, appMetaData: appMetaData, checkSum: checkSum, cloudStorageType: cloudStorageType, contentsChangedOnServer: contentsChanged)
                         completion?(.success(downloadedFile), nil)
                     }
                     else if let masterVersionUpdate = jsonDict[DownloadFileResponse.masterVersionUpdateKey] as? Int64 {
@@ -910,3 +929,4 @@ extension ServerAPI : ServerNetworkingDelegate {
         return result
     }
 }
+

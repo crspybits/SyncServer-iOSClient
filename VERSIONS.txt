@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 18.0.0
+	* Integrating checksum changes from server.
+
 Version 17.2.0 (10/13/18)
 	* Added migration table.
 

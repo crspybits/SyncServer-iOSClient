@@ -60,8 +60,8 @@ class ServerAPI_DownloadFile: TestCase {
         }
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
-        let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)!
-        let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)!
+        let file1 = uploadFile(fileURL:fileURL, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)!
+        let file2 = uploadFile(fileURL:fileURL, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)!
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
 

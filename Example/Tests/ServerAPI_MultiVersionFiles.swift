@@ -48,7 +48,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         let appMetaData = AppMetaData(version: 0, contents: "foobar")
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: appMetaData, fileVersion: fileVersion) else {
             XCTFail()
             return
         }
@@ -58,7 +58,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion += 1
         
         // Second upload-- nil appMetaData
-        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil, fileVersion: fileVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData: nil, fileVersion: fileVersion) else {
             XCTFail()
             return
         }
@@ -66,7 +66,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         
         masterVersion += 1
 
-        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
     }
     
     func testUploadTextFileVersion1() {
@@ -97,7 +97,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return
         }
@@ -124,7 +124,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return nil
         }
@@ -133,7 +133,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion += 1
         fileVersion += 1
         
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return nil
         }
@@ -225,29 +225,28 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let (fileSize, file2) = uploadFile(fileURL:file.localURL, mimeType: file.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file.fileUUID, serverMasterVersion: masterVersion, fileVersion: file.fileVersion + FileVersionInt(1), undelete: true) else {
+        guard let file2 = uploadFile(fileURL:file.localURL, mimeType: file.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file.fileUUID, serverMasterVersion: masterVersion, fileVersion: file.fileVersion + FileVersionInt(1), undelete: true) else {
             XCTFail()
             return
         }
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
 
-        onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil, fileSize: fileSize)
+        onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
     }
     
     // Upload to file version N, but don't do the last DoneUploads
-    func uploadToFileVersion(_ version: FileVersionInt, masterVersion: MasterVersionInt, sharingGroupUUID: String) -> (Int64, ServerAPI.File, masterVersion: MasterVersionInt)? {
+    func uploadToFileVersion(_ version: FileVersionInt, masterVersion: MasterVersionInt, sharingGroupUUID: String) -> (ServerAPI.File, masterVersion: MasterVersionInt)? {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         var fileVersion:FileVersionInt = 0
         let mimeType:MimeType = .text
         var masterVersion = masterVersion
         
-        guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
             XCTFail()
             return nil
         }
     
-        var resultFileSize:Int64 = fileSize
         var resultFile:ServerAPI.File = file
         
         while fileVersion < version {
@@ -256,16 +255,15 @@ class ServerAPI_MultiVersionFiles: TestCase {
             masterVersion += 1
             fileVersion += 1
             
-            guard let (fileSize, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
+            guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: fileVersion) else {
                 XCTFail()
                 return nil
             }
             
-            resultFileSize = fileSize
             resultFile = file
         }
         
-        return (resultFileSize, resultFile, masterVersion)
+        return (resultFile, masterVersion)
     }
     
     /* We now have several different types of items that can be pending for DoneUploads--
@@ -298,7 +296,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard let (_, file3) = uploadFile(fileURL:fileURL3, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID3, serverMasterVersion: masterVersion, fileVersion: 0) else {
+        guard let file3 = uploadFile(fileURL:fileURL3, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID3, serverMasterVersion: masterVersion, fileVersion: 0) else {
             XCTFail()
             return
         }
@@ -306,7 +304,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion += 1
         
         // 1) The upload of file version N (Doesn't do the last DoneUploads).
-        guard let (fileSize4, file4, updatedMasterVersion) = uploadToFileVersion(4, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) else {
+        guard let (file4, updatedMasterVersion) = uploadToFileVersion(4, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }
@@ -314,7 +312,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion = updatedMasterVersion
         
         // 2) Stage an upload undeletion
-        guard let (fileSize1, file1b) = uploadFile(fileURL:file1.localURL, mimeType: file1.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file1.fileUUID, serverMasterVersion: masterVersion, fileVersion: file1.fileVersion + FileVersionInt(1), undelete: true) else {
+        guard let file1b = uploadFile(fileURL:file1.localURL, mimeType: file1.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file1.fileUUID, serverMasterVersion: masterVersion, fileVersion: file1.fileVersion + FileVersionInt(1), undelete: true) else {
             XCTFail()
             return
         }
@@ -323,7 +321,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let fileUUID2 = UUID().uuidString
         let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (fileSize2, file2) = uploadFile(fileURL:fileURL2, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileVersion: 0) else {
+        guard let file2 = uploadFile(fileURL:fileURL2, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, fileVersion: 0) else {
             XCTFail()
             return
         }
@@ -337,10 +335,10 @@ class ServerAPI_MultiVersionFiles: TestCase {
         
         // Test to make sure we got what we wanted.
         // A) Download the undeleted file.
-        onlyDownloadFile(comparisonFileURL: file1.localURL, file: file1b, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil, fileSize: fileSize1)
+        onlyDownloadFile(comparisonFileURL: file1.localURL, file: file1b, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
 
         // B) Download the uploaded file.
-        onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil, fileSize: fileSize2)
+        onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
         
         // C) Make sure the deleted file was deleted.
         guard let fileIndexResult = getFileIndex(sharingGroupUUID: sharingGroupUUID),
@@ -356,6 +354,6 @@ class ServerAPI_MultiVersionFiles: TestCase {
         }
 
         // D) Download the uploaded file
-        onlyDownloadFile(comparisonFileURL: file4.localURL, file: file4, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil, fileSize: fileSize4)
+        onlyDownloadFile(comparisonFileURL: file4.localURL, file: file4, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
     }
 }

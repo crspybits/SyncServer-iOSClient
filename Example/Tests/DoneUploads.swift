@@ -37,22 +37,18 @@ class ServerAPI_DoneUploads: TestCase {
         let fileUUID = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (fileSize, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID, fileSize: fileSize)
-        ])
+        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [fileUUID])
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID, fileSize: fileSize)
-        ])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [fileUUID])
         
-        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
+        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
     }
     
     func testDoneUploadsWorksWithTwoFiles() {
@@ -72,30 +68,28 @@ class ServerAPI_DoneUploads: TestCase {
         let fileUUID2 = UUID().uuidString
         let fileURL1 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (fileSize1, _) = uploadFile(fileURL:fileURL1, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL1, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
         let fileURL2 = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "Cat", withExtension: "jpg")!
-        guard let (fileSize2, _) = uploadFile(fileURL:fileURL2, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL2, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
 
-        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID1, fileSize: fileSize1),
-            (fileUUID: fileUUID2, fileSize: fileSize2)
+        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID1, fileUUID2
         ])
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 2)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID1, fileSize: fileSize1),
-            (fileUUID: fileUUID2, fileSize: fileSize2)
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID1, fileUUID2
         ])
         
-        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
+        getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
     }
     
     func testThatUploadDeletionOfOneFileWithDoneUploadsActuallyDeletes() {
@@ -126,7 +120,7 @@ class ServerAPI_DoneUploads: TestCase {
         let fileUUIDUpload = UUID().uuidString
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (fileSizeUpload, _) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID:sharingGroupUUID, fileUUID: fileUUIDUpload, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID:sharingGroupUUID, fileUUID: fileUUIDUpload, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -135,10 +129,8 @@ class ServerAPI_DoneUploads: TestCase {
         
         var foundDeletedFile = false
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUIDUpload, fileSize: fileSizeUpload),
-            (fileUUID: fileUUIDDelete, fileSize: nil)
-        ]) { file in
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUIDUpload, fileUUIDDelete]) { file in
             if file.fileUUID == fileUUIDDelete {
                 foundDeletedFile = true
                 XCTAssert(file.deleted)
@@ -240,7 +232,7 @@ class ServerAPI_DoneUploads: TestCase {
         }
         
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
-        guard let (_, file) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID,  serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID,  serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }

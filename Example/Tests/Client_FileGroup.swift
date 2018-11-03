@@ -1171,11 +1171,12 @@ class Client_FileGroup: TestCase {
             XCTAssert(group.count == 2)
             
             group.forEach { file in
-                guard case .file(let url) = file.type else {
+                guard case .file(let url, let contentsChanged) = file.type else {
                     XCTFail()
                     return
                 }
                 
+                XCTAssert(!contentsChanged)
                 XCTAssert(file.attr.fileGroupUUID == fileGroupUUID)
                 
                 if file.attr.fileUUID == textFileUUID {

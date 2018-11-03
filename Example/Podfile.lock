@@ -14,9 +14,9 @@ PODS:
     - FacebookCore (~> 0.5)
     - FBSDKCoreKit (~> 4.37)
     - FBSDKLoginKit (~> 4.37)
-  - FBSDKCoreKit (4.38.0):
+  - FBSDKCoreKit (4.38.1):
     - Bolts (~> 1.9)
-  - FBSDKLoginKit (4.38.0):
+  - FBSDKLoginKit (4.38.1):
     - FBSDKCoreKit
   - FileMD5Hash (2.0.0)
   - Gloss (1.2.4)
@@ -30,34 +30,34 @@ PODS:
   - SwiftyBeaver (1.6.1)
   - SwiftyDropbox (4.7.0):
     - Alamofire (~> 4.5.0)
-  - SyncServer (17.2.0):
+  - SyncServer (18.0.0):
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.2)
-    - SyncServer/Lite (= 17.2.0)
-  - SyncServer-Shared (9.2.1):
+    - SyncServer/Lite (= 18.0.0)
+  - SyncServer-Shared (9.3.0):
     - Gloss (~> 1.2)
-  - SyncServer/Dropbox (17.2.0):
+  - SyncServer/Dropbox (18.0.0):
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SwiftyDropbox (~> 4.6)
     - SyncServer-Shared (~> 9.2)
-  - SyncServer/Facebook (17.2.0):
+  - SyncServer/Facebook (18.0.0):
     - FacebookCore
     - FacebookLogin
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.2)
-  - SyncServer/Google (17.2.0):
+  - SyncServer/Google (18.0.0):
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - GoogleSignIn (~> 0.1)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.2)
-  - SyncServer/Lite (17.2.0):
+  - SyncServer/Lite (18.0.0):
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
@@ -66,7 +66,7 @@ PODS:
 DEPENDENCIES:
   - SMCoreLib (~> 1.3)
   - SyncServer (from `..`)
-  - SyncServer-Shared (~> 9.2)
+  - SyncServer-Shared (from `../../SyncServer-Shared`)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -88,19 +88,20 @@ SPEC REPOS:
   https://github.com/crspybits/Specs.git:
     - GoogleSignIn
     - SMCoreLib
-    - SyncServer-Shared
 
 EXTERNAL SOURCES:
   SyncServer:
     :path: ".."
+  SyncServer-Shared:
+    :path: "../../SyncServer-Shared"
 
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
   FacebookCore: 74288d0add931d361b1596beae787ab72c438249
   FacebookLogin: ebcf34714a1cb9f0759d9f071cfb01ed500996cf
-  FBSDKCoreKit: 2ab7fdbf600dc6b628ba7a49aa29d357a7b4c74e
-  FBSDKLoginKit: 634fa27e72e33620eb6389253337342c03d4a407
+  FBSDKCoreKit: 8d47857400e2f5bdea697a80daff882e91c84ef6
+  FBSDKLoginKit: 4621c690d9dd8628031a4791497062183ea34b0d
   FileMD5Hash: 3ed69cc19a21ff4d30ae8833fc104275ad2c7de0
   Gloss: 4e036074610fdb993abcb958ebcd7332588e2333
   GoogleSignIn: c9fa579a8da31ea46b82627c259ccb2b1bf22bab
@@ -109,9 +110,9 @@ SPEC CHECKSUMS:
   SMCoreLib: ab21fe40ff76b2cc5e873122a96b1ad22ebe02bc
   SwiftyBeaver: ccfcdf85a04d429f1633f668650b0ce8020bda3a
   SwiftyDropbox: f6826bab23b093e05f5d84de08291a63b080dd03
-  SyncServer: f853bb8f02d97f8a316c9fa5618413b4fd5bf750
-  SyncServer-Shared: 30f5896bcdc4aa4d2c5d4a8b233f45e5cd29d6e5
+  SyncServer: 4b72f683d3b23e6d3e8e0cc7053b99a79961af22
+  SyncServer-Shared: d15847bbf32d676cd8cd7f81e565115fe14875bc
 
-PODFILE CHECKSUM: 5e3f62670f2e83c2e5bca0c05d906b95308ec46f
+PODFILE CHECKSUM: f1edfd29e670e55a1eda904eb92782dac7b834e4
 
 COCOAPODS: 1.5.3

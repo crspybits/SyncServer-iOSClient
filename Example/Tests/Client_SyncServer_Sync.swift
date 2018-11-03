@@ -55,7 +55,7 @@ class Client_SyncServer_Sync: TestCase {
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
     }
     
     func testThatDoingSyncTwiceWithNoFilesResultsInTwoSyncDones() {
@@ -118,7 +118,7 @@ class Client_SyncServer_Sync: TestCase {
         
         waitForExpectations(timeout: 10.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
     }
     
     // TODO: *0* Do a sync with no uploads pending, but pending downloads.

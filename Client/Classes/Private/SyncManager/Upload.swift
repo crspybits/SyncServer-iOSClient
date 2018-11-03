@@ -409,7 +409,7 @@ class Upload {
             let appMetaData = AppMetaData(version: nextToUpload.appMetaDataVersion, contents: nextToUpload.appMetaData)
             
             let mimeType = MimeType(rawValue: nextToUpload.mimeType!)!
-            file = ServerAPI.File(localURL: nextToUpload.localURL as URL?, fileUUID: nextToUpload.fileUUID, fileGroupUUID: nextToUpload.fileGroupUUID, sharingGroupUUID: nextToUpload.sharingGroupUUID, mimeType: mimeType, deviceUUID:self.deviceUUID, appMetaData: appMetaData, fileVersion: nextToUpload.fileVersion)
+            file = ServerAPI.File(localURL: nextToUpload.localURL as URL?, fileUUID: nextToUpload.fileUUID, fileGroupUUID: nextToUpload.fileGroupUUID, sharingGroupUUID: nextToUpload.sharingGroupUUID, mimeType: mimeType, deviceUUID:self.deviceUUID, appMetaData: appMetaData, fileVersion: nextToUpload.fileVersion, checkSum: nextToUpload.checkSum!)
             
             undelete = nextToUpload.uploadUndeletion
             sharingGroupUUID = nextToUpload.sharingGroupUUID
@@ -427,7 +427,7 @@ class Upload {
             }
  
             switch uploadResult! {
-            case .success(sizeInBytes: _, creationDate: let creationDate, updateDate: let updateDate):
+            case .success(creationDate: let creationDate, updateDate: let updateDate):
                 var completionResult:NextCompletion?
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     nextToUpload.status = .uploaded

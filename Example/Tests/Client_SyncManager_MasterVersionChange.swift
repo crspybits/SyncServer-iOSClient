@@ -87,10 +87,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let _ = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID1, fileSize: nil),
-            (fileUUID: fileUUID2, fileSize: nil)
-        ]) else {
+        guard let _ = getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID1, fileUUID2]) else {
             XCTFail()
             return
         }
@@ -105,10 +103,10 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = sharingEntry.masterVersion
         }
         
-        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file1 = ServerAPI.File(localURL: nil, fileUUID: fileUUID1, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file1, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
@@ -195,8 +193,8 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFiles: [
-            (fileUUID: fileUUID2, fileSize: nil),
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [
+            fileUUID2
         ])
         
         var masterVersion:MasterVersionInt!
@@ -209,7 +207,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             masterVersion = sharingEntry.masterVersion
         }
         
-        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0)
+        let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
 
@@ -341,12 +339,12 @@ class Client_SyncManager_MasterVersionChange: TestCase {
             (uuid: fileUUID3, url: fileURL3)
         ]
         
-        guard let (_, _) = uploadFile(fileURL:fileURL1, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL1, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:fileURL2, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let _ = uploadFile(fileURL:fileURL2, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             XCTFail()
             return
         }
@@ -372,7 +370,9 @@ class Client_SyncManager_MasterVersionChange: TestCase {
 
         // This captures the second two downloads.
         syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file(let url) = group[0].type {
+            if group.count == 1, case .file(let url, let contentsChanged) = group[0].type {
+                XCTAssert(!contentsChanged)
+                
                 let attr = group[0].attr
                 downloadCount += 1
                 

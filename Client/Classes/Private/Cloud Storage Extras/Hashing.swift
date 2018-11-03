@@ -9,6 +9,8 @@
 
 import Foundation
 import SMCoreLib
+import SyncServer_Shared
+import FileMD5Hash
 
 // CommonCrypto is only available with Xcode 10 for import into Swift; see also https://stackoverflow.com/questions/25248598/importing-commoncrypto-in-a-swift-framework
 import CommonCrypto
@@ -159,5 +161,14 @@ class Hashing {
 
         let hexString = digest.map { String(format: "%02hhx", $0) }.joined()
         return hexString
+    }
+    
+    static func hashOf(url: URL, for cloudStorageType: CloudStorageType) -> String? {
+        switch cloudStorageType {
+        case .Dropbox:
+            return generateDropbox(fromLocalFile: url)
+        case .Google:
+            return FileHash.md5HashOfFile(atPath: url.path)
+        }
     }
 }

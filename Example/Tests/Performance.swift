@@ -34,7 +34,7 @@ class Performance: TestCase {
         for _ in 1...N {
             let fileUUID = UUID().uuidString
 
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }
@@ -164,7 +164,7 @@ class Performance: TestCase {
             let fileUUID = UUID().uuidString
             fileUUIDs.append(fileUUID)
             
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID:sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID:sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }
@@ -220,7 +220,7 @@ class Performance: TestCase {
         for _ in 1...N {
             let fileUUID = UUID().uuidString
 
-            guard let (_, _) = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            guard let _ = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
                 return
             }
         }

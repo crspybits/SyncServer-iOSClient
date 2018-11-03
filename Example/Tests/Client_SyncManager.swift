@@ -67,7 +67,9 @@ class Client_SyncManager: TestCase {
         var downloadCount = 0
         
         syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file(let url) = group[0].type {
+            if group.count == 1, case .file(let url, let contentsChanged) = group[0].type {
+                XCTAssert(!contentsChanged)
+                
                 let attr = group[0].attr
                 singleFileDownloaded?()
                 
@@ -125,11 +127,11 @@ class Client_SyncManager: TestCase {
 
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, file1) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
+        guard let file1 = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion) else {
             return nil
         }
         
-        guard let (_, file2) = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
+        guard let file2 = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion) else {
             return nil
         }
         

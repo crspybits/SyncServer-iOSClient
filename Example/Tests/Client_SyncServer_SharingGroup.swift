@@ -743,7 +743,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         }
         
         let fileUUID1 = UUID().uuidString
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID1, fileUUID: fileUUID1, serverMasterVersion: masterVersion1) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID1, fileUUID: fileUUID1, serverMasterVersion: masterVersion1) else {
             return
         }
         
@@ -756,7 +756,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         }
         
         let fileUUID2 = UUID().uuidString
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID2, serverMasterVersion: masterVersion2) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID2, serverMasterVersion: masterVersion2) else {
             return
         }
         
@@ -849,7 +849,7 @@ class Client_SyncServer_SharingGroup: TestCase {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID4, fileUUID: fileUUID_group4, serverMasterVersion: masterVersion_group4) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID4, fileUUID: fileUUID_group4, serverMasterVersion: masterVersion_group4) else {
             return
         }
 
@@ -861,7 +861,7 @@ class Client_SyncServer_SharingGroup: TestCase {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID_group2, serverMasterVersion: masterVersion_group2) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID2, fileUUID: fileUUID_group2, serverMasterVersion: masterVersion_group2) else {
             return
         }
         

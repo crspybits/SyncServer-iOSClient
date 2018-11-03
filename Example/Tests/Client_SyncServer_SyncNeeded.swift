@@ -175,7 +175,7 @@ class Client_SyncServer_SyncNeeded: TestCase {
         let fileUUID = UUID().uuidString
         let uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let (_, _) = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 0) else {
+        guard let _ = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, fileVersion: 0) else {
             XCTFail()
             return
         }
@@ -228,7 +228,7 @@ class Client_SyncServer_SyncNeeded: TestCase {
         }
         XCTAssert(!syncNeeded1)
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: attr.mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, fileGroupUUID: attr.fileGroupUUID) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: attr.mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: attr.fileUUID, serverMasterVersion: masterVersion, fileVersion: 1, fileGroupUUID: attr.fileGroupUUID) else {
             XCTFail()
             return
         }

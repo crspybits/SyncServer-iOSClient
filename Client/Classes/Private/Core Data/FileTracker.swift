@@ -44,16 +44,6 @@ public class FileTracker: Tracker, Filenaming, FileUUID, LocalURLData {
             appMetaDataVersionInternal = newValue == nil ? nil : NSNumber(value: newValue!)
         }
     }
-
-    public var sharingGroupId: Int64? {
-        get {
-            return sharingGroupIdInternal?.int64Value
-        }
-        
-        set {
-            sharingGroupIdInternal = newValue == nil ? nil : NSNumber(value: newValue!)
-        }
-    }
     
     var localURL:SMRelativeLocalURL? {
         get {

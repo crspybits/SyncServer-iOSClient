@@ -190,7 +190,7 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
@@ -272,11 +272,11 @@ class Client_SyncServer_StopSync: TestCase {
         let fileUUID2 = UUID().uuidString
         let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
 
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
         
@@ -479,11 +479,11 @@ class Client_SyncServer_StopSync: TestCase {
             (uuid: fileUUID2, url: url as URL)
         ]
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID1, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     
-        guard let (_, _) = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
+        guard let _ = uploadFile(fileURL:url as URL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID2, serverMasterVersion: masterVersion, appMetaData:nil) else {
             return
         }
     
@@ -496,7 +496,8 @@ class Client_SyncServer_StopSync: TestCase {
         SyncServer.session.eventsDesired = []
     
         syncServerFileGroupDownloadComplete = { group in
-            if group.count == 1, case .file(let url) = group[0].type {
+            if group.count == 1, case .file(let url, let contentsChanged) = group[0].type {
+                XCTAssert(!contentsChanged)
                 let attr = group[0].attr
                 SyncServer.session.stopSync()
                 XCTAssert(self.findAndRemoveFile(uuid: attr.fileUUID, url: url as URL, in: &files))
