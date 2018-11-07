@@ -224,4 +224,25 @@ class ServerAPI_UploadFile: TestCase {
         
         XCTAssert(result[0].fileGroupUUID == fileGroupUUID)
     }
+    
+    func testThatUploadingWithIncorrectCheckSumFails() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        let fileGroupUUID = UUID().uuidString
+        
+        // Some random incorrect checksum
+        let incorrectCheckSum = UUID().uuidString
+
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion, expectError: true, fileGroupUUID: fileGroupUUID, useCheckSum: incorrectCheckSum)
+    }
 }

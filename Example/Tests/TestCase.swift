@@ -538,7 +538,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil) -> ServerAPI.File? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil, useCheckSum: String? = nil) -> ServerAPI.File? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -555,17 +555,26 @@ class TestCase: XCTestCase {
             finalDeviceUUID = theDeviceUUID!
         }
 
-        guard let cloudStorageType = TestCase.currTestAccount.accountType.toCloudStorageType() else {
-            XCTFail()
-            return nil
-        }
+        var uploadCheckSum: String!
         
-        guard let checkSum = Hashing.hashOf(url: fileURL, for: cloudStorageType) else {
-            XCTFail()
-            return nil
+        if let useCheckSum = useCheckSum {
+            uploadCheckSum = useCheckSum
         }
-        
-        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion, checkSum: checkSum)
+        else {
+            guard let cloudStorageType = TestCase.currTestAccount.accountType.toCloudStorageType() else {
+                XCTFail()
+                return nil
+            }
+            
+            guard let checkSum = Hashing.hashOf(url: fileURL, for: cloudStorageType) else {
+                XCTFail()
+                return nil
+            }
+            
+            uploadCheckSum = checkSum
+        }
+
+        let file = ServerAPI.File(localURL: fileURL, fileUUID: uploadFileUUID, fileGroupUUID: fileGroupUUID, sharingGroupUUID: sharingGroupUUID, mimeType: mimeType, deviceUUID: finalDeviceUUID, appMetaData: appMetaData, fileVersion: fileVersion, checkSum: uploadCheckSum)
         
         let expectation = self.expectation(description: "upload")
 

@@ -98,8 +98,12 @@ class Directory {
                     entry.mimeType = serverFile.mimeType
                 }
                 
-                // 10/30/18; Again, this is more of a migration. If we already know about the file, we ought to know about its cloudStorageType. i.e., if we uploaded v0 of the file, we will know it's cloud storage type, or if it was unknown before we would have obtained its cloud storage type.
-                if entry.cloudStorageType == nil, let serverCloudStorageType = serverFile.cloudStorageType  {
+                // 10/30/18; Again, this is more of a migration. If we already know about the file, we ought to know about its cloudStorageType. i.e., if we uploaded v0 of the file, we will know it's cloud storage type, or if it was unknown before we would have obtained its cloud storage type-- when we downloaded the file.
+                if entry.cloudStorageType == nil {
+                    guard let serverCloudStorageType = serverFile.cloudStorageType else {
+                        throw SyncServerError.generic("Server didn't have cloud storage type for fileUUID: \(String(describing: serverFile.fileGroupUUID))")
+                    }
+                    
                     entry.cloudStorageType = CloudStorageType(rawValue: serverCloudStorageType)
                 }
             }

@@ -46,7 +46,7 @@ class Client_SyncServer_Error: TestCase {
     }
     
     func syncFailureAfterOtherClientUpload(retry:Bool = false) {
-        guard let sharingGroup = getFirstSharingGroup()else {
+        guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
         }
