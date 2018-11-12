@@ -434,6 +434,7 @@ class ServerAPI {
     enum DownloadFileResult {
         case success(DownloadedFile)
         case serverMasterVersionUpdate(Int64)
+        case gone(GoneReason)
     }
     
     func downloadFile(fileNamingObject: FilenamingWithAppMetaDataVersion, serverMasterVersion:MasterVersionInt!, sharingGroupUUID: String, completion:((DownloadFileResult?, SyncServerError?)->(Void))?) {

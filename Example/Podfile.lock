@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (4.5.1)
+  - Alamofire (4.7.3)
   - Bolts (1.9.0):
     - Bolts/AppLinks (= 1.9.0)
     - Bolts/Tasks (= 1.9.0)
@@ -28,15 +28,15 @@ PODS:
     - Reachability
     - SwiftyBeaver
   - SwiftyBeaver (1.6.1)
-  - SwiftyDropbox (4.7.0):
-    - Alamofire (~> 4.5.0)
+  - SwiftyDropbox (4.8.1):
+    - Alamofire (~> 4.7.3)
   - SyncServer (18.0.0):
     - FileMD5Hash (~> 2.0)
     - Gloss (~> 1.2)
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.2)
     - SyncServer/Lite (= 18.0.0)
-  - SyncServer-Shared (9.3.1):
+  - SyncServer-Shared (9.3.3):
     - Gloss (~> 1.2)
   - SyncServer/Dropbox (18.0.0):
     - FileMD5Hash (~> 2.0)
@@ -95,7 +95,7 @@ EXTERNAL SOURCES:
     :path: ".."
 
 SPEC CHECKSUMS:
-  Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
+  Alamofire: c7287b6e5d7da964a70935e5db17046b7fde6568
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
   FacebookCore: 74288d0add931d361b1596beae787ab72c438249
   FacebookLogin: ebcf34714a1cb9f0759d9f071cfb01ed500996cf
@@ -108,9 +108,9 @@ SPEC CHECKSUMS:
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SMCoreLib: ab21fe40ff76b2cc5e873122a96b1ad22ebe02bc
   SwiftyBeaver: ccfcdf85a04d429f1633f668650b0ce8020bda3a
-  SwiftyDropbox: f6826bab23b093e05f5d84de08291a63b080dd03
+  SwiftyDropbox: 775da02bb83d02f45e37018641c41316b1edad56
   SyncServer: 4b72f683d3b23e6d3e8e0cc7053b99a79961af22
-  SyncServer-Shared: 78c9941a48b394bb5775586419d2909a1e4cc1c0
+  SyncServer-Shared: c734c955b45b8e6c893bb167a3b0fb2b6c8e6531
 
 PODFILE CHECKSUM: 6cef673d2ecdffaeacbc81fc1632502671b8b1ed
 
