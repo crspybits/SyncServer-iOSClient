@@ -368,6 +368,9 @@ class Download {
         
                 completion?(nextCompletionResult)
                 
+            case .gone(let goneReason):
+                assert(false)
+                
             case .serverMasterVersionUpdate(let masterVersionUpdate):
                 self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID, completion:completion)
             }

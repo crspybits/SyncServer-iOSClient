@@ -45,6 +45,7 @@
 		837244561E419EE600155E89 /* TestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837244551E419EE600155E89 /* TestCase.swift */; };
 		8378D9BE1E91B8F000470D49 /* Client_SyncServer_Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8378D9BD1E91B8F000470D49 /* Client_SyncServer_Error.swift */; };
 		8378D9C21E95F29700470D49 /* ServerAPI_SingleError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8378D9C11E95F29700470D49 /* ServerAPI_SingleError.swift */; };
+		837C26E321992494000E1DF4 /* _Development_Download_Gone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837C26E221992494000E1DF4 /* _Development_Download_Gone.swift */; };
 		838C2DC22023EF5F00AB1F26 /* ServerVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838C2DC12023EF5F00AB1F26 /* ServerVersion.swift */; };
 		838ED40C1ED2B46200078E9F /* Performance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838ED40B1ED2B46200078E9F /* Performance.swift */; };
 		839966F92075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839966F82075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift */; };
@@ -138,6 +139,7 @@
 		837244551E419EE600155E89 /* TestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCase.swift; sourceTree = "<group>"; };
 		8378D9BD1E91B8F000470D49 /* Client_SyncServer_Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Error.swift; sourceTree = "<group>"; };
 		8378D9C11E95F29700470D49 /* ServerAPI_SingleError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerAPI_SingleError.swift; sourceTree = "<group>"; };
+		837C26E221992494000E1DF4 /* _Development_Download_Gone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Development_Download_Gone.swift; sourceTree = "<group>"; };
 		838C2DC12023EF5F00AB1F26 /* ServerVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerVersion.swift; sourceTree = "<group>"; };
 		838ED40B1ED2B46200078E9F /* Performance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Performance.swift; sourceTree = "<group>"; };
 		839966F82075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_MultiVersionAppMetaData.swift; sourceTree = "<group>"; };
@@ -266,6 +268,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				837C26E221992494000E1DF4 /* _Development_Download_Gone.swift */,
 				835CA4B5217D94810064165F /* HashingTests.swift */,
 				8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */,
 				8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */,
@@ -642,6 +645,7 @@
 				83709F801EA4718F00BCDC32 /* ServerAPI_Sharing.swift in Sources */,
 				835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */,
 				83D95C9E1E6A923700DF3BF3 /* Client_SyncManager_MasterVersionChange.swift in Sources */,
+				837C26E321992494000E1DF4 /* _Development_Download_Gone.swift in Sources */,
 				83F37A1A1E44478100479175 /* FileIndex.swift in Sources */,
 				838ED40C1ED2B46200078E9F /* Performance.swift in Sources */,
 				8378D9C21E95F29700470D49 /* ServerAPI_SingleError.swift in Sources */,

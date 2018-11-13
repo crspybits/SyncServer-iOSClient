@@ -434,6 +434,8 @@ class ServerAPI {
     enum DownloadFileResult {
         case success(DownloadedFile)
         case serverMasterVersionUpdate(Int64)
+        
+        // the GoneReason should never be userRemoved-- because when a user is removed, their files are marked as deleted in the FileIndex, and thus the files are generally not downloadable.
         case gone(GoneReason)
     }
     
@@ -457,7 +459,31 @@ class ServerAPI {
         let file = ServerNetworkingLoadingFile(fileUUID: fileNamingObject.fileUUID, fileVersion: fileNamingObject.fileVersion)
         
         download(file: file, fromServerURL: serverURL, method: endpoint.method) { (resultURL, response, statusCode, error) in
-        
+            
+            if statusCode == HTTPStatus.gone.rawValue, let resultURL = resultURL {
+                // Due to the way the download proceeds, the body of the HTTP response, with the details of the `gone` issue, are in the file referenced by the resultURL.
+                
+                var json:Any?
+                do {
+                    let data = try Data(contentsOf: resultURL as URL)
+                    try json = JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions(rawValue: UInt(0)))
+                } catch (let error) {
+                    Log.error("Error in JSON conversion: \(error)")
+                    completion?(nil, .generic("Could not get Gone details."))
+                    return
+                }
+                
+                guard let jsonDict = json as? [String: Any],
+                    let goneReasonRaw = jsonDict[GoneReason.goneReasonKey] as? String,
+                    let goneReason = GoneReason(rawValue: goneReasonRaw) else {
+                    completion?(nil, .generic("Could not convert Gone reason."))
+                    return
+                }
+                
+                completion?(.gone(goneReason), nil)
+                return
+            }
+            
             guard response != nil else {
                 let resultError = error ?? .nilResponse
                 completion?(nil, resultError)
