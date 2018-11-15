@@ -20,6 +20,10 @@ class ViewController: UIViewController, GoogleSignInUIProtocol {
     @IBOutlet weak var testingOutcome: UILabel!
     
     static fileprivate var sharingInvitationUUID:SMPersistItemString = SMPersistItemString(name: "ViewController.sharingInvitationUUID", initialStringValue: "", persistType: .userDefaults)
+
+    static func create() -> ViewController {
+        return UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "ViewController") as! ViewController
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()

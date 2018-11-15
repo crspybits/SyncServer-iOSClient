@@ -15,6 +15,13 @@ class _Development_Download_Gone: TestCase {
     override func setUp() {
         // TestCase.currTestAccount = .facebook
         super.setUp()
+        
+        // 11/14/18; Running into an issue where it seems like the app's effort to sign the user in is conflicting with the test case. Delay the test case to wait for the sign in to complete.
+        let exp = self.expectation(description: "exp")
+        TimedCallback.withDuration(3) {
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10, handler: nil)
     }
 
     override func tearDown() {
@@ -97,7 +104,8 @@ class _Development_Download_Gone: TestCase {
         3) authTokenExpiredOrRevoked
             a) Original user, upload a file to sharing group A
             b) Invite a sharing user to sharing group A; can also be an owning user
-            c  Revoke auth token for original user.
+            c) Revoke auth token for original user.
+                https://myaccount.google.com/permissions
             d) Attempt to download the file, by the sharing user.
     */
     // You should be signed in as the original owning user when using this.
@@ -127,7 +135,7 @@ class _Development_Download_Gone: TestCase {
     // To test this, first uncomment the facebook line in setUp, above.
     // Prior to using this, the sharing user should have been invited to the sharing group.
     func testAuthTokenExpiredOrRevoked_DownloadAPI_2() {
-        resetFileMetaData()
+        resetFileMetaData(removeServerFiles:false)
         
         guard updateSharingGroupsWithSync() else {
             XCTFail()
@@ -146,7 +154,7 @@ class _Development_Download_Gone: TestCase {
         
         let expectation = self.expectation(description: "doneUploads")
 
-        let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: fileRemovedOrRenamedFileUUID.stringValue, fileVersion: 0, appMetaDataVersion: nil)
+        let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: authTokenExpiredOrRevokedFileUUID.stringValue, fileVersion: 0, appMetaDataVersion: nil)
 
         ServerAPI.session.downloadFile(fileNamingObject: fileNamingObj, serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroup.sharingGroupUUID) { (result, error) in
             

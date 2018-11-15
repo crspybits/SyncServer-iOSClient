@@ -1075,6 +1075,7 @@ class TestCase: XCTestCase {
         return (originalURL, attr)
     }
     
+    // actualDeletion only applies if removeServerFiles is true.
     func resetFileMetaData(removeServerFiles:Bool=true, actualDeletion:Bool=true) {
         if removeServerFiles {
             guard let sharingGroups = getSharingGroups() else {

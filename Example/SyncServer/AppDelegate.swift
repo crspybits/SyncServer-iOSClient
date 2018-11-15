@@ -37,6 +37,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         SetupSignIn.session.appLaunch(options:launchOptions)
         
+        // Need to do this ourselves-- if we let it happen automatically, we don't always have all of this setup done, above, before hand.
+        self.window = UIWindow(frame: UIScreen.main.bounds)
+        self.window?.rootViewController = ViewController.create()
+        self.window?.makeKeyAndVisible()
+        
         return true
     }
     
