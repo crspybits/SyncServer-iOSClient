@@ -282,10 +282,12 @@ class ServerAPI {
     enum UploadFileResult {
         case success(creationDate: Date, updateDate: Date)
         case serverMasterVersionUpdate(Int64)
+        
+        // The GoneReason should never be userRemoved-- because when a user is removed, their files are marked as deleted in the FileIndex, and thus the files are generally not uploadable. It should also never be fileRemovedOrRenamed-- because a new upload would upload the next version, not accessing the current version.
+        case gone(GoneReason)
     }
     
     // Set undelete = true in order to do an upload undeletion. The server file must already have been deleted. The meaning is to upload a new file version for a file that has already been deleted on the server. The use case is for conflict resolution-- when a download deletion and a file upload are taking place at the same time, and the client want's its upload to take priority over the download deletion.
-    // Returns error `SyncServerError.invitingUserRemoved` in the case of a purely sharing user trying to upload a file and their original inviting user has been removed from the system.
     func uploadFile(file:File, serverMasterVersion:MasterVersionInt, undelete:Bool = false, completion:((UploadFileResult?, SyncServerError?)->(Void))?) {
         let endpoint = ServerEndpoints.uploadFile
 
@@ -321,10 +323,12 @@ class ServerAPI {
         let url = makeURL(forEndpoint: endpoint, parameters: parameters)
         let networkingFile = ServerNetworkingLoadingFile(fileUUID: file.fileUUID, fileVersion: file.fileVersion)
 
-        upload(file: networkingFile, fromLocalURL: file.localURL, toServerURL: url, method: endpoint.method) { (response, httpStatus, error) in
+        upload(file: networkingFile, fromLocalURL: file.localURL, toServerURL: url, method: endpoint.method) { (response, uploadResponseBody, httpStatus, error) in
 
-            if httpStatus == HTTPStatus.gone.rawValue {
-                completion?(nil, .invitingUserRemoved)
+            if httpStatus == HTTPStatus.gone.rawValue,
+                let goneReasonRaw = uploadResponseBody?[GoneReason.goneReasonKey] as? String,
+                let goneReason = GoneReason(rawValue: goneReasonRaw) {
+                completion?(UploadFileResult.gone(goneReason), nil)
                 return
             }
             

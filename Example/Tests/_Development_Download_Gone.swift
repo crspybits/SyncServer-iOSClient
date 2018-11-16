@@ -51,7 +51,7 @@ class _Development_Download_Gone: TestCase {
         fileRemovedOrRenamedFileUUID.stringValue = attr.fileUUID
     }
     
-    func testFileRemovedOrRenamed_DownloadAPI_2() {
+    func testFileRemovedOrRenamed_2() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
@@ -134,7 +134,7 @@ class _Development_Download_Gone: TestCase {
     
     // To test this, first uncomment the facebook line in setUp, above.
     // Prior to using this, the sharing user should have been invited to the sharing group.
-    func testAuthTokenExpiredOrRevoked_DownloadAPI_2() {
+    func testAuthTokenExpiredOrRevoked_2() {
         resetFileMetaData(removeServerFiles:false)
         
         guard updateSharingGroupsWithSync() else {

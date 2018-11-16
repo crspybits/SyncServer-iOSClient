@@ -469,6 +469,8 @@ class Upload {
 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
                 self?.masterVersionUpdate(uploadQueue: uploadQueue, masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID)
+            case .gone:
+                assert(false)
             }
         }
         

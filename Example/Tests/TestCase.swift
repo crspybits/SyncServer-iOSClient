@@ -106,6 +106,37 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    // uploads text files.
+    @discardableResult
+    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, sharingGroupUUID: String, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {
+        
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, fileURL:fileURL) else {
+            XCTFail()
+            return nil
+        }
+        
+        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [attr.fileUUID])
+        
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return nil
+        }
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(dirEntry.fileVersion == expectedVersion)
+        }
+        
+        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion, checkSum: "")
+        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
+        
+        return url
+    }
+    
     func assertUploadTrackersAreReset() {
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let uploadTrackers = UploadFileTracker.fetchAll()
@@ -538,7 +569,7 @@ class TestCase: XCTestCase {
     
     // Returns the file size uploaded
     @discardableResult
-    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil, useCheckSum: String? = nil) -> ServerAPI.File? {
+    func uploadFile(fileURL:URL, mimeType:MimeType, sharingGroupUUID: String, fileUUID:String? = nil, serverMasterVersion:MasterVersionInt = 0, expectError:Bool = false, appMetaData:AppMetaData? = nil, theDeviceUUID:String? = nil, fileVersion:FileVersionInt = 0, undelete: Bool = false, fileGroupUUID:String? = nil, useCheckSum: String? = nil, expectUploadGone: GoneReason? = nil) -> ServerAPI.File? {
 
         var uploadFileUUID:String
         if fileUUID == nil {
@@ -579,7 +610,16 @@ class TestCase: XCTestCase {
         let expectation = self.expectation(description: "upload")
 
         ServerAPI.session.uploadFile(file: file, serverMasterVersion: serverMasterVersion, undelete: undelete) { uploadFileResult, error in
-            if expectError {
+            if let expectUploadGone = expectUploadGone,
+                let uploadFileResult = uploadFileResult {
+                switch uploadFileResult {
+                case .gone(let goneReason):
+                    XCTAssert(expectUploadGone == goneReason)
+                default:
+                    XCTFail()
+                }
+            }
+            else if expectError {
                 XCTAssert(error != nil)
             }
             else {

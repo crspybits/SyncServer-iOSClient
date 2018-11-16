@@ -26,37 +26,6 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
     
     // MARK: Multi-version files
     
-    // uploads text files.
-    @discardableResult
-    func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, sharingGroupUUID: String, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {
-        
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, fileURL:fileURL) else {
-            XCTFail()
-            return nil
-        }
-        
-        getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [attr.fileUUID])
-        
-        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
-            XCTFail()
-            return nil
-        }
-        
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            guard let dirEntry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
-                XCTFail()
-                return
-            }
-            
-            XCTAssert(dirEntry.fileVersion == expectedVersion)
-        }
-        
-        let file = ServerAPI.File(localURL: nil, fileUUID: attr.fileUUID, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: expectedVersion, checkSum: "")
-        onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
-        
-        return url
-    }
-    
     // 1a) upload the same file UUID several times, sequentially. i.e., do a sync after queuing it each time.
     // Make sure that different versions get uploaded each time.
     // And that the directory entry has the right version after the last upload.
