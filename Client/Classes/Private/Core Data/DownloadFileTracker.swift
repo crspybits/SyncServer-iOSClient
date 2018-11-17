@@ -18,6 +18,8 @@ public class DownloadFileTracker: FileTracker, AllOperations {
     enum Status : String {
     case notStarted
     case downloading
+    
+    // Either the file has been successfully downloaded or the file was "gone".
     case downloaded
     }
     
@@ -49,10 +51,35 @@ public class DownloadFileTracker: FileTracker, AllOperations {
     
     var attr: SyncAttributes {
         let mimeType = MimeType(rawValue: self.mimeType!)!
-        var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID!, mimeType: mimeType, creationDate: creationDate! as Date, updateDate: updateDate! as Date)
+        
+        var attr:SyncAttributes
+        
+        if let gone = gone {
+            attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID!, mimeType: mimeType, creationDate: nil, updateDate: nil)
+            attr.gone = gone
+        }
+        else {
+            attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID!, mimeType: mimeType, creationDate: creationDate! as Date, updateDate: updateDate! as Date)
+        }
+
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         return attr
+    }
+    
+    var gone:GoneReason? {
+        get {
+            if let goneReasonInternal = goneReasonInternal {
+                return GoneReason(rawValue: goneReasonInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        
+        set {
+            goneReasonInternal = newValue?.rawValue
+        }
     }
     
     public class func entityName() -> String {

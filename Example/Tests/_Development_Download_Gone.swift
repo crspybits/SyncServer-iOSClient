@@ -37,7 +37,7 @@ class _Development_Download_Gone: TestCase {
     */
     let fileRemovedOrRenamedFileUUID = SMPersistItemString(name:
             "fileRemovedOrRenamedFileUUID", initialStringValue:"",  persistType: .userDefaults)
-    func testFileRemovedOrRenamed_1() {
+    func testFileRemovedOrRenamed_API_1() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
@@ -51,7 +51,7 @@ class _Development_Download_Gone: TestCase {
         fileRemovedOrRenamedFileUUID.stringValue = attr.fileUUID
     }
     
-    func testFileRemovedOrRenamed_2() {
+    func testFileRemovedOrRenamed_API_2() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
@@ -111,7 +111,7 @@ class _Development_Download_Gone: TestCase {
     // You should be signed in as the original owning user when using this.
      let authTokenExpiredOrRevokedFileUUID = SMPersistItemString(name:
             "authTokenExpiredOrRevokedFileUUID", initialStringValue:"",  persistType: .userDefaults)
-    func testAuthTokenExpiredOrRevoked_1() {
+    func testAuthTokenExpiredOrRevoked_API_1() {
         resetFileMetaData()
         
         guard updateSharingGroupsWithSync() else {
@@ -134,7 +134,7 @@ class _Development_Download_Gone: TestCase {
     
     // To test this, first uncomment the facebook line in setUp, above.
     // Prior to using this, the sharing user should have been invited to the sharing group.
-    func testAuthTokenExpiredOrRevoked_2() {
+    func testAuthTokenExpiredOrRevoked_API_2() {
         resetFileMetaData(removeServerFiles:false)
         
         guard updateSharingGroupsWithSync() else {

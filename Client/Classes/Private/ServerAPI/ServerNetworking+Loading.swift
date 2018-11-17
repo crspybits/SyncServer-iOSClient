@@ -375,6 +375,7 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
             var uploadBody: [String: Any]?
             if let uploadTask = task as? URLSessionUploadTask {
                 uploadBody = uploadBodyResults[uploadTask]
+                uploadBodyResults[uploadTask] = nil
             }
             
             removeCache(serverURLKey: originalRequestURL)

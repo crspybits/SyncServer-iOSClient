@@ -198,6 +198,9 @@ class Client_SyncManager_DownloadDeletion: TestCase {
                 
             case .appMetaData:
                 XCTFail()
+                
+            case .fileGone:
+                XCTFail()
             }
         }
         

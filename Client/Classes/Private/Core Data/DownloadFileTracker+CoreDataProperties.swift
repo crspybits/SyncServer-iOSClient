@@ -2,7 +2,7 @@
 //  DownloadFileTracker+CoreDataProperties.swift
 //  SyncServer
 //
-//  Created by Christopher G Prince on 11/2/18.
+//  Created by Christopher G Prince on 11/17/18.
 //
 //
 
@@ -20,6 +20,7 @@ extension DownloadFileTracker {
     @NSManaged public var contentsChangedOnServer: Bool
     @NSManaged public var creationDate: NSDate?
     @NSManaged public var updateDate: NSDate?
+    @NSManaged public var goneReasonInternal: String?
     @NSManaged public var group: DownloadContentGroup?
 
 }

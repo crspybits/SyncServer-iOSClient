@@ -45,7 +45,7 @@ class _Development_Upload_Gone: TestCase {
     // You should be signed in as the original owning user when using this.
      let authTokenExpiredOrRevokedFileUUID = SMPersistItemString(name:
             "authTokenExpiredOrRevokedFileUUID_Upload", initialStringValue:"",  persistType: .userDefaults)
-    func testAuthTokenExpiredOrRevoked_1() {
+    func testAuthTokenExpiredOrRevoked_API_1() {
         resetFileMetaData()
 
         guard updateSharingGroupsWithSync() else {
@@ -68,7 +68,7 @@ class _Development_Upload_Gone: TestCase {
     
     // Do this after revoking the access token for the original sharing user.
     // And, uncomment the facebook line in setUp above.
-    func testAuthTokenExpiredOrRevoked_2() {
+    func testAuthTokenExpiredOrRevoked_API_2() {
         let originalOwningUser: TestAccount = .google
 
         resetFileMetaData(removeServerFiles:false)

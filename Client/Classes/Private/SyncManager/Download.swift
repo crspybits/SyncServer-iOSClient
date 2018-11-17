@@ -333,6 +333,34 @@ class Download {
         return .started
     }
     
+    private func downloadCompletion(nextToDownload: DownloadFileTracker, downloadedFile: ServerAPI.DownloadedFile? = nil, gone: GoneReason? = nil) -> NextCompletion {
+        var nextCompletionResult:NextCompletion!
+
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            // Useful in the context of file groups-- so we can tell if the file group has more downloadable files.
+            nextToDownload.status = .downloaded
+            
+            if let downloadedFile = downloadedFile {
+                // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
+                nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
+                nextToDownload.appMetaDataVersion = downloadedFile.appMetaData?.version
+                nextToDownload.localURL = downloadedFile.url
+                nextToDownload.cloudStorageType = downloadedFile.cloudStorageType
+                nextToDownload.contentsChangedOnServer = downloadedFile.contentsChangedOnServer
+            }
+            
+            nextToDownload.gone = gone
+            
+            CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            
+            // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
+            
+            nextCompletionResult = .fileDownloaded(dft: nextToDownload)
+        } // end perform
+        
+        return nextCompletionResult
+    }
+    
     private func doDownloadFile(masterVersion: MasterVersionInt, downloadFile: FilenamingWithAppMetaDataVersion, nextToDownload: DownloadFileTracker, sharingGroupUUID: String, completion:((NextCompletion)->())?) {
     
         ServerAPI.session.downloadFile(fileNamingObject: downloadFile, serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) {[weak self] (result, error)  in
@@ -347,29 +375,13 @@ class Download {
             switch result! {
             case .success(let downloadedFile):
                 var nextCompletionResult:NextCompletion!
-                CoreDataSync.perform(sessionName: Constants.coreDataName) {
-                    // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
-                    nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
-                    nextToDownload.appMetaDataVersion = downloadedFile.appMetaData?.version
-                    
-                    // Useful in the context of file groups-- so we can tell if the file group has more downloadable files.
-                    nextToDownload.status = .downloaded
-                    
-                    nextToDownload.localURL = downloadedFile.url
-                    nextToDownload.cloudStorageType = downloadedFile.cloudStorageType
-                    nextToDownload.contentsChangedOnServer = downloadedFile.contentsChangedOnServer
-                    
-                    CoreData.sessionNamed(Constants.coreDataName).saveContext()
-                    
-                    // Not removing nextToDownload yet because I haven't called the client completion callback yet-- will do the deletion after that.
-                    
-                    nextCompletionResult = .fileDownloaded(dft: nextToDownload)
-                } // end perform
-        
+                nextCompletionResult = self?.downloadCompletion(nextToDownload: nextToDownload, downloadedFile: downloadedFile)
                 completion?(nextCompletionResult)
                 
             case .gone(let goneReason):
-                break
+                var nextCompletionResult:NextCompletion!
+                nextCompletionResult = self?.downloadCompletion(nextToDownload: nextToDownload, gone: goneReason)
+                completion?(nextCompletionResult)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
                 self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID, completion:completion)

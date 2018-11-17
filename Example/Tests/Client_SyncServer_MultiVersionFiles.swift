@@ -1122,7 +1122,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(downloadedContentAttributes.fileUUID == fileUUID)
             XCTAssert(downloadedContentAttributes.mimeType == mimeType)
             
-            XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(uploadConflict.conflictType)")
+            XCTAssert(uploadConflict.conflictType == conflictTypeExpected, "conflictTypeExpected: \(conflictTypeExpected); uploadConflict.conflictType: \(String(describing: uploadConflict.conflictType))")
             uploadConflict.resolutionCallback(resolution)
         }
 
@@ -1151,6 +1151,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
                         // Shouldn't be trying to save downloads if we're rejecting content downloads.
                         XCTFail()
                     }
+                case .fileGone:
+                    XCTFail()
                 }
             }
             else {
