@@ -387,4 +387,154 @@ class _Development_Download_Gone: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
     }
+    
+    // After this, revoke the Google user's creds: https://myaccount.google.com/permissions
+    func testAuthTokenExpiredOrRevoked_Sync_1() {
+        resetFileMetaData()
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroup.sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+
+        authTokenExpiredOrRevokedFileUUID.stringValue = attr.fileUUID
+    }
+    
+    // To test this, first uncomment the facebook line in setUp, above.
+    // Prior to using this, the sharing user should have been invited to the sharing group.
+    func testAuthTokenExpiredOrRevoked_Sync_2() {
+        resetFileMetaData(removeServerFiles: false)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+
+        var downloadCount = 0
+        var fileUUID:String!
+
+        syncServerFileGroupDownloadGone = { group in
+            if group.count == 1, case .fileGone = group[0].type {
+                let attr = group[0].attr
+                fileUUID = attr.fileUUID
+                XCTAssert(attr.gone == .authTokenExpiredOrRevoked)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+
+            default:
+                XCTFail()
+            }
+        }
+
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID)
+
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let dirEntries = DirectoryEntry.fetchAll()
+            let entry = dirEntries.filter {$0.fileUUID == fileUUID}
+            guard entry.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(entry[0].gone == .authTokenExpiredOrRevoked)
+        }
+    }
+    
+    // Successful retry. Re-authorize the Google account before trying this.
+    func testAuthTokenExpiredOrRevoked_Sync_3() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+
+        var downloadCount = 0
+        var fileUUID:String!
+        
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                fileUUID = attr.fileUUID
+                XCTAssert(attr.gone == nil)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        syncServerFileGroupDownloadGone = { group in
+            XCTFail()
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+
+            default:
+                XCTFail()
+            }
+        }
+
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID, reAttemptGoneDownloads: true)
+
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let dirEntries = DirectoryEntry.fetchAll()
+            let entry = dirEntries.filter {$0.fileUUID == fileUUID}
+            guard entry.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(entry[0].gone == nil)
+            XCTAssert(entry[0].fileVersion == 0)
+        }
+    }
+    
 }
