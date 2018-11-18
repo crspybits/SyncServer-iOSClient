@@ -20,7 +20,6 @@ extension DownloadFileTracker {
     @NSManaged public var contentsChangedOnServer: Bool
     @NSManaged public var creationDate: NSDate?
     @NSManaged public var updateDate: NSDate?
-    @NSManaged public var goneReasonInternal: String?
     @NSManaged public var group: DownloadContentGroup?
 
 }

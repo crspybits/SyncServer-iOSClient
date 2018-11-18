@@ -67,21 +67,6 @@ public class DownloadFileTracker: FileTracker, AllOperations {
         return attr
     }
     
-    var gone:GoneReason? {
-        get {
-            if let goneReasonInternal = goneReasonInternal {
-                return GoneReason(rawValue: goneReasonInternal)
-            }
-            else {
-                return nil
-            }
-        }
-        
-        set {
-            goneReasonInternal = newValue?.rawValue
-        }
-    }
-    
     public class func entityName() -> String {
         return "DownloadFileTracker"
     }

@@ -19,7 +19,7 @@ public enum SyncEvent {
     /// The attributes report the actual creation and update dates of the file-- as established by the server. The "gone" field of attr will be nil.
     case singleFileUploadComplete(attr:SyncAttributes)
     
-    /// The file upload you requested could not be completed because the file was gone on the server. See the non-nil gone field for the reason.
+    /// The file upload you requested could not be completed because the file was gone on the server. See the non-nil gone field for the reason. In order to determine that a file could not be uploaded because the file was gone on the server, you must use this event.
     case singleFileUploadGone(attr:SyncAttributes)
     
     case singleAppMetaDataUploadComplete(fileUUID: String)
@@ -229,6 +229,9 @@ public protocol SyncServerDelegate : class {
         For files you upload without file groups, this callback always has a single element in the array passed.
     */
     func syncServerFileGroupDownloadComplete(group: [DownloadOperation])
+    
+    /// Like the above, but at least one of the file downloads could not be completed because the file was gone on the server. See the group info for details.
+    func syncServerFileGroupDownloadGone(group: [DownloadOperation])
     
     /// Called when sharing group operations occur because of downloads (i.e., changes by other users). `updated` has the specific meaning that SyncServer `updateSharingGroup` was performed by another app. `syncNeeded` in sharing groups will be nil.
     func syncServerSharingGroupsDownloaded(created: [SyncServer.SharingGroup], updated: [SyncServer.SharingGroup], deleted: [SyncServer.SharingGroup])

@@ -9,6 +9,7 @@
         <attribute name="fileGroupUUID" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="fileUUID" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="fileVersionInternal" optional="YES" attributeType="Integer 32" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="goneReasonInternal" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="mimeType" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="sharingGroupUUID" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
@@ -22,7 +23,6 @@
         <attribute name="cloudStorageTypeInternal" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="contentsChangedOnServer" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="creationDate" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
-        <attribute name="goneReasonInternal" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="updateDate" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
         <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DownloadContentGroup" inverseName="downloads" inverseEntity="DownloadContentGroup" syncable="YES"/>
     </entity>
@@ -33,6 +33,7 @@
         <attribute name="fileGroupUUID" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="fileUUIDInternal" attributeType="String" syncable="YES"/>
         <attribute name="fileVersionInternal" optional="YES" attributeType="Integer 32" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="goneReasonInternal" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="localURLData" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="mimeType" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
@@ -82,10 +83,10 @@
         <relationship name="queues" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="UploadQueue" inverseName="synced" inverseEntity="UploadQueue" syncable="YES"/>
     </entity>
     <elements>
-        <element name="DirectoryEntry" positionX="-63" positionY="-18" width="128" height="195"/>
+        <element name="DirectoryEntry" positionX="-63" positionY="-18" width="128" height="210"/>
         <element name="DownloadContentGroup" positionX="-45" positionY="117" width="128" height="105"/>
-        <element name="DownloadFileTracker" positionX="-36" positionY="27" width="128" height="135"/>
-        <element name="FileTracker" positionX="-18" positionY="117" width="128" height="165"/>
+        <element name="DownloadFileTracker" positionX="-36" positionY="27" width="128" height="120"/>
+        <element name="FileTracker" positionX="-18" positionY="117" width="128" height="180"/>
         <element name="NetworkCached" positionX="-45" positionY="81" width="128" height="135"/>
         <element name="SharingEntry" positionX="-18" positionY="144" width="128" height="150"/>
         <element name="SharingGroupUploadTracker" positionX="-45" positionY="135" width="128" height="75"/>

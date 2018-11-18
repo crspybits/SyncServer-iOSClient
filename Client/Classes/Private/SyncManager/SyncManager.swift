@@ -172,14 +172,17 @@ class SyncManager {
             ConflictManager.handleAnyDownloadDeletionConflicts(dfts: downloadDeletions, delegate: self.delegate) {
 
                 var groupContent:[DownloadOperation]!
+                var numberGone = 0
                 
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                
                     groupContent = dcg.dfts.map { dft in
                         var contentType:DownloadOperation.OperationType!
                         switch dft.operation! {
                         case .file:
                             if let _ = dft.gone  {
                                 contentType = .fileGone
+                                numberGone += 1
                             }
                             else {
                                 contentType = .file(dft.localURL!, contentsChanged: dft.contentsChangedOnServer)
@@ -198,9 +201,16 @@ class SyncManager {
                 }
                 
                 if groupContent.count > 0 {
-                    Thread.runSync(onMainThread: {
-                        self.delegate!.syncServerFileGroupDownloadComplete(group: groupContent)
-                    })
+                    if numberGone > 0 {
+                        Thread.runSync(onMainThread: {
+                            self.delegate!.syncServerFileGroupDownloadGone(group: groupContent)
+                        })
+                    }
+                    else {
+                        Thread.runSync(onMainThread: {
+                            self.delegate!.syncServerFileGroupDownloadComplete(group: groupContent)
+                        })
+                    }
                 }
                 
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {                    
@@ -423,20 +433,23 @@ class SyncManager {
 
                             // 1/27/18; [1]. It's safe to update the local directory entry version(s) -- we've done the upload *and* we've done the DoneUploads too.
                             
-                            // Only if we're updating a file do we need to update our local directory file version. appMetaData uploads don't deal with file versions.
-                            if uft.operation! == .file {
-                                uploadedEntry.fileVersion = uft.fileVersion
-                            }
-                            
-                            // We may need to update the appMetaData and version for either a file upload (which can also update the appMetaData) or (definitely) for an appMetaData upload.
-                             if let _ = uft.appMetaData {
-                                uploadedEntry.appMetaData = uft.appMetaData
-                                uploadedEntry.appMetaDataVersion = uft.appMetaDataVersion
-                            }
-                            
-                            // Deal with special case where we had marked directory entry as `deletedOnServer`.
-                            if uft.uploadUndeletion && uploadedEntry.deletedOnServer {
-                                uploadedEntry.deletedOnServer = false
+                            // Only update the directory entry if the file wasn't gone on the server.
+                            if uft.gone == nil {
+                                // Only if we're updating a file do we need to update our local directory file version. appMetaData uploads don't deal with file versions.
+                                if uft.operation! == .file {
+                                    uploadedEntry.fileVersion = uft.fileVersion
+                                }
+                                
+                                // We may need to update the appMetaData and version for either a file upload (which can also update the appMetaData) or (definitely) for an appMetaData upload.
+                                 if let _ = uft.appMetaData {
+                                    uploadedEntry.appMetaData = uft.appMetaData
+                                    uploadedEntry.appMetaDataVersion = uft.appMetaDataVersion
+                                }
+                                
+                                // Deal with special case where we had marked directory entry as `deletedOnServer`.
+                                if uft.uploadUndeletion && uploadedEntry.deletedOnServer {
+                                    uploadedEntry.deletedOnServer = false
+                                }
                             }
                             
                             do {

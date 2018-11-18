@@ -198,6 +198,9 @@ extension ViewController : SyncServerDelegate {
     
     func syncServerFileGroupDownloadComplete(group: [DownloadOperation]) {
     }
+
+    func syncServerFileGroupDownloadGone(group: [DownloadOperation]) {
+    }
     
     func syncServerMustResolveContentDownloadConflict(_ content: ServerContentType, downloadedContentAttributes: SyncAttributes, uploadConflict: SyncServerConflict<ContentDownloadResolution>) {
     }

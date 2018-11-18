@@ -62,7 +62,10 @@ class Directory {
 
             if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: serverFile.fileUUID) {
                 // Have the file in client directory.
-
+                if let _ = entry.gone {
+                    continue
+                }
+                
                 if entry.deletedOnServer {
                     /* If we have the file marked as deleted:
                         a) File (still) deleted on the server: Don't need to do anything.
@@ -156,8 +159,14 @@ class Directory {
     // Does not do `CoreDataSync.perform(sessionName: Constants.coreDataName)`
     // This for file and appMetaData downloads (not download deletions).
     func updateAfterDownloading(downloads:[DownloadFileTracker]) {
-        downloads.forEach { dft in
+        for dft in downloads {
             if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: dft.fileUUID) {
+                // So we don't repeatedly try to download the same file.
+                if let goneReason = dft.gone {
+                    entry.gone = goneReason
+                    continue
+                }
+                
                 // This will really only ever happen in testing: A situation where the DirectoryEntry has been created for the file uuid, but we don't have a fileVersion assigned. e.g., The file gets uploaded (not using the sync system), then uploaded by the sync system, and then we get the download that was created not using the sync system.
 #if !DEBUG
                 if entry.fileVersion! < dft.fileVersion {
@@ -196,13 +205,19 @@ class Directory {
             else {
                 let newEntry = DirectoryEntry.newObject() as! DirectoryEntry
                 newEntry.fileUUID = dft.fileUUID
-                newEntry.fileVersion = dft.fileVersion
                 newEntry.mimeType = dft.mimeType
-                newEntry.appMetaData = dft.appMetaData
-                newEntry.appMetaDataVersion = dft.appMetaDataVersion
                 newEntry.fileGroupUUID = dft.fileGroupUUID
                 newEntry.sharingGroupUUID = dft.sharingGroupUUID
                 newEntry.cloudStorageType = dft.cloudStorageType
+                
+                if let goneReason = dft.gone {
+                    newEntry.gone = goneReason
+                    continue
+                }
+                
+                newEntry.fileVersion = dft.fileVersion
+                newEntry.appMetaData = dft.appMetaData
+                newEntry.appMetaDataVersion = dft.appMetaDataVersion
             }
         }
     }

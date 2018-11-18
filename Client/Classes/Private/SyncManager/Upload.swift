@@ -373,7 +373,8 @@ class Upload {
 
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             nextToUpload.status = .uploaded
-            
+            nextToUpload.gone = gone
+
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()
             } catch (let error) {

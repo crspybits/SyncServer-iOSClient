@@ -24,6 +24,7 @@ public class SyncServer {
         }
         
         let syncType: SyncType
+        let reAttemptGoneDownloads: Bool
         let completion:(()->())?
     }
     
@@ -206,6 +207,11 @@ public class SyncServer {
                 fileGroupUUID = attr.fileGroupUUID
             }
             else {
+                if let _ = entry!.gone {
+                    errorToThrow = SyncServerError.generic("Attempt to upload a file that is gone.")
+                    return
+                }
+                
                 cloudStorageType = entry!.cloudStorageType!
                 guard let entryMimeTypeString = entry!.mimeType,
                     let entryMimeType = MimeType(rawValue: entryMimeTypeString) else {
@@ -361,6 +367,11 @@ public class SyncServer {
             // In part, this ensures you can't do an appMetaData upload as v0 of a file.
             guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 errorToThrow = SyncServerError.couldNotFindFileUUID(attr.fileUUID)
+                return
+            }
+            
+            if let _ = entry.gone {
+                errorToThrow = SyncServerError.generic("Attempt to upload a file that is gone.")
                 return
             }
             
@@ -555,6 +566,10 @@ public class SyncServer {
         // We must already know about this file in our local Directory.
         guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: uuid) else {
             throw SyncServerError.deletingUnknownFile
+        }
+        
+        if let _ = entry.gone {
+            throw SyncServerError.generic("Attempt to upload a file that is gone.")
         }
         
         guard let sharingGroupUUID = entry.sharingGroupUUID else {
@@ -800,17 +815,19 @@ public class SyncServer {
      
         1) If you give a non-nil sharingGroupUUID, if no other `sync` is taking place, this will asynchronously do pending downloads, file uploads, and upload deletions for the given sharing group. If there is a `sync` currently taking place (for any sharing group), this closes the collection of uploads/deletions queued (if any) for the sharingGroupUUID, and will wait until after the current sync is done, and try again. Also synchronizes the `sharingGroups` property with the server.
      
-        2) If you give a nil-sharingGroupUUID, only synchronizes the `sharingGroups` property. Doesn't do pending downloads or uploads etc. And doesn't close a collection of queued operations.
+            In this case you can also give reAttemptGoneDownloads = true, which will reattempt downloads for files previously marked as gone. See SyncAttributes.
      
+        2) If you give a nil-sharingGroupUUID, only synchronizes the `sharingGroups` property. Doesn't do pending downloads or uploads etc. And doesn't close a collection of queued operations (reAttemptGoneDownloads ignored in this case).
+
         If a stopSync is currently pending, then this call will be ignored.
      
         Non-blocking in all cases.
     */
-    public func sync(sharingGroupUUID: String? = nil) throws {
-        try sync(sharingGroupUUID:sharingGroupUUID, completion:nil)
+    public func sync(sharingGroupUUID: String? = nil, reAttemptGoneDownloads: Bool = false) throws {
+        try sync(sharingGroupUUID:sharingGroupUUID, reAttemptGoneDownloads: reAttemptGoneDownloads, completion:nil)
     }
     
-    func sync(sharingGroupUUID: String?, completion:(()->())?) throws {
+    func sync(sharingGroupUUID: String?, reAttemptGoneDownloads: Bool = false, completion:(()->())?) throws {
         var doStart = true
         
         var errorToThrow: Error?
@@ -864,10 +881,10 @@ public class SyncServer {
                 
                 var delayed:DelayedSync
                 if let sharingGroupUUID = sharingGroupUUID {
-                    delayed = DelayedSync(syncType: .regular(sharingGroupUUID: sharingGroupUUID), completion: completion)
+                    delayed = DelayedSync(syncType: .regular(sharingGroupUUID: sharingGroupUUID), reAttemptGoneDownloads: reAttemptGoneDownloads, completion: completion)
                 }
                 else {
-                    delayed = DelayedSync(syncType: .sharingGroupsOnly, completion: completion)
+                    delayed = DelayedSync(syncType: .sharingGroupsOnly, reAttemptGoneDownloads: false, completion: completion)
                 }
                 delayedSync += [delayed]
                 
@@ -883,7 +900,7 @@ public class SyncServer {
         }
         
         if doStart {
-            start(sharingGroupUUID: sharingGroupUUID, completion: completion)
+            start(sharingGroupUUID: sharingGroupUUID, reAttemptGoneDownloads: reAttemptGoneDownloads, completion: completion)
         }
     }
     
@@ -1122,7 +1139,7 @@ public class SyncServer {
         return results
     }
     
-    private func start(sharingGroupUUID: String?, completion:(()->())?) {
+    private func start(sharingGroupUUID: String?, reAttemptGoneDownloads: Bool, completion:(()->())?) {
         EventDesired.reportEvent(.syncStarted, mask: self.eventsDesired, delegate: self.delegate)
         Log.msg("SyncServer.start")
         
@@ -1135,6 +1152,17 @@ public class SyncServer {
 
             Synchronized.block(self) {
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                    if reAttemptGoneDownloads {
+                        let dirEntries = DirectoryEntry.fetchAll()
+                        dirEntries.forEach { dirEntry in
+                            if let _ = dirEntry.gone {
+                                dirEntry.gone = nil
+                            }
+                        }
+                    }
+                    
+                    CoreData.sessionNamed(Constants.coreDataName).saveContext()
+            
                     // Check the head tracker on uploads to see if we're doing a) or b)
                     if let uploadQueue = Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) {
                         let sharingGroupTrackers = uploadQueue.sharingGroupUploadTrackers
@@ -1184,6 +1212,7 @@ public class SyncServer {
 
         var nextSharingGroupUUID: String?
         var nextCompletion:(()->())?
+        var reAttemptGoneDownloads: Bool = false
         
         Synchronized.block(self) { [unowned self] in
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
@@ -1192,7 +1221,8 @@ public class SyncServer {
                 } else if self.delayedSync.count > 0 {
                     let delayed = self.delayedSync.first!
                     nextCompletion = delayed.completion
-                    
+                    reAttemptGoneDownloads = delayed.reAttemptGoneDownloads
+
                     switch delayed.syncType {
                     case .regular(sharingGroupUUID: let sharingGroupUUID):
                         nextSharingGroupUUID = sharingGroupUUID
@@ -1212,7 +1242,7 @@ public class SyncServer {
         EventDesired.reportEvent(.syncDone, mask: self.eventsDesired, delegate: self.delegate)
     
         if nextSharingGroupUUID != nil {
-            self.start(sharingGroupUUID: nextSharingGroupUUID, completion:nextCompletion)
+            self.start(sharingGroupUUID: nextSharingGroupUUID, reAttemptGoneDownloads: reAttemptGoneDownloads, completion:nextCompletion)
         }
     }
     

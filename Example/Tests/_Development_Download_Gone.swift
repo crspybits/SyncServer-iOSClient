@@ -89,6 +89,216 @@ class _Development_Download_Gone: TestCase {
     }
     
     /*
+        fileRemovedOrRenamed:
+            a) Upload a file and do Done Uploads. Need to retain the fileUUID.
+                Can use the sync upload method.
+            b) Manually remove the file from, say, Google Drive.
+            c) Reset the local client meta data. Attempt to download the file. Use sync to download.
+    */
+    func testFileRemovedOrRenamed_Sync_1() {
+        resetFileMetaData(removeServerFiles: true)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroup.sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+
+        fileRemovedOrRenamedFileUUID.stringValue = attr.fileUUID
+    }
+    
+    func testFileRemovedOrRenamed_Sync_2() {
+        resetFileMetaData(removeServerFiles: false)
+        
+        guard updateSharingGroupsWithSync() else {
+            XCTFail()
+            return
+        }
+        
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+
+        var downloadCount = 0
+        var fileUUID:String!
+
+        syncServerFileGroupDownloadGone = { group in
+            if group.count == 1, case .fileGone = group[0].type {
+                let attr = group[0].attr
+                fileUUID = attr.fileUUID
+                XCTAssert(attr.gone == .fileRemovedOrRenamed)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+
+            default:
+                XCTFail()
+            }
+        }
+
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID)
+
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let dirEntries = DirectoryEntry.fetchAll()
+            let entry = dirEntries.filter {$0.fileUUID == fileUUID}
+            guard entry.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(entry[0].gone == .fileRemovedOrRenamed)
+        }
+    }
+    
+    // Re-attempt the download, with gone again.
+    func testFileRemovedOrRenamed_Sync_3() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+
+        var downloadCount = 0
+        var fileUUID:String!
+
+        syncServerFileGroupDownloadGone = { group in
+            if group.count == 1, case .fileGone = group[0].type {
+                let attr = group[0].attr
+                fileUUID = attr.fileUUID
+                XCTAssert(attr.gone == .fileRemovedOrRenamed)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+
+            default:
+                XCTFail()
+            }
+        }
+
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID, reAttemptGoneDownloads: true)
+
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let dirEntries = DirectoryEntry.fetchAll()
+            let entry = dirEntries.filter {$0.fileUUID == fileUUID}
+            guard entry.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(entry[0].gone == .fileRemovedOrRenamed)
+        }
+    }
+    
+    // Re-attempt, but successfully.
+    func testFileRemovedOrRenamed_Sync_4() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+
+        var downloadCount = 0
+        var fileUUID:String!
+        
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                fileUUID = attr.fileUUID
+                XCTAssert(attr.gone == nil)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+
+        syncServerFileGroupDownloadGone = { group in
+            XCTFail()
+        }
+
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+
+            default:
+                XCTFail()
+            }
+        }
+
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID, reAttemptGoneDownloads: true)
+
+        waitForExpectations(timeout: 60.0, handler: nil)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let dirEntries = DirectoryEntry.fetchAll()
+            let entry = dirEntries.filter {$0.fileUUID == fileUUID}
+            guard entry.count == 1 else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssert(entry[0].gone == nil)
+            XCTAssert(entry[0].fileVersion == 0)
+        }
+    }
+    
+    /*
         2) userRemoved
             a) Original user, upload a file to sharing group A
             b) Invite a sharing user to sharing group A; can also be an owning user

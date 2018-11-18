@@ -55,6 +55,21 @@ public class FileTracker: Tracker, Filenaming, FileUUID, LocalURLData {
         }
     }
     
+    var gone:GoneReason? {
+        get {
+            if let goneReasonInternal = goneReasonInternal {
+                return GoneReason(rawValue: goneReasonInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        
+        set {
+            goneReasonInternal = newValue?.rawValue
+        }
+    }
+    
     // Only call this when creating an object.
     // 1/28/18; I used to have this in the Singleton itself, but ran into a really odd infinite loop.
     public func addAge() {

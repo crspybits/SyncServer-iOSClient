@@ -89,9 +89,26 @@ public class DirectoryEntry: NSManagedObject, CoreDataModel, AllOperations {
         }
         
         var attr = SyncAttributes(fileUUID: fileUUID!, sharingGroupUUID: sharingGroupUUID!, mimeType: mimeType)
+        attr.gone = gone
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         return attr
+    }
+    
+    // This is in the DirectoryEntry object because we need a way to avoid repeated efforts to download the same gone file. The client app needs to explicitly request a new download attempt for a gone file.
+    var gone:GoneReason? {
+        get {
+            if let goneReasonInternal = goneReasonInternal {
+                return GoneReason(rawValue: goneReasonInternal)
+            }
+            else {
+                return nil
+            }
+        }
+        
+        set {
+            goneReasonInternal = newValue?.rawValue
+        }
     }
     
     public class func entityName() -> String {
