@@ -116,6 +116,7 @@ class _Development_Download_Gone: TestCase {
         fileRemovedOrRenamedFileUUID.stringValue = attr.fileUUID
     }
     
+    // Remove the file from Google Drive before running this.
     func testFileRemovedOrRenamed_Sync_2() {
         resetFileMetaData(removeServerFiles: false)
         
@@ -233,6 +234,28 @@ class _Development_Download_Gone: TestCase {
             }
             
             XCTAssert(entry[0].gone == .fileRemovedOrRenamed)
+        }
+    }
+    
+    // Attempt another operation, e.g., an upload on a gone file.
+    func testFileRemovedOrRenamed_Sync_3b() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        self.deviceUUID = Foundation.UUID()
+        SyncServer.session.delegate = self
+        
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let attr = SyncAttributes(fileUUID: fileRemovedOrRenamedFileUUID.stringValue, sharingGroupUUID: sharingGroup.sharingGroupUUID, mimeType: .text)
+        
+        // Files that were downloaded and gone are marked in the directory as gone until you successfully reattempt a sync/download of that file.
+        do {
+            try SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+            XCTFail()
+        }
+        catch  {
         }
     }
     
