@@ -399,7 +399,7 @@ extension ServerNetworkingLoading : URLSessionDelegate, URLSessionTaskDelegate, 
                 uploadBodyResults[uploadTask] = jsonDict
             }
         } catch (let error) {
-            Log.error("Error in JSON conversion: \(error)")
+            Log.warning("Could not do JSON conversion: \(error)")
             return
         }
     }

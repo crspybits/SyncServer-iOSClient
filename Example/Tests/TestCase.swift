@@ -108,6 +108,15 @@ class TestCase: XCTestCase {
         super.tearDown()
     }
     
+    func delay(duration: Float = 3) {
+        let exp = self.expectation(description: "exp")
+        TimedCallback.withDuration(duration) {
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: TimeInterval(duration * 2), handler: nil)
+    }
+
+    
     // uploads text files.
     @discardableResult
     func sequentialUploadNextVersion(fileUUID:String, expectedVersion: FileVersionInt, sharingGroupUUID: String, fileURL:SMRelativeLocalURL? = nil) -> SMRelativeLocalURL? {

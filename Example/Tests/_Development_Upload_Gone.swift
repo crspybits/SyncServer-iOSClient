@@ -16,11 +16,7 @@ class _Development_Upload_Gone: TestCase {
         TestCase.currTestAccount = .facebook
         super.setUp()
         
-        let exp = self.expectation(description: "exp")
-        TimedCallback.withDuration(3) {
-            exp.fulfill()
-        }
-        waitForExpectations(timeout: 10, handler: nil)
+        delay()
     }
 
     override func tearDown() {

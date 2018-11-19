@@ -17,11 +17,7 @@ class _Development_Download_Gone: TestCase {
         super.setUp()
         
         // 11/14/18; Running into an issue where it seems like the app's effort to sign the user in is conflicting with the test case. Delay the test case to wait for the sign in to complete.
-        let exp = self.expectation(description: "exp")
-        TimedCallback.withDuration(3) {
-            exp.fulfill()
-        }
-        waitForExpectations(timeout: 10, handler: nil)
+        delay()
     }
 
     override func tearDown() {
