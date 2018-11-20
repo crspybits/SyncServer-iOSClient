@@ -84,11 +84,13 @@ public enum CloudStorageType : String {
     case Dropbox
 }
 
-// Reasons for an HTTP status "gone"
 public enum GoneReason: String {
     public static let goneReasonKey = "goneReason"
     
     case userRemoved
     case fileRemovedOrRenamed
     case authTokenExpiredOrRevoked
+    
+    // This is not sent from server, but rather is a convenience for the client. A similar state to "fileRemovedOrRenamed", it indicates that the file was somehow unreadable/corrupted and should be downloaded again to see if that can fix the problem.
+    case fileReadProblem
 }

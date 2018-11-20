@@ -62,7 +62,7 @@ class _Development_Upload_Gone: TestCase {
         authTokenExpiredOrRevokedFileUUID.stringValue = attr.fileUUID
     }
     
-    // Do this after revoking the access token for the original sharing user.
+    // Do this after revoking the access token for the original sharing user. And sign in as the facebook user.
     // And, uncomment the facebook line in setUp above.
     func testAuthTokenExpiredOrRevoked_API_2() {
         let originalOwningUser: TestAccount = .google
@@ -154,6 +154,10 @@ class _Development_Upload_Gone: TestCase {
             default:
                 XCTFail()
             }
+        }
+        
+        syncServerFileGroupDownloadGone = { group in
+            XCTFail()
         }
 
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroup.sharingGroupUUID)

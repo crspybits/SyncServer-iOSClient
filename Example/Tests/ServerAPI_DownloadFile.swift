@@ -74,9 +74,15 @@ class ServerAPI_DownloadFile: TestCase {
         
             XCTAssert(error == nil)
             XCTAssert(result != nil)
-            
+
             if case .success(let downloadedFile) = result! {
-                XCTAssert(FilesMisc.compareFiles(file1: fileURL, file2: downloadedFile.url as URL))
+                switch downloadedFile {
+                case .gone:
+                    XCTFail()
+                case .content(url: let url, appMetaData: let contentAppMetaData, checkSum: let checkSum, cloudStorageType: _, contentsChangedOnServer: _):
+                
+                    XCTAssert(FilesMisc.compareFiles(file1: fileURL, file2: url as URL))
+                }
             }
             else {
                 XCTFail()
@@ -93,7 +99,13 @@ class ServerAPI_DownloadFile: TestCase {
             XCTAssert(result != nil)
             
             if case .success(let downloadedFile) = result! {
-                XCTAssert(FilesMisc.compareFiles(file1: fileURL, file2: downloadedFile.url as URL))
+                switch downloadedFile {
+                case .gone:
+                    XCTFail()
+                case .content(url: let url, appMetaData: _, checkSum: _, cloudStorageType: _, contentsChangedOnServer: _):
+                
+                    XCTAssert(FilesMisc.compareFiles(file1: fileURL, file2: url as URL))
+                }
             }
             else {
                 XCTFail()

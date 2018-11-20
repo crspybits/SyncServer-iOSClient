@@ -13,7 +13,7 @@ import SyncServer_Shared
 
 class _Development_Download_Gone: TestCase {
     override func setUp() {
-        // TestCase.currTestAccount = .facebook
+        //TestCase.currTestAccount = .facebook
         super.setUp()
         
         // 11/14/18; Running into an issue where it seems like the app's effort to sign the user in is conflicting with the test case. Delay the test case to wait for the sign in to complete.
@@ -66,10 +66,14 @@ class _Development_Download_Gone: TestCase {
             
             if let result = result {
                 switch result {
-                case .success:
-                    XCTFail()
-                case .gone(let goneReason):
-                    XCTAssert(goneReason == .fileRemovedOrRenamed)
+                case .success(let downloadedFile):
+                    switch downloadedFile {
+                    case .content:
+                        XCTFail()
+                    case .gone(appMetaData: _, cloudStorageType: _, let goneReason):
+                        XCTAssert(goneReason == .fileRemovedOrRenamed)
+                    }
+                    
                 case .serverMasterVersionUpdate:
                     XCTFail()
                 }
@@ -255,7 +259,7 @@ class _Development_Download_Gone: TestCase {
         }
     }
     
-    // Re-attempt, but successfully.
+    // Re-attempt, but successfully. Need to replace the file first.
     func testFileRemovedOrRenamed_Sync_4() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
@@ -361,7 +365,7 @@ class _Development_Download_Gone: TestCase {
         authTokenExpiredOrRevokedFileUUID.stringValue = attr.fileUUID
     }
     
-    // To test this, first uncomment the facebook line in setUp, above.
+    // To test this, first uncomment the facebook line in setUp, above. You need to be signed in as the facebook user.
     // Prior to using this, the sharing user should have been invited to the sharing group.
     func testAuthTokenExpiredOrRevoked_API_2() {
         resetFileMetaData(removeServerFiles:false)
@@ -389,10 +393,14 @@ class _Development_Download_Gone: TestCase {
             
             if let result = result {
                 switch result {
-                case .success:
-                    XCTFail()
-                case .gone(let goneReason):
-                    XCTAssert(goneReason == .authTokenExpiredOrRevoked)
+                case .success(let downloadedFile):
+                    switch downloadedFile {
+                    case .content:
+                        XCTFail()
+                    case .gone(appMetaData: _, cloudStorageType: _, let goneReason):
+                        XCTAssert(goneReason == .authTokenExpiredOrRevoked)
+                    }
+
                 case .serverMasterVersionUpdate:
                     XCTFail()
                 }
@@ -407,6 +415,7 @@ class _Development_Download_Gone: TestCase {
         waitForExpectations(timeout: 20.0, handler: nil)
     }
     
+    // Sign in as the Google user before running this test.
     // After this, revoke the Google user's creds: https://myaccount.google.com/permissions
     func testAuthTokenExpiredOrRevoked_Sync_1() {
         resetFileMetaData()
@@ -429,7 +438,7 @@ class _Development_Download_Gone: TestCase {
         authTokenExpiredOrRevokedFileUUID.stringValue = attr.fileUUID
     }
     
-    // To test this, first uncomment the facebook line in setUp, above.
+    // To test this, first uncomment the facebook line in setUp, above. Sign in as the Facebook user.
     // Prior to using this, the sharing user should have been invited to the sharing group.
     func testAuthTokenExpiredOrRevoked_Sync_2() {
         resetFileMetaData(removeServerFiles: false)
@@ -495,6 +504,7 @@ class _Development_Download_Gone: TestCase {
     }
     
     // Successful retry. Re-authorize the Google account before trying this.
+    // Then, sign in as the Facebook user, and again uncomment the facebook line at the top.
     func testAuthTokenExpiredOrRevoked_Sync_3() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()

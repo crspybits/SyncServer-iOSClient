@@ -1002,12 +1002,18 @@ class TestCase: XCTestCase {
             }
             
             if case .success(let downloadedFile) = result {
-                XCTAssert(FilesMisc.compareFiles(file1: comparisonFileURL, file2: downloadedFile.url as URL))
-                if appMetaData != nil {
-                    XCTAssert(downloadedFile.appMetaData == appMetaData)
-                }
-                if let expectedCheckSum = expectedCheckSum {
-                    XCTAssert(expectedCheckSum == downloadedFile.checkSum)
+                switch downloadedFile {
+                case .gone:
+                    XCTFail()
+                case .content(url: let url, appMetaData: let contentAppMetaData, checkSum: let checkSum, cloudStorageType: _, contentsChangedOnServer: _):
+                
+                    XCTAssert(FilesMisc.compareFiles(file1: comparisonFileURL, file2: url as URL))
+                    if appMetaData != nil {
+                        XCTAssert(contentAppMetaData == appMetaData)
+                    }
+                    if let expectedCheckSum = expectedCheckSum {
+                        XCTAssert(expectedCheckSum == checkSum)
+                    }
                 }
             }
             else {

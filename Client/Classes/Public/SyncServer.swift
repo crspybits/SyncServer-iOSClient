@@ -947,6 +947,44 @@ public class SyncServer {
         return attr!
     }
     
+    /// A limited form of `setAttributes`. The attr.gone field must be `fileReadProblem`. Before this call, a call to getAttributes must give a gone field that is nil (or fileReadProblem). Use this to re-download a file, on a subsequent sync with the relevant sharing group UUID, when a file could not be read due to some kind of corruption. Aside from the fileUUID and gone, all other fields of the SyncAttributes are ignored.
+    public func setAttributes(_ attr: SyncAttributes) throws {
+        var error:Error?
+        
+        guard attr.gone == .fileReadProblem else {
+            throw SyncServerError.generic("gone field must be fileReadProblem")
+        }
+
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
+                error = SyncServerError.getAttributesForUnknownFile
+                return
+            }
+            
+            guard !entry.deletedLocally else {
+                error = SyncServerError.fileAlreadyDeleted
+                return
+            }
+            
+            guard entry.gone == nil || entry.gone == .fileReadProblem else {
+                error = SyncServerError.generic("gone field already set.")
+                return
+            }
+
+            entry.gone = .fileReadProblem
+            
+            do {
+                try CoreData.sessionNamed(Constants.coreDataName).context.save()
+            } catch (let saveError) {
+                error = SyncServerError.coreDataError(saveError)
+            }
+        }
+        
+        if let error = error {
+            throw error
+        }
+    }
+    
     /// The type of reset to perform with a call to `reset`.
     public enum ResetType {
         /// Resets only persistent data that tracks uploads and downloads in the SyncServer. Makes no server calls. This should not be required, but sometimes is useful due to bugs or crashes in the SyncServer and could be required.

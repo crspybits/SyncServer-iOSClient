@@ -333,23 +333,27 @@ class Download {
         return .started
     }
     
-    private func downloadCompletion(nextToDownload: DownloadFileTracker, downloadedFile: ServerAPI.DownloadedFile? = nil, gone: GoneReason? = nil) -> NextCompletion {
+    private func downloadCompletion(nextToDownload: DownloadFileTracker, downloadedFile: ServerAPI.DownloadedFile) -> NextCompletion {
         var nextCompletionResult:NextCompletion!
 
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             // Useful in the context of file groups-- so we can tell if the file group has more downloadable files.
             nextToDownload.status = .downloaded
             
-            if let downloadedFile = downloadedFile {
-                // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
-                nextToDownload.appMetaData = downloadedFile.appMetaData?.contents
-                nextToDownload.appMetaDataVersion = downloadedFile.appMetaData?.version
-                nextToDownload.localURL = downloadedFile.url
-                nextToDownload.cloudStorageType = downloadedFile.cloudStorageType
-                nextToDownload.contentsChangedOnServer = downloadedFile.contentsChangedOnServer
+            // 3/23/18; Because we're not getting appMetaData in the FileIndex any more.
+            switch downloadedFile {
+            case .content(url: let url, appMetaData: let appMetaData, checkSum: _, cloudStorageType: let cloudStorageType, contentsChangedOnServer: let contentsChanged):
+                nextToDownload.appMetaData = appMetaData?.contents
+                nextToDownload.appMetaDataVersion = appMetaData?.version
+                nextToDownload.cloudStorageType = cloudStorageType
+                nextToDownload.localURL = url
+                nextToDownload.contentsChangedOnServer = contentsChanged
+            case .gone(appMetaData: let appMetaData, cloudStorageType: let cloudStorageType, let goneReason):
+                nextToDownload.appMetaData = appMetaData?.contents
+                nextToDownload.appMetaDataVersion = appMetaData?.version
+                nextToDownload.cloudStorageType = cloudStorageType
+                nextToDownload.gone = goneReason
             }
-            
-            nextToDownload.gone = gone
             
             CoreData.sessionNamed(Constants.coreDataName).saveContext()
             
@@ -376,11 +380,6 @@ class Download {
             case .success(let downloadedFile):
                 var nextCompletionResult:NextCompletion!
                 nextCompletionResult = self?.downloadCompletion(nextToDownload: nextToDownload, downloadedFile: downloadedFile)
-                completion?(nextCompletionResult)
-                
-            case .gone(let goneReason):
-                var nextCompletionResult:NextCompletion!
-                nextCompletionResult = self?.downloadCompletion(nextToDownload: nextToDownload, gone: goneReason)
                 completion?(nextCompletionResult)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
