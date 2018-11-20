@@ -36,7 +36,7 @@ PODS:
     - SMCoreLib (~> 1.2)
     - SyncServer-Shared (~> 9.2)
     - SyncServer/Lite (= 18.0.0)
-  - SyncServer-Shared (9.3.6):
+  - SyncServer-Shared (9.3.7):
     - Gloss (~> 1.2)
   - SyncServer/Dropbox (18.0.0):
     - FileMD5Hash (~> 2.0)
@@ -110,7 +110,7 @@ SPEC CHECKSUMS:
   SwiftyBeaver: ccfcdf85a04d429f1633f668650b0ce8020bda3a
   SwiftyDropbox: 775da02bb83d02f45e37018641c41316b1edad56
   SyncServer: 4b72f683d3b23e6d3e8e0cc7053b99a79961af22
-  SyncServer-Shared: aa9638cdb98706ce9a948e8631746fddca2c3e61
+  SyncServer-Shared: 3ee7343ac6a857cfbb4c69d2caaf44a28bf27359
 
 PODFILE CHECKSUM: 6cef673d2ecdffaeacbc81fc1632502671b8b1ed
 
