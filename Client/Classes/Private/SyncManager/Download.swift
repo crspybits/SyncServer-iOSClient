@@ -194,6 +194,14 @@ class Download {
                         completionResult = .noDownloadsOrDeletionsAvailable
                     }
                     
+                    // Reset any forced downloads so they don't happen more than once.
+                    let dirEntries = DirectoryEntry.fetchAll()
+                    dirEntries.forEach { entry in
+                        if entry.forceDownload {
+                            entry.forceDownload = false
+                        }
+                    }
+                    
                     do {
                         try CoreData.sessionNamed(Constants.coreDataName).context.save()
                     } catch (let error) {

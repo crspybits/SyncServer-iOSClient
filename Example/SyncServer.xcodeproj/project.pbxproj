@@ -21,7 +21,7 @@
 		831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 831DE3CC1EDA850F0084070F /* SmallerCat.jpg */; };
 		83224B79218D473B009C6492 /* Cat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 839BD62121842859007C3E27 /* Cat.jpg */; };
 		8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */; };
-		832E947120B0BEEF00586BB3 /* Client_GetAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */; };
+		832E947120B0BEEF00586BB3 /* Client_GetSetAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832E947020B0BEEF00586BB3 /* Client_GetSetAttributes.swift */; };
 		832F20072008598300D98B63 /* ServerAPI_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */; };
 		832F2009200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */; };
 		8337716D1EFFA88500FC4A54 /* ServerAPI_Failure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8337716C1EFFA88500FC4A54 /* ServerAPI_Failure.swift */; };
@@ -114,7 +114,7 @@
 		831DE3CB1EDA850F0084070F /* LargerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = LargerCat.jpg; sourceTree = "<group>"; };
 		831DE3CC1EDA850F0084070F /* SmallerCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SmallerCat.jpg; sourceTree = "<group>"; };
 		8324EE591E83675E000656AF /* Client_SyncServer_Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_Download.swift; sourceTree = "<group>"; };
-		832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_GetAttributes.swift; sourceTree = "<group>"; };
+		832E947020B0BEEF00586BB3 /* Client_GetSetAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_GetSetAttributes.swift; sourceTree = "<group>"; };
 		832F20062008598300D98B63 /* ServerAPI_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerAPI_MultiVersionFiles.swift; sourceTree = "<group>"; };
 		832F2008200861FE00D98B63 /* Client_SyncServer_MultiVersionFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client_SyncServer_MultiVersionFiles.swift; sourceTree = "<group>"; };
 		833729841E0F6BAE002CA164 /* Authentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
@@ -276,7 +276,7 @@
 				8343F03321645E08005F2EDC /* Client_SyncServer_SyncNeeded.swift */,
 				8399F6192104604200865C34 /* Client_SyncServer_SharingGroup.swift */,
 				8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */,
-				832E947020B0BEEF00586BB3 /* Client_GetAttributes.swift */,
+				832E947020B0BEEF00586BB3 /* Client_GetSetAttributes.swift */,
 				839A0A4D20A2CE5C00F0AD63 /* Client_FileGroup.swift */,
 				839966FA207B28A7009F9A1E /* Client_SyncServer_AppMetaData.swift */,
 				839966F82075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift */,
@@ -670,7 +670,7 @@
 				8363160C2001D2C200F8E55B /* BackgroundTaskTest.swift in Sources */,
 				839966F92075DC08009F9A1E /* ServerAPI_MultiVersionAppMetaData.swift in Sources */,
 				83544F7F1EF4E0E5007E0887 /* Authentication.swift in Sources */,
-				832E947120B0BEEF00586BB3 /* Client_GetAttributes.swift in Sources */,
+				832E947120B0BEEF00586BB3 /* Client_GetSetAttributes.swift in Sources */,
 				8351E4A9210192500052548E /* Client_SyncServer_Misc.swift in Sources */,
 				8324EE5A1E83675F000656AF /* Client_SyncServer_Download.swift in Sources */,
 				8399F61A2104604200865C34 /* Client_SyncServer_SharingGroup.swift in Sources */,

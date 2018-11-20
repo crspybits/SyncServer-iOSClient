@@ -947,17 +947,18 @@ public class SyncServer {
         return attr!
     }
     
-    /// A limited form of `setAttributes`. The attr.gone field must be `fileReadProblem`. Before this call, a call to getAttributes must give a gone field that is nil (or fileReadProblem). Use this to re-download a file, on a subsequent sync with the relevant sharing group UUID, when a file could not be read due to some kind of corruption. Aside from the fileUUID and gone, all other fields of the SyncAttributes are ignored.
-    public func setAttributes(_ attr: SyncAttributes) throws {
+    /// Use this to request the re-download of a file, on a subsequent sync with the relevant sharing group UUID. E.g., for when a file could not be read due to some kind of corruption. Only the fileUUID and sharingGroupUUID are needed in the attributes. It is an error to mark a file that is already `gone` for download. Use the `reAttemptGoneDownloads` flag of the sync method instead. Note that this is a "request" for download because normal sync operations can take priority. E.g., it is possible that the file might be deleted by a server download deletion before this request gets a chance to operate.
+    public func requestDownload(attr: SyncAttributes) throws {
         var error:Error?
-        
-        guard attr.gone == .fileReadProblem else {
-            throw SyncServerError.generic("gone field must be fileReadProblem")
-        }
 
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             guard let entry = DirectoryEntry.fetchObjectWithUUID(uuid: attr.fileUUID) else {
                 error = SyncServerError.getAttributesForUnknownFile
+                return
+            }
+            
+            guard entry.sharingGroupUUID == attr.sharingGroupUUID else {
+                error = SyncServerError.generic("Bad sharing group UUID given.")
                 return
             }
             
@@ -966,12 +967,12 @@ public class SyncServer {
                 return
             }
             
-            guard entry.gone == nil || entry.gone == .fileReadProblem else {
-                error = SyncServerError.generic("gone field already set.")
+            guard entry.gone == nil else {
+                error = SyncServerError.generic("gone field set.")
                 return
             }
 
-            entry.gone = .fileReadProblem
+            entry.forceDownload = true
             
             do {
                 try CoreData.sessionNamed(Constants.coreDataName).context.save()

@@ -1,5 +1,5 @@
 //
-//  Client_GetAttributes.swift
+//  Client_GetSetAttributes.swift
 //  SyncServer_Tests
 //
 //  Created by Christopher G Prince on 5/19/18.
@@ -11,7 +11,7 @@ import XCTest
 import SMCoreLib
 import SyncServer_Shared
 
-class Client_GetAttributes: TestCase {
+class Client_GetSetAttributes: TestCase {
     
     override func setUp() {
         super.setUp()
@@ -158,5 +158,68 @@ class Client_GetAttributes: TestCase {
         }
         
         XCTFail()
+    }
+    
+    func testRequestDownloadFailsWithBadUUID() {
+        let attr = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: UUID().uuidString, mimeType:.text)
+        do {
+            try SyncServer.session.requestDownload(attr: attr)
+            XCTFail()
+        }
+        catch {
+        }
+    }
+    
+    func testRequestDownloadForAnUploadedFileWorks() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let (_, uploadedAttr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileGroupUUID: UUID().uuidString, appMetaData: "Foobar") else {
+            XCTFail()
+            return
+        }
+        
+        try! SyncServer.session.requestDownload(attr: uploadedAttr)
+        
+        let expectation = self.expectation(description: "test1")
+        self.deviceUUID = Foundation.UUID()
+        
+        var downloadCount = 0
+        
+        syncServerFileGroupDownloadComplete = { group in
+            if group.count == 1, case .file = group[0].type {
+                let attr = group[0].attr
+                XCTAssert(attr.fileUUID == uploadedAttr.fileUUID)
+                downloadCount += 1
+                XCTAssert(downloadCount == 1)
+                expectation.fulfill()
+            }
+            else {
+                XCTFail()
+            }
+        }
+        
+        SyncServer.session.eventsDesired = [.syncDone]
+        SyncServer.session.delegate = self
+        let done = self.expectation(description: "done")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                done.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        // Next, initiate the download using .sync()
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        
+        waitForExpectations(timeout: 60.0, handler: nil)
     }
 }
