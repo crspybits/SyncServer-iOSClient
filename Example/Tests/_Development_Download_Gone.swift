@@ -95,6 +95,7 @@ class _Development_Download_Gone: TestCase {
             b) Manually remove the file from, say, Google Drive.
             c) Reset the local client meta data. Attempt to download the file. Use sync to download.
     */
+    let appMetaData = "Foobar123098"
     func testFileRemovedOrRenamed_Sync_1() {
         resetFileMetaData(removeServerFiles: true)
         
@@ -108,7 +109,7 @@ class _Development_Download_Gone: TestCase {
             return
         }
         
-        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroup.sharingGroupUUID) else {
+        guard let (_, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroup.sharingGroupUUID, appMetaData: appMetaData) else {
             XCTFail()
             return
         }
@@ -140,6 +141,7 @@ class _Development_Download_Gone: TestCase {
             if group.count == 1, case .fileGone = group[0].type {
                 let attr = group[0].attr
                 fileUUID = attr.fileUUID
+                XCTAssert(attr.appMetaData == self.appMetaData)
                 XCTAssert(attr.gone == .fileRemovedOrRenamed)
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
@@ -197,6 +199,7 @@ class _Development_Download_Gone: TestCase {
             if group.count == 1, case .fileGone = group[0].type {
                 let attr = group[0].attr
                 fileUUID = attr.fileUUID
+                XCTAssert(attr.appMetaData == self.appMetaData)
                 XCTAssert(attr.gone == .fileRemovedOrRenamed)
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
@@ -276,6 +279,7 @@ class _Development_Download_Gone: TestCase {
             if group.count == 1, case .file = group[0].type {
                 let attr = group[0].attr
                 fileUUID = attr.fileUUID
+                XCTAssert(attr.appMetaData == self.appMetaData)
                 XCTAssert(attr.gone == nil)
                 downloadCount += 1
                 XCTAssert(downloadCount == 1)
