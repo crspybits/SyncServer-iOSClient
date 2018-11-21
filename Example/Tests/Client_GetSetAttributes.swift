@@ -36,7 +36,7 @@ class Client_GetSetAttributes: TestCase {
             return
         }
         
-        guard let attr = try? SyncServer.session.getAttributes(forUUID: uploadedAttr.fileUUID) else {
+        guard let attr = try? SyncServer.session.getAttributes(forFileUUID: uploadedAttr.fileUUID) else {
             XCTFail()
             return
         }
@@ -95,7 +95,7 @@ class Client_GetSetAttributes: TestCase {
         
         waitForExpectations(timeout: 30.0, handler: nil)
         
-        guard let attr = try? SyncServer.session.getAttributes(forUUID: uploadedAttr.fileUUID) else {
+        guard let attr = try? SyncServer.session.getAttributes(forFileUUID: uploadedAttr.fileUUID) else {
             XCTFail()
             return
         }
@@ -145,7 +145,7 @@ class Client_GetSetAttributes: TestCase {
         
         waitForExpectations(timeout: 20.0, handler: nil)
         
-        guard let _ = try? SyncServer.session.getAttributes(forUUID: attr.fileUUID) else {
+        guard let _ = try? SyncServer.session.getAttributes(forFileUUID: attr.fileUUID) else {
             return
         }
         
@@ -153,7 +153,7 @@ class Client_GetSetAttributes: TestCase {
     }
     
     func testGetAttributesForANonExistentFileFails() {
-        guard let _ = try? SyncServer.session.getAttributes(forUUID: UUID().uuidString) else {
+        guard let _ = try? SyncServer.session.getAttributes(forFileUUID: UUID().uuidString) else {
             return
         }
         
@@ -161,9 +161,8 @@ class Client_GetSetAttributes: TestCase {
     }
     
     func testRequestDownloadFailsWithBadUUID() {
-        let attr = SyncAttributes(fileUUID: UUID().uuidString, sharingGroupUUID: UUID().uuidString, mimeType:.text)
         do {
-            try SyncServer.session.requestDownload(attr: attr)
+            try SyncServer.session.requestDownload(forFileUUID: UUID().uuidString)
             XCTFail()
         }
         catch {
@@ -183,7 +182,7 @@ class Client_GetSetAttributes: TestCase {
             return
         }
         
-        try! SyncServer.session.requestDownload(attr: uploadedAttr)
+        try! SyncServer.session.requestDownload(forFileUUID: uploadedAttr.fileUUID)
         
         let expectation = self.expectation(description: "test1")
         self.deviceUUID = Foundation.UUID()
