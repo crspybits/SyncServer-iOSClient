@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 18.2.0 (11/21/18)
+	* Improving API/calling interface for getAttributes and requestDownload
+
 Version 18.1.0 (11/19/18)
 	* Changed to using gone in normal response from download endpoint so that appMetaData is included in the syncServerFileGroupDownloadGone delegate method.
 	* Added download request for individual files for client app.
