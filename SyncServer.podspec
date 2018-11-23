@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '18.2.0'
+  s.version          = '18.3.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   s.resources = ['Client/Assets/**/*', 'Client/Classes/**/*.{xib}']
   s.preserve_paths = 'Client/Assets/**/*'
 
-  s.dependency 'SMCoreLib', '~> 1.2'
+  s.dependency 'SMCoreLib', '~> 1.4'
   s.dependency 'Gloss', '~> 1.2'
   s.dependency 'SyncServer-Shared', '~> 9.2'
   s.dependency 'FileMD5Hash', '~> 2.0'
@@ -48,7 +48,7 @@ Pod::Spec.new do |s|
   s.subspec 'Dropbox' do |dropbox|
     dropbox.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_DROPBOX_SIGNIN' }
-    dropbox.dependency 'SwiftyDropbox', '~> 4.6'
+    dropbox.dependency 'SwiftyDropbox', '~> 4.8'
   end
 
   s.subspec 'Google' do |google|

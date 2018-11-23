@@ -1,5 +1,12 @@
 SyncServer-iOSClient
 
+Version 18.3.0
+	* Fixing some issues relating to removing a sharing users owning user.
+		And adding alert messages for user for this too.
+	* Added a new event (sharingGroupOwningUserRemoved) to better inform sharing 
+		users if their owning user is removed.
+	* Updated to revised SMCoreLib & SwiftyDropbox.
+	
 Version 18.2.0 (11/21/18)
 	* Improving API/calling interface for getAttributes and requestDownload
 
