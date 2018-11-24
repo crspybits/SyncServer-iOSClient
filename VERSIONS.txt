@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.4.0 (11/24/18)
+	* Added cloudStorageType migration for SharingEntry's for sharing users.
+	* Added other CoreData migrations.
+	
 Version 18.3.0 (11/23/18)
 	* Fixing some issues relating to removing a sharing users owning user.
 		And adding alert messages for user for this too.
