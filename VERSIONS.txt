@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 18.4.1
+	* Fixed issue: Enable "gone" files to be deleted.
+
 Version 18.4.0 (11/24/18)
 	* Added cloudStorageType migration for SharingEntry's for sharing users.
 	* Added other CoreData migrations.
