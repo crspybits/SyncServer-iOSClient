@@ -1276,6 +1276,9 @@ extension TestCase : ServerNetworkingDelegate {
         
         return result
     }
+    
+    func serverNetworkingFailover(forServerNetworking: Any?, message: String) {
+    }
 }
 
 extension TestCase : ServerAPIDelegate {    

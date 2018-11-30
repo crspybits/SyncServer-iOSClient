@@ -32,8 +32,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let serverURL = URL(string: urlString)!
         let cloudFolderName = try! plist.getString(varName: "CloudFolderName")
         
+        var failoverURL:URL?
+        if let failoverURLString = try? plist.getString(varName: "FailoverMessageURL") {
+            failoverURL = URL(string: failoverURLString)
+        }
+
         // Call this as soon as possible in your launch sequence.
-        SyncServer.session.appLaunchSetup(withServerURL: serverURL, cloudFolderName:cloudFolderName)
+        SyncServer.session.appLaunchSetup(withServerURL: serverURL, cloudFolderName:cloudFolderName, failoverMessageURL: failoverURL)
         
         SetupSignIn.session.appLaunch(options:launchOptions)
         

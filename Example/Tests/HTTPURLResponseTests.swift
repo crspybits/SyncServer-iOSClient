@@ -7,6 +7,7 @@
 //
 
 import XCTest
+@testable import SyncServer
 
 class HTTPURLResponseTests: XCTestCase {
     
@@ -44,5 +45,17 @@ class HTTPURLResponseTests: XCTestCase {
         }
         
         XCTAssert(response.url == url)
+    }
+    
+    func testGetFailoverMessage() {
+        let expectation = self.expectation(description: "check")
+
+        ServerNetworking.session.getFailoverMessage() { message in
+            XCTAssert(message != nil)
+            print("\(String(describing: message))")
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 30.0, handler: nil)
     }
 }

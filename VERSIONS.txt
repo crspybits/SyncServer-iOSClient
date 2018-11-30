@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.5
+	* Added parameter to ServerNetworking for failover message-- 
+		when server is down for maintenance.
+
 Version 18.4.1 (11/24/18)
 	* Fixed issue: Enable "gone" files to be deleted.
 
