@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.6.0 (12/1/18)
+	* Added new event to report minimum iOS app version.
+	* Added in a couple of missing cases for reporting the server being down.
+
 Version 18.5.0 (11/29/18)
 	* Added parameter to ServerNetworking for failover message-- 
 		when server is down for maintenance.

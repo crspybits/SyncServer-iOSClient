@@ -1259,6 +1259,9 @@ extension TestCase : ServerNetworkingDelegate {
         return true
     }
     
+    func serverNetworkingMinimumIOSAppVersion(forServerNetworking: Any?, version: ServerVersion) {
+    }
+    
     func serverNetworkingHeaderAuthentication(forServerNetworking: Any?) -> [String:String]? {
         var result = [String:String]()
         for (key, value) in self.authTokens {

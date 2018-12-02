@@ -9,7 +9,7 @@
 import XCTest
 @testable import SyncServer
 
-class HTTPURLResponseTests: XCTestCase {
+class HTTPURLResponseTests: TestCase {
     
     override func setUp() {
         super.setUp()
@@ -49,10 +49,21 @@ class HTTPURLResponseTests: XCTestCase {
     
     func testGetFailoverMessage() {
         let expectation = self.expectation(description: "check")
+        let serverDown = self.expectation(description: "serverDown")
 
-        ServerNetworking.session.getFailoverMessage() { message in
-            XCTAssert(message != nil)
-            print("\(String(describing: message))")
+        SyncServer.session.eventsDesired = [.serverDown]
+
+        syncServerEventOccurred = { event in
+            switch event {
+            case .serverDown:
+                serverDown.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        ServerResponseCheck.session.failover {
             expectation.fulfill()
         }
         
