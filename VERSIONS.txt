@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.7.0 (12/5/18)
+	* Trying to fix keychain issue
+		https://github.com/crspybits/SyncServerII/issues/61
+
 Version 18.6.0 (12/1/18)
 	* Added new event to report minimum iOS app version.
 	* Added in a couple of missing cases for reporting the server being down.
