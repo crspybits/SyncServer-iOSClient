@@ -29,6 +29,7 @@ Pod::Spec.new do |s|
   s.dependency 'Gloss', '~> 1.2'
   s.dependency 'SyncServer-Shared', '~> 9.4'
   s.dependency 'FileMD5Hash', '~> 2.0'
+  s.dependency 'PersistentValue', '~> 0.2'
 
   s.default_subspec = 'Lite'
 

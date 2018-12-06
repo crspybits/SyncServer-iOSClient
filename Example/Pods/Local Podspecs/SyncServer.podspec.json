@@ -39,6 +39,9 @@
     ],
     "FileMD5Hash": [
       "~> 2.0"
+    ],
+    "PersistentValue": [
+      "~> 0.2"
     ]
   },
   "default_subspecs": "Lite",
