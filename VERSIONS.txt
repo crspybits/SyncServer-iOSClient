@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 18.8.0 (12/14/18)
+Version 18.7.1 (12/14/18)
 	* Fixing issue that came up for Natasha-- when she attempted to upload many files offline.
 	* Fixed UX issue for text/label on login when sharing.
 	* Fixed issue with Facebook library dependency that caused you to be unable to accept a sharing invitation with Facebook.
