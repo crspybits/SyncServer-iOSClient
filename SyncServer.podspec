@@ -42,8 +42,14 @@ Pod::Spec.new do |s|
   s.subspec 'Facebook' do |facebook|
     facebook.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_FACEBOOK_SIGNIN' }
-    facebook.dependency 'FacebookCore'
-    facebook.dependency 'FacebookLogin'
+
+    # In their repos, these are marked as "beta" -- so I'm fixing on a specific version that is working for me right now.
+    facebook.dependency 'FacebookCore', '0.5.0'
+    facebook.dependency 'FacebookLogin', '0.5.0'
+
+# 12/11/18; These two are a hack/workaround for a FB issue. See https://stackoverflow.com/questions/35248412/ios-facebook-login-error-unknown-error-building-url-com-facebook-sdk-core-e
+    facebook.dependency 'FBSDKCoreKit', '4.38.1'
+    facebook.dependency 'FBSDKLoginKit', '4.38.1'
   end
 
   s.subspec 'Dropbox' do |dropbox|
