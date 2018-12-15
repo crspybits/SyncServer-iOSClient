@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.7.2 (12/14/18)
+	* Fixing part of sharing invitation issue:
+		https://github.com/crspybits/SharedImages/issues/152
+
 Version 18.7.1 (12/14/18)
 	* Fixing issue that came up for Natasha-- when she attempted to upload many files offline.
 	* Fixed UX issue for text/label on login when sharing.
