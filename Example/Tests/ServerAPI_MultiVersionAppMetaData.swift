@@ -61,6 +61,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadInitialAppMetaDataWithEndpointWorks() {
@@ -117,6 +119,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadFile() {
@@ -137,6 +141,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         
         let appMetaData = AppMetaData(version: 1, contents: "Foobar")
         uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, appMetaData:appMetaData)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testInitialNonZeroVersionAppMetaDataFails_UsingUploadAppMetaData() {
@@ -165,6 +171,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         
         let appMetaData = AppMetaData(version: 1, contents: "Foobar")
         uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, failureExpected: true)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadAppMetaDataMultipleVersionWorks() {
@@ -224,6 +232,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             XCTFail()
             return
         }
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDownloadAppMetaDataWithNilVersionFails() {
@@ -251,6 +261,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         masterVersion += 1
         
         downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, failureExpected: true)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 
     func testDownloadAppMetaDataWithVersion0Works() {
@@ -284,6 +296,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         }
         
         XCTAssert(appMetaData.contents == appMetaDataContents)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDownloadAppMetaDataWithVersion1Works() {
@@ -340,6 +354,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testAppMetaDataUploadWithBadMasterVersionFails() {
@@ -368,6 +384,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
         uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, failureExpected: true)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testAppMetaDataDownloadWithBadMasterVersionFails() {
@@ -392,6 +410,8 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         // Don't increment the master version
         
         downloadAppMetaData(masterVersion: masterVersion, appMetaDataVersion: 0, fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, failureExpected: true)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Cannot upload v0 of a file using appMetaData upload.
@@ -411,5 +431,7 @@ class ServerAPI_MultiVersionAppMetaData: TestCase {
         let fileUUID = UUID().uuidString
         let appMetaData = AppMetaData(version: 0, contents: "Foobar")
         uploadAppMetaData(masterVersion: masterVersion, appMetaData: appMetaData, fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, failureExpected: true)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

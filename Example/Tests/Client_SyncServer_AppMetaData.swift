@@ -58,6 +58,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == appMetaData1)
             XCTAssert(directoryEntries[0].appMetaDataVersion == 0)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Upload a file, with non-nil appMetaData-- make sure updates current appMetaDataVersion, e.g., in the local directory entry.
@@ -109,6 +111,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == appMetaData2)
             XCTAssert(directoryEntries[0].appMetaDataVersion == 1)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Download a file with nil appMetaData-- must have nil appMetaDataVersion
@@ -138,6 +142,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == nil)
             XCTAssert(directoryEntries[0].appMetaDataVersion == nil)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Download a file with non-nil appMetaData-- must have non-nil appMetaDataVersion
@@ -168,6 +174,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == appMetaData.contents)
             XCTAssert(directoryEntries[0].appMetaDataVersion == appMetaData.version)
         }
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Download a purely app meta data update-- so that I get the delegate callback.
@@ -228,6 +236,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaDataOnlyUploadWorks() {
@@ -292,6 +301,7 @@ class Client_SyncServer_AppMetaData: TestCase {
         }
         
         assertUploadTrackersAreReset()
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testVersion1AppMetaDataOnlyUploadWorks() {
@@ -357,6 +367,8 @@ class Client_SyncServer_AppMetaData: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == updatedAttr.appMetaData)
             XCTAssert(directoryEntries[0].appMetaDataVersion == 1)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testUploadThenAppMetaDataUploadRemovesUpload() {
@@ -386,7 +398,7 @@ class Client_SyncServer_AppMetaData: TestCase {
             }
             
             XCTAssert(ufts[0].operation == .appMetaData)
-        }
+        }        
     }
     
     func testAppMetaDataUploadThenUploadRemovesAppMetaDataUpload() {

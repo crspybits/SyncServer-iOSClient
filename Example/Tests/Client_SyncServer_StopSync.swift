@@ -42,6 +42,8 @@ class Client_SyncServer_StopSync: TestCase {
         SyncServer.session.stopSync()
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Call stop sync before an upload. Expect:
@@ -101,6 +103,8 @@ class Client_SyncServer_StopSync: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Call stop sync between two uploads. Expect:
@@ -167,6 +171,8 @@ class Client_SyncServer_StopSync: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Call stop sync before a download. Expect:
@@ -248,6 +254,8 @@ class Client_SyncServer_StopSync: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Call stop sync between two downloads. Expect:
@@ -328,6 +336,8 @@ class Client_SyncServer_StopSync: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Call stop sync between two upload deletions. Expect:
@@ -540,5 +550,7 @@ class Client_SyncServer_StopSync: TestCase {
     
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         waitForExpectations(timeout: 10.0, handler: nil)
+    
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

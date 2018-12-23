@@ -67,6 +67,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         masterVersion += 1
 
         onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadTextFileVersion1() {
@@ -78,6 +80,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTextFileVersion(1, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatUploadingNonConsecutiveFileVersionFails() {
@@ -109,6 +113,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         fileVersion += 2
         
         uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion, expectError: true, fileVersion: fileVersion)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     @discardableResult
@@ -158,6 +164,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeleteFileVersion1(sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadAfterUploadDeleteOfVersion1Fails() {
@@ -179,6 +187,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         }
         
         uploadFile(fileURL:file.localURL, mimeType: file.mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: file.fileUUID, serverMasterVersion: masterVersion, expectError: true, fileVersion: file.fileVersion + FileVersionInt(1))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 
     func testUploadAndDownloadTextFileVersion5Works() {
@@ -190,6 +200,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTextFileVersion(5, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadAndDownloadImageFileVersion2Works() {
@@ -205,6 +217,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         let mimeType:MimeType = .jpeg
         let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
         uploadFileVersion(2, fileURL: fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadUndeletionVersion1Works() {
@@ -232,6 +246,8 @@ class ServerAPI_MultiVersionFiles: TestCase {
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
 
         onlyDownloadFile(comparisonFileURL: file2.localURL, file: file2, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Upload to file version N, but don't do the last DoneUploads
@@ -355,5 +371,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
 
         // D) Download the uploaded file
         onlyDownloadFile(comparisonFileURL: file4.localURL, file: file4, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

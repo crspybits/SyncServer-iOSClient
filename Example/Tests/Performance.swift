@@ -88,6 +88,8 @@ class Performance: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func test10_120K_ImageFileDownloads() {
@@ -99,6 +101,8 @@ class Performance: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "CatBehaviors", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
  
     // 5/27/17; I've been having problems with large-ish downloads. E.g., See https://stackoverflow.com/questions/44224048/timeout-issue-when-downloading-from-aws-ec2-to-ios-app
@@ -111,6 +115,8 @@ class Performance: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "SmallerCat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func test10LargeImageFileDownloads() {
@@ -122,6 +128,8 @@ class Performance: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         downloadNFiles(10, fileName: "Cat", fileExtension:"jpg", mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func interspersedDownloadsOfSmallTextFile(_ N:Int, sharingGroupUUID: String) {
@@ -140,6 +148,8 @@ class Performance: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         interspersedDownloadsOfSmallTextFile(10, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func deleteNFiles(_ N:UInt, fileName: String, fileExtension:String, mimeType:MimeType) {
@@ -184,11 +194,15 @@ class Performance: TestCase {
     // Failed with `shouldSaveDownload` being nil, when run with others as a group.
     func test10Deletions() {
         deleteNFiles(10, fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func test25Deletions() {
         // 12/25/17; Previously I had this set to 50 deletions, but I run into a 504 HTTP response from the server, and I think it's from NGINX. See https://github.com/crspybits/SyncServerII/issues/48
         deleteNFiles(25, fileName: "UploadMe", fileExtension:"txt", mimeType: .text)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // The reason for this test case is: https://github.com/crspybits/SyncServerII/issues/39
@@ -272,5 +286,7 @@ class Performance: TestCase {
         recursiveFileIndex()
         
         waitForExpectations(timeout: Double(N) * 30.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

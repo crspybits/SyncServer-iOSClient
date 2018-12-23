@@ -42,6 +42,8 @@ class Client_SyncManager: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testStartWithOneUploadedFileOnServer() {
@@ -113,6 +115,8 @@ class Client_SyncManager: TestCase {
         }
         
         waitForExpectations(timeout: 60.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func uploadTwoFiles(sharingGroupUUID: String) -> (file1: ServerAPI.File, file2: ServerAPI.File, masterVersion:MasterVersionInt)? {
@@ -190,5 +194,7 @@ class Client_SyncManager: TestCase {
         }
         
         downloadTwoFilesUsingStart(file1: file1, file2: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, singleFileDownloaded: singleFileDownload)
+        
+        
     }
 }

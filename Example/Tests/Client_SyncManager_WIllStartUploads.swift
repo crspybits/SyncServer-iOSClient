@@ -51,6 +51,7 @@ class Client_SyncManager_WillStartUploads: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatWillUploadEventIsTriggeredForOneFileUpload() {
@@ -72,7 +73,7 @@ class Client_SyncManager_WillStartUploads: TestCase {
         
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions, let numberSharingGroupOperations):
+            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions, let _):
                 XCTAssert(numberContentUploads == 1)
                 XCTAssert(numberUploadDeletions == 0)
                 willStartUploadsExp.fulfill()
@@ -89,6 +90,7 @@ class Client_SyncManager_WillStartUploads: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID:sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatWillUploadEventIsTriggeredForOneUploadDeletion() {
@@ -156,7 +158,7 @@ class Client_SyncManager_WillStartUploads: TestCase {
 
         syncServerEventOccurred = {event in
             switch event {
-            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions, let numberSharingGroupOperations):
+            case .willStartUploads(numberContentUploads: let numberContentUploads, numberUploadDeletions: let numberUploadDeletions, let _):
                 XCTAssert(numberContentUploads == 1)
                 XCTAssert(numberUploadDeletions == 1)
                 willStartUploadsExp.fulfill()
@@ -174,5 +176,6 @@ class Client_SyncManager_WillStartUploads: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }

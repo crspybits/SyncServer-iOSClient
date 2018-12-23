@@ -102,9 +102,8 @@ class TestCase: XCTestCase {
         SyncManager.session.delegate = self
         fileIndexServerSleep = nil
     }
-    
+
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
     
@@ -174,6 +173,33 @@ class TestCase: XCTestCase {
                     return
                 }
             }
+        }
+    }
+    
+    func assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [String] = []) {
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            XCTAssert(UploadQueue.fetchAll().count <= 1)
+            XCTAssert(UploadQueues.fetchAll().count == 0 || Upload.synced().queues!.count == 0)
+            
+            XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
+            
+            sharingGroupUUIDs.forEach { sharingGroupUUID in
+                XCTAssert(Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) == nil)
+            }
+            
+            XCTAssert(DownloadFileTracker.fetchAll().count == 0)
+            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
+            XCTAssert(UploadFileTracker.fetchAll().count == 0)
+            XCTAssert(NetworkCached.fetchAll().count == 0)
+            XCTAssert(SharingGroupUploadTracker.fetchAll().count == 0)
+        }
+    }
+    
+    func assertThereIsNoMetaData(sharingGroupUUIDs: [String]) {
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            XCTAssert(DirectoryEntry.fetchAll().count == 0)
         }
     }
     
@@ -435,34 +461,6 @@ class TestCase: XCTestCase {
         onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: nil)
         
         return fileResult
-    }
-    
-    func assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [String]) {
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            // Must put these three before the `Upload.pendingSync()` call which recreates the singleton and other core data objects.
-            XCTAssert(UploadQueue.fetchAll().count == 0)
-            XCTAssert(UploadQueues.fetchAll().count == 0)
-            XCTAssert(Singleton.fetchAll().count == 0)
-            
-            XCTAssert(try! Upload.pendingSync().uploads!.count == 0)
-            
-            sharingGroupUUIDs.forEach { sharingGroupUUID in
-                XCTAssert(Upload.getHeadSyncQueue(forSharingGroupUUID: sharingGroupUUID) == nil)
-            }
-            
-            XCTAssert(DownloadFileTracker.fetchAll().count == 0)
-            XCTAssert(DownloadContentGroup.fetchAll().count == 0)
-            XCTAssert(UploadFileTracker.fetchAll().count == 0)
-            XCTAssert(NetworkCached.fetchAll().count == 0)
-        }
-    }
-    
-    func assertThereIsNoMetaData(sharingGroupUUIDs: [String]) {
-        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: sharingGroupUUIDs)
-        
-        CoreDataSync.perform(sessionName: Constants.coreDataName) {
-            XCTAssert(DirectoryEntry.fetchAll().count == 0)
-        }
     }
     
     typealias FileUUIDURL = (uuid: String, url: URL)

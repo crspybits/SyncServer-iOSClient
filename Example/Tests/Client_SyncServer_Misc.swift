@@ -34,6 +34,8 @@ class Client_SyncServer_Misc: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDeletionOfSharingGroupRemovesItFromClientSharingGroups() {
@@ -88,5 +90,7 @@ class Client_SyncServer_Misc: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [])
     }
 }

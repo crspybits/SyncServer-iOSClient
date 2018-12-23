@@ -154,7 +154,6 @@ class CoreDataTests: TestCase {
         
         CoreDataSync.perform(sessionName: Constants.coreDataName) {
             let _ = DownloadFileTracker.newObject()
-            CoreData.sessionNamed(Constants.coreDataName).saveContext()
         }
         
         do {

@@ -75,6 +75,8 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded2)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func sync(forSharingGroupUUID sharingGroupUUID: String) {
@@ -147,6 +149,8 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // New file or file version uploaded by another client. For a sharing group we already know about.
@@ -202,6 +206,8 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testNewFileVersionUploadedByAnotherClient() {
@@ -255,6 +261,8 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // App meta data for a file uploaded by another client; For a sharing group we already know about.
@@ -309,6 +317,8 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 
     // File deletion by another client; For a sharing group we already know about.
@@ -360,5 +370,7 @@ class Client_SyncServer_SyncNeeded: TestCase {
             return
         }
         XCTAssert(!syncNeeded3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

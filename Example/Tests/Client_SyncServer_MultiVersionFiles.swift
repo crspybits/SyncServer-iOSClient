@@ -45,6 +45,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let url3 = SMRelativeLocalURL(withRelativePath: "UploadMe4.txt", toBaseURLType: .mainBundle)!
         sequentialUploadNextVersion(fileUUID:fileUUID, expectedVersion: 2, sharingGroupUUID: sharingGroupUUID, fileURL: url3)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // 1b) queue for upload the same file several times, concurrently. Don't do a sync until queuing each one.
@@ -117,6 +119,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let url = urls[urls.count - 1]
         
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // What happens if you queue the same time several times without calling sync? It gets replaced-- no version update. See docs for uploadImmutable.
@@ -229,6 +233,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(file1.fileVersion == 1)
             XCTAssert(file2.fileVersion == 3)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Upload delete some higher numbered file version-- will have to upload the same file several times first.
@@ -281,6 +287,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(file.deletedLocally)
             XCTAssert(file.fileVersion == fileVersion)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testDownloadDeleteHigherNumberedFileVersion() {
@@ -336,6 +344,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // MARK: Conflict resolution
@@ -421,6 +430,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Deletion conflict: a file is being download deleted, but there are pending upload(s) for the same file. A) Choose to accept the download deletion.
@@ -523,7 +533,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
-        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:1, sharingGroupUUID: sharingGroupUUID)
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(
+            numberUploadsToDo:1, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testDownloadDeletionConflict_RefuseDownloadDeletion_KeepUpload_2() {
@@ -534,7 +546,9 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
-        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(numberUploadsToDo:2, sharingGroupUUID: sharingGroupUUID)
+        downloadDeletionConflict_RefuseDownloadDeletion_KeepUpload(
+            numberUploadsToDo:2, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // This is an error because a purely appMetaData upload cannot undelete a file-- because it can't replace the previously deleted file content.
@@ -631,6 +645,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Since we're refusing the download deletion and removing the upload, we will get a following download-- to delete the file.
@@ -725,6 +740,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Deletion conflicts need to test for the new middle case I've added: bothFileUploadAndDeletion
@@ -796,6 +812,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
 
             XCTAssert(file.deletedLocally)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func fileDownloadConflict(numberFileUploads: Int, uploadDeletion: Bool, resolution:ContentDownloadResolution, sharingGroupUUID: String) {
@@ -1196,6 +1214,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testFileDownloadConflict_Accept_FU2_UD0() {
@@ -1207,6 +1227,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testFileDownloadConflict_Accept_FU1_UD1() {
@@ -1218,6 +1240,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload, sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testFileDownloadConflict_Reject_FU1_Remove_UD0() {
@@ -1229,6 +1253,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     /* Cases for file-download conflict:
@@ -1258,6 +1284,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testFileDownloadConflict_Reject_FU2_Keep_UD0() {
@@ -1269,6 +1297,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1() {
@@ -1280,6 +1310,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testFileDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
@@ -1291,6 +1323,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testFileDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
@@ -1302,6 +1336,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         fileDownloadConflict(numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll), sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaDataDownloadConflict_Accept_FU1_UD0() {
@@ -1313,6 +1349,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU2_UD0() {
@@ -1324,6 +1362,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .acceptContentDownload)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testAppMetaDataDownloadConflict_Accept_FU1_UD1() {
@@ -1335,6 +1375,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .acceptContentDownload)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD0() {
@@ -1346,6 +1388,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.removeAll))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD0() {
@@ -1357,6 +1401,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU2_Keep_UD0() {
@@ -1368,6 +1414,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 2, uploadDeletion: false, resolution: .rejectContentDownload(.keepContentUploads))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1() {
@@ -1379,6 +1427,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepContentUploads))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testAppMetaDataDownloadConflict_Reject_FU1_Remove_UD1_Keep() {
@@ -1390,6 +1440,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepUploadDeletions))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaDataDownloadConflict_Reject_FU1_Keep_UD1_Keep() {
@@ -1401,6 +1453,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaData_Upload_DownloadConflict_Accept_FU1_UD0() {
@@ -1412,6 +1466,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(downloadType: .appMetaData, sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaData_Upload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
@@ -1423,6 +1479,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(downloadType: .appMetaData, sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // What happens now if you upload contents for a file, but have an app meta data download occur? i.e., in terms of conflicts?
@@ -1435,6 +1493,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(downloadType: .appMetaData, sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: false, resolution: .acceptContentDownload)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testAppMetaData_FileUpload_DownloadConflict_Reject_FU1_Keep_UD1_Keep() {
@@ -1446,6 +1506,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         appMetaDataConflict(downloadType: .appMetaData, sharingGroupUUID: sharingGroupUUID, numberAppMetaDataUploads: 0, numberFileUploads: 1, uploadDeletion: true, resolution: .rejectContentDownload(.keepAll))
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // What happens when a file locally marked as deleted gets downloaded again, because someone else did an upload undeletion? Have we covered that case? We ought to get a `syncServerSingleFileDownloadComplete` delegate callback. Need to make sure of that.
@@ -1535,6 +1597,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             
             XCTAssert(!result.deletedLocally)
         }
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testFileDownloadConflictRejectRemoveAllAndUploadNewFile() {
@@ -1626,6 +1690,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 30.0, handler: nil)
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
    // Version 1 upload of a file gets access to original appMetaData in the callback, when uploaded with nil appMetaData (which doesn't change the app meta data).
@@ -1673,6 +1739,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 10.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // When a new version of a file is downloaded, do we get its new appMetaData?
@@ -1755,6 +1823,8 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTAssert(directoryEntries[0].appMetaData == appMetaData2.contents)
             XCTAssert(directoryEntries[0].appMetaDataVersion == appMetaData2.version)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Two download deletions in the same file group. File upload conflict. Client resolves conflict with `.rejectDownloadDeletion(.keepContentUpload))`
@@ -1873,5 +1943,7 @@ class Client_SyncServer_MultiVersionFiles: TestCase {
             XCTFail()
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }

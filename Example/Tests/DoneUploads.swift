@@ -49,6 +49,8 @@ class ServerAPI_DoneUploads: TestCase {
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [fileUUID])
         
         getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDoneUploadsWorksWithTwoFiles() {
@@ -90,6 +92,8 @@ class ServerAPI_DoneUploads: TestCase {
         ])
         
         getUploads(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatUploadDeletionOfOneFileWithDoneUploadsActuallyDeletes() {
@@ -101,6 +105,8 @@ class ServerAPI_DoneUploads: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeletionOfOneFileWithDoneUploads(sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDoneUploadsWith1FileUploadAnd1UploadDeletion() {
@@ -138,6 +144,8 @@ class ServerAPI_DoneUploads: TestCase {
         }
         
         XCTAssert(foundDeletedFile)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDoneUploadsConflict() {
@@ -216,6 +224,8 @@ class ServerAPI_DoneUploads: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDoneUploadsWithDeletionChangesMasterVersion() {
@@ -252,6 +262,8 @@ class ServerAPI_DoneUploads: TestCase {
             return
         }
         XCTAssert(masterVersion2 == masterVersion)
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // TODO: *2* I would like a test where there are concurrent DoneUploads operations-- across two users. e.g., users A and B each upload a file, and then concurrently do DoneUpload operatons-- this should not result in a lock/blocking situation, even with the transactional support because InnoDB does row level locking. (I'm not sure how to support access within a single iOS app by two Google users.)

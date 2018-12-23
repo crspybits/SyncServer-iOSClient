@@ -82,6 +82,8 @@ class Client_Downloads: TestCase {
         }
         
         checkForDownloads(expectedMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedFiles: [])
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testCheckForDownloadOfSingleFileWorks() {
@@ -107,6 +109,9 @@ class Client_Downloads: TestCase {
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         checkForDownloads(expectedMasterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, expectedFiles: [file])
+        
+        // There *will* be download trackers in normal operation at the end of this test. Don't do this assertion.
+        // assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testCheckForDownloadOfTwoFilesWorks() {
@@ -162,6 +167,8 @@ class Client_Downloads: TestCase {
             XCTFail("\(result)")
             return
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testDownloadNextWithOneFileNotDownloadedOnServer() {
@@ -264,7 +271,7 @@ class Client_Downloads: TestCase {
 
         let result = Download.session.next() { completionResult in
             guard case .masterVersionUpdate = completionResult else {
-                XCTFail()
+                XCTFail("\(completionResult)")
                 return
             }
             
@@ -406,6 +413,8 @@ class Client_Downloads: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         onlyCheck(sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testOnlyCheckWhenOneFileForDownload() {

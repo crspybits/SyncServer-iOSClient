@@ -108,6 +108,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testMasterVersionChangeOccuringOnDoneUploads() {
@@ -209,6 +210,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         
         let file2 = ServerAPI.File(localURL: nil, fileUUID: fileUUID2, fileGroupUUID: nil, sharingGroupUUID: sharingGroupUUID, mimeType: nil, deviceUUID: nil, appMetaData: nil, fileVersion: 0, checkSum: "")
         onlyDownloadFile(comparisonFileURL: url as URL, file: file2, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testMasterVersionUpdateOnUploadDeletion() {
@@ -302,6 +304,7 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testMasterVersionChangeDuringDownload() {
@@ -396,5 +399,6 @@ class Client_SyncManager_MasterVersionChange: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }

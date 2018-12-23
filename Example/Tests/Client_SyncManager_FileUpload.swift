@@ -52,6 +52,7 @@ class Client_SyncServer_FileUpload: TestCase {
         uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID)
         
         assertUploadTrackersAreReset()
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatUploadingASingleCopyFileWorks() {
@@ -65,6 +66,7 @@ class Client_SyncServer_FileUpload: TestCase {
         uploadASingleFile(copy:true, sharingGroupUUID: sharingGroupUUID)
         
         assertUploadTrackersAreReset()
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func uploadTwoSeparateFilesWorks(copy:Bool, sharingGroupUUID: String) {
@@ -138,6 +140,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTwoSeparateFilesWorks(copy:false, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatUploadingTwoSeparateCopyFilesWorks() {
@@ -149,6 +152,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadTwoSeparateFilesWorks(copy:true, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     // TODO: *2* file will have deleted flag set in local Directory.
@@ -221,6 +225,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: false, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatAddingSameCopyFileToUploadQueueTwiceBeforeSyncReplaces() {
@@ -232,6 +237,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         addingSameFileToUploadQueueTwiceBeforeSyncReplaces(copy: true, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func changingTheMimeTypeOnSecondUploadFails(copy: Bool, sharingGroupUUID: String) {
@@ -363,6 +369,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         syncAferCompleteUploadWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testSyncAferCompleteUploadCopyWorks() {
@@ -374,6 +381,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         syncAferCompleteUploadWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: Bool, sharingGroupUUID: String) {
@@ -492,6 +500,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: false, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testUploadCopyOfDifferentFilesAcrossDifferentSyncsWorks() {
@@ -503,6 +512,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadOfDifferentFilesAcrossDifferentSyncsWorks(copy: true, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func creationDateOfFileIsCorrect(copy: Bool, sharingGroupUUID: String) {
@@ -572,6 +582,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         creationDateOfFileIsCorrect(copy: false, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatCreationDateOfCopyFileIsCorrect() {
@@ -583,6 +594,7 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         creationDateOfFileIsCorrect(copy: true, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // TODO: *3* Test of upload file1, sync, upload file1, sync-- uploads both files.

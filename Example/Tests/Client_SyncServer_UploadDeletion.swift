@@ -89,6 +89,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadDeletionWorksWhenWaitUntilAfterUpload(sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatUploadDeletionWorksWhenYouDoNotWaitUntilAfterUpload() {
@@ -172,6 +174,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             let result = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID)
             XCTAssert(result!.deletedLocally)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 
     func testUploadImmediatelyFollowedByDeletionWorks() {
@@ -288,6 +292,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             XCTFail()
         } catch {
         }
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Delete, sync, upload in immediate succession -- of the same file should fail.
@@ -328,6 +334,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Delete, sync, delete in immediate succession -- second delete of the same file should fail.
@@ -368,6 +376,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatDeletionWithSyncFollowedByAppMetaDataUploadFails() {
@@ -391,6 +401,9 @@ class Client_SyncServer_UploadDeletion: TestCase {
         } catch {
             // SyncServerError.fileQueuedForDeletion
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
+
     }
     
     func testDeletionOfFileWithBadUUIDFails() {
@@ -400,6 +413,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDeletionAttemptOfAFileAlreadyDeletedOnServerFails() {
@@ -420,6 +435,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testMultipleFileDeletionWorks() {
@@ -489,6 +506,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
             XCTAssert(result2!.deletedLocally)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testMultipleSimultaneousFileDeletionWorks() {
@@ -557,6 +576,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
             let result2 = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID2)
             XCTAssert(result2!.deletedLocally)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testMultipleSimultaneousFileDeletionWithOneUnknownFileFails() {
@@ -612,6 +633,8 @@ class Client_SyncServer_UploadDeletion: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // TODO: *2* Attempt to delete a file with a version different than on the server. i.e., the local directory version is V1, but the server version is V2, V2 != V1. (This will have to wait until we have multi-version file support).

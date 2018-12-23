@@ -46,6 +46,8 @@ class Client_GetSetAttributes: TestCase {
         XCTAssert(uploadedAttr.appMetaData == attr.appMetaData)
         XCTAssert(uploadedAttr.mimeType == attr.mimeType)
         XCTAssert(uploadedAttr.sharingGroupUUID == attr.sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGetAttributesForADownloadedFileWorks() {
@@ -104,6 +106,8 @@ class Client_GetSetAttributes: TestCase {
         XCTAssert(uploadedAttr.fileGroupUUID == attr.fileGroupUUID)
         XCTAssert(uploadedAttr.appMetaData?.contents == attr.appMetaData)
         XCTAssert(uploadedAttr.mimeType == attr.mimeType)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGetAttributesForADeletedFileFails() {
@@ -220,5 +224,7 @@ class Client_GetSetAttributes: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 60.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }

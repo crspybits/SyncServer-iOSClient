@@ -46,7 +46,9 @@ class HTTPURLResponseTests: TestCase {
         
         XCTAssert(response.url == url)
     }
-    
+
+    // The failover message must be in place on S3 to test this.
+    /*
     func testGetFailoverMessage() {
         let expectation = self.expectation(description: "check")
         let serverDown = self.expectation(description: "serverDown")
@@ -69,4 +71,5 @@ class HTTPURLResponseTests: TestCase {
         
         waitForExpectations(timeout: 30.0, handler: nil)
     }
+    */
 }

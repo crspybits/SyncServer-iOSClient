@@ -35,6 +35,7 @@ class Client_SyncServer_Download: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Somehow this fails, when I run the test as a set, with `shouldSaveDownload` being nil.
@@ -119,6 +120,7 @@ class Client_SyncServer_Download: TestCase {
         XCTAssert(initialDeviceUUID != ServerAPI.session.delegate.deviceUUID(forServerAPI: ServerAPI.session))
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testDownloadWithMetaData() {
@@ -131,6 +133,7 @@ class Client_SyncServer_Download: TestCase {
         
         let appMetaData = AppMetaData(version: 0, contents: "Some app meta data")
         doASingleDownloadUsingSync(fileName: "UploadMe", fileExtension:"txt", mimeType: .text, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testThatResetWorksAfterDownload() {

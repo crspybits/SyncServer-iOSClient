@@ -31,6 +31,8 @@ class ServerAPI_DownloadFile: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadAndDownloadTextFile(sharingGroupUUID: sharingGroupUUID)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testDownloadTextFileWithAppMetaData() {
@@ -43,6 +45,8 @@ class ServerAPI_DownloadFile: TestCase {
         
         let appMetaData = AppMetaData(version: 0, contents: "foobar was here")
         uploadAndDownloadTextFile(sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // TODO: These downloads should really be with *different* files-- similar size would be good, but different files.
@@ -79,7 +83,7 @@ class ServerAPI_DownloadFile: TestCase {
                 switch downloadedFile {
                 case .gone:
                     XCTFail()
-                case .content(url: let url, appMetaData: let contentAppMetaData, checkSum: let checkSum, cloudStorageType: _, contentsChangedOnServer: _):
+                case .content(url: let url, appMetaData: _, checkSum: _, cloudStorageType: _, contentsChangedOnServer: _):
                 
                     XCTAssert(FilesMisc.compareFiles(file1: fileURL, file2: url as URL))
                 }
@@ -115,6 +119,8 @@ class ServerAPI_DownloadFile: TestCase {
         }
         
         waitForExpectations(timeout: 120.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // TODO: *1* Also try parallel downloads from different (simulated) deviceUUID's.

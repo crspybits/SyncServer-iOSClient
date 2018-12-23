@@ -67,6 +67,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testStartWithOneDownloadDeletion() {
@@ -138,6 +139,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testStartWithOneDownloadDeletionAndOneFileDownload() {
@@ -213,6 +216,8 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 
     func testDownloadDeletionWithKnownDeletedFile() {
@@ -250,6 +255,7 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testDownloadDeletionWhereFileWasNotInDirectoryPreviously() {
@@ -285,5 +291,6 @@ class Client_SyncManager_DownloadDeletion: TestCase {
         }
         
         waitForExpectations(timeout: 30.0, handler: nil)
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }

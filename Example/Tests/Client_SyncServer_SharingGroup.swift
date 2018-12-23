@@ -193,6 +193,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             return nil
         }
         
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
+        
         return sharingGroupUUID
     }
     
@@ -217,6 +219,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     
@@ -275,6 +279,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testCreatingDuplicateSharingGroupBeforeSyncFails() {
@@ -316,6 +322,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // MARK: Updating sharing groups
@@ -363,6 +371,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         XCTAssert(filter2[0].sharingGroupName == newSharingGroupName)
 
         assertUploadTrackersAreReset()
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatChangingSharingGroupNameWorks() {
@@ -428,6 +437,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         
         // So that we have at least one sharing group when the test ends.
         createSharingGroupUsingSyncWorks(name: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Remove user 2x without calling sync fails.
@@ -481,6 +492,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         }
         
         createSharingGroupUsingSyncWorks(name: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testUploadToARemovedSharingGroupFails() {
@@ -523,6 +536,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Returns list of sharing group UUID's.
@@ -632,6 +647,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID1)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /*
@@ -698,6 +715,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID2)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // Error case: Upload a fileUUID that's in one sharing group to a second sharing group.
@@ -722,6 +741,8 @@ class Client_SyncServer_SharingGroup: TestCase {
             XCTFail()
         } catch {
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // One download available in each of two sharing groups.
@@ -814,6 +835,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID2)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     /* Upload and download sync cases:
@@ -943,6 +966,8 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID4)
 
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // 1) We create a sharing group, 2) Another client removes us from that sharing group, 3) When we sync we get the download callback that the sharing group was removed.
@@ -1005,5 +1030,7 @@ class Client_SyncServer_SharingGroup: TestCase {
         try! SyncServer.session.sync()
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
 }

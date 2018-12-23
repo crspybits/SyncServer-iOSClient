@@ -56,6 +56,8 @@ class Client_SyncServer_Sync: TestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     func testThatDoingSyncTwiceWithNoFilesResultsInTwoSyncDones() {
@@ -119,6 +121,8 @@ class Client_SyncServer_Sync: TestCase {
         waitForExpectations(timeout: 10.0, handler: nil)
         
         getFileIndex(sharingGroupUUID: sharingGroupUUID, expectedFileUUIDs: [])
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
     // TODO: *0* Do a sync with no uploads pending, but pending downloads.

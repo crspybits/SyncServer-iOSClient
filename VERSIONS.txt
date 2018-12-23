@@ -1,5 +1,12 @@
 SyncServer-iOSClient
 
+Next Version
+	* Update pods in Example
+	* Trying to diagnose https://github.com/crspybits/SharedImages/issues/107
+		By adding asserts to test cases.
+	* Fixed client problem with detecting master version update.
+	* Fixed issue with upload trackers not being removed when an error occurs.
+	
 Version 18.7.2 (12/14/18)
 	* Fixing part of sharing invitation issue:
 		https://github.com/crspybits/SharedImages/issues/152

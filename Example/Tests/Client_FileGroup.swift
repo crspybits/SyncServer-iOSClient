@@ -103,6 +103,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
 
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // appMetaData upload of a file with a non-nil group-UUID for v1, where it's different than previous-- should fail.
@@ -185,6 +187,8 @@ class Client_FileGroup: TestCase {
             }
             XCTAssert(filtered[0].fileGroupUUID == fileGroupUUID)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Download v1 of a file as the first time a file is downloaded, and make sure the group UUID makes it into the directory.
@@ -229,6 +233,8 @@ class Client_FileGroup: TestCase {
             }
             XCTAssert(filtered[0].fileGroupUUID == fileGroupUUID)
         }
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // MARK: Group download tests
@@ -303,6 +309,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Download a group of files-- i.e., a collection of files with the same group UUID. The delegate callback should be called for exactly this group of files. Include another file-- not in this group UUID-- delegate should get called separately for this.
@@ -397,6 +405,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Downloading groups, with specific group UUID's, with just one file in them should work.
@@ -476,6 +486,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // You should get the same effect when not giving a group UUID for the downloaded file-- it should act as a group of size 1.
@@ -557,6 +569,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGroupWithOnlyADownloadDeletion() {
@@ -619,6 +633,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGroupWithTwoDeletionWithSameGroupUUID() {
@@ -696,6 +712,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGroupWithOnlyAnAppMetaDataUpdate() {
@@ -762,6 +780,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     func testGroupWithTwoAppMetaDataUpdatesWithSameGroupUUID() {
@@ -849,6 +869,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // A download group with a version update, appMetaData download, and a deletion.
@@ -954,6 +976,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Two separate groups with deletions-- nil group UUID in each case.
@@ -1033,6 +1057,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // A group with a larger numbers of operations-- e.g., with 10 downloads.
@@ -1114,6 +1140,8 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
     // Make sure the files have their expected contents.
@@ -1196,5 +1224,7 @@ class Client_FileGroup: TestCase {
         try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
         
         waitForExpectations(timeout: 20.0, handler: nil)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
 }
