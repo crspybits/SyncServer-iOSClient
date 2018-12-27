@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version
+	* Trying to fix issue where stopping a download mid-way through, and then restarting, could leave a client in a state where it didn't have all the files.
+		https://github.com/crspybits/SyncServer-iOSClient/issues/63
+
 Version 18.7.3 (12/25/18)
 	* Update pods in Example
 	* Trying to diagnose https://github.com/crspybits/SharedImages/issues/107
