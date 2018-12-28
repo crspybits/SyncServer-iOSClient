@@ -1175,6 +1175,18 @@ public class SyncServer {
                 Log.msg("clientMissingNotDeleted: \(clientMissingNotDeleted)")
                 Log.msg("directoryMissing: \(directoryMissing)")
                 results = LocalConsistencyResults(clientMissingAndDeleted: clientMissingAndDeleted, clientMissingNotDeleted: clientMissingNotDeleted, directoryMissing: directoryMissing)
+                
+                // 12/27/18; This is to deal with fallout from https://github.com/crspybits/SyncServer-iOSClient/issues/63 i.e., I think that issue is fixed, but existing users might need this for full recovery. I'm going to remove the relevant directory entries which, next time a sync occurs, will force another download of the files.
+                CoreDataSync.perform(sessionName: Constants.coreDataName) {
+                    directoryMissing.forEach { fileUUID in
+                        if let entry = DirectoryEntry.fetchObjectWithUUID(uuid: fileUUID),
+                            !entry.deletedOnServer {
+                            entry.remove()
+                        }
+                    }
+                    
+                    CoreData.sessionNamed(Constants.coreDataName).saveContext()
+                }
             }
         }
                         
