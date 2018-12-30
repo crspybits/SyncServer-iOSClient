@@ -840,6 +840,10 @@ public class SyncServer {
         try sync(sharingGroupUUID:sharingGroupUUID, reAttemptGoneDownloads: reAttemptGoneDownloads, completion:nil)
     }
     
+    public var isSyncing:Bool {
+        return syncOperating
+    }
+    
     func sync(sharingGroupUUID: String?, reAttemptGoneDownloads: Bool = false, completion:(()->())?) throws {
         var doStart = true
         

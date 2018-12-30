@@ -1,9 +1,13 @@
 SyncServer-iOSClient
 
-Version
+Version 18.8.0 (12/30/18)
 	* Trying to fix issue where stopping a download mid-way through, and then restarting, could leave a client in a state where it didn't have all the files.
 		https://github.com/crspybits/SyncServer-iOSClient/issues/63
-
+	* Migration-style change for users to bring their files back into order given the issues in https://github.com/crspybits/SyncServer-iOSClient/issues/63
+		Note: This change gets carried out, per album, when a user syncs that album.
+	* Added isSyncing client method.
+	* Remove debugging output.
+	
 Version 18.7.3 (12/25/18)
 	* Update pods in Example
 	* Trying to diagnose https://github.com/crspybits/SharedImages/issues/107
