@@ -125,5 +125,117 @@ class Client_SyncServer_Sync: TestCase {
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
-    // TODO: *0* Do a sync with no uploads pending, but pending downloads.
+    func testUploadsPendingWithNoSync() {
+        let fileUUID = UUID().uuidString
+
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+
+        // No uploads pending because we've not yet done a sync.
+        XCTAssert(!SyncServer.session.uploadsPending)
+    }
+    
+    func testUploadsPendingWithSync() {
+        let fileUUID = UUID().uuidString
+
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        
+        SyncServer.session.delegate = self
+        SyncServer.session.eventsDesired = [.syncDone]
+
+        let expectation1 = expectation(description: "SyncDone")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        
+        // Uploads pending because we have done a sync.
+        XCTAssert(SyncServer.session.uploadsPending)
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
+    
+    func testGetSharingUUIDOfHeadSyncQueueNilWithNoSync() {
+        let fileUUID = UUID().uuidString
+
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let sharingGroupUUID = Upload.getSharingGroupUUIDOfHeadSyncQueue()
+            XCTAssert(sharingGroupUUID == nil)
+        }
+    }
+    
+    func testGetSharingUUIDOfHeadSyncQueueNilWithSync() {
+        let fileUUID = UUID().uuidString
+
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
+        let url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+        let attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        
+        SyncServer.session.delegate = self
+        SyncServer.session.eventsDesired = [.syncDone]
+
+        let expectation1 = expectation(description: "SyncDone")
+
+        syncServerEventOccurred = {event in
+            switch event {
+            case .syncDone:
+                expectation1.fulfill()
+                
+            default:
+                XCTFail()
+            }
+        }
+        
+        try! SyncServer.session.uploadImmutable(localFile: url, withAttributes: attr)
+        try! SyncServer.session.sync(sharingGroupUUID: sharingGroupUUID)
+        
+        CoreDataSync.perform(sessionName: Constants.coreDataName) {
+            let sharingGroupUUID = Upload.getSharingGroupUUIDOfHeadSyncQueue()
+            XCTAssert(sharingGroupUUID != nil)
+        }
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+    }
 }
