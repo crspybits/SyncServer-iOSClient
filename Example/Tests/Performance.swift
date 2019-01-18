@@ -289,4 +289,38 @@ class Performance: TestCase {
         
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
+    
+    func testDownloadLotsOfSmallImages() {
+        let N = 100
+        
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+
+        let fileName = "SmallCat"
+        let fileExtension = "jpg"
+        let mimeType:MimeType = .jpeg
+
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: fileName, withExtension: fileExtension)!
+        
+        let fileUUID = UUID().uuidString
+
+        guard let file = uploadFile(fileURL:fileURL, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+            return
+        }
+        
+        doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
+        
+        for _ in 1...N {
+            onlyDownloadFile(comparisonFileURL: fileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID)
+        }
+    }
 }

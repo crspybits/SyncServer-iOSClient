@@ -988,7 +988,7 @@ class TestCase: XCTestCase {
     }
     
     func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, sharingGroupUUID: String, appMetaData:AppMetaData? = nil, expectedCheckSum:String? = nil) {
-        let expectation = self.expectation(description: "doneUploads")
+        let expectation = self.expectation(description: "download")
 
         let fileNamingObj = FilenamingWithAppMetaDataVersion(fileUUID: file.fileUUID, fileVersion: file.fileVersion, appMetaDataVersion: appMetaData?.version)
 

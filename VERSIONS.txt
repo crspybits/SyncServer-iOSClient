@@ -3,7 +3,7 @@ SyncServer-iOSClient
 Version 18.9.0 (1/2/19)
 	* Enabling pending uploads to occur when app comes into foreground, online, or is launched.
 		https://github.com/crspybits/SharedImages/issues/146
-	* Added isSyncing and uploadsPending properties
+	* Added uploadsPending property
 
 Version 18.8.0 (12/30/18)
 	* Trying to fix issue where stopping a download mid-way through, and then restarting, could leave a client in a state where it didn't have all the files.

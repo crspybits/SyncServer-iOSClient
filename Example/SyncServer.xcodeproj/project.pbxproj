@@ -32,6 +32,7 @@
 		8351E4A9210192500052548E /* Client_SyncServer_Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8351E4A82101924F0052548E /* Client_SyncServer_Misc.swift */; };
 		83544F7F1EF4E0E5007E0887 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833729841E0F6BAE002CA164 /* Authentication.swift */; };
 		83544F871EF58B32007E0887 /* SyncServer_ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */; };
+		835576AA21E59C4900B2757A /* SmallCat.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 835576A921E59C4900B2757A /* SmallCat.jpg */; };
 		835C60AC1E62ABF3003E9AF8 /* CoreDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60AB1E62ABF3003E9AF8 /* CoreDataTests.swift */; };
 		835C60B21E6369DE003E9AF8 /* Client_SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */; };
 		835C610C1E6504D4003E9AF8 /* Client_NetworkLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */; };
@@ -127,6 +128,7 @@
 		83544F841EF58B32007E0887 /* SyncServer_ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncServer_ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83544F861EF58B32007E0887 /* SyncServer_ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncServer_ExampleUITests.swift; sourceTree = "<group>"; };
 		83544F881EF58B32007E0887 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		835576A921E59C4900B2757A /* SmallCat.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SmallCat.jpg; sourceTree = "<group>"; };
 		835C60AB1E62ABF3003E9AF8 /* CoreDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataTests.swift; sourceTree = "<group>"; };
 		835C60B11E6369DE003E9AF8 /* Client_SyncManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_SyncManager.swift; sourceTree = "<group>"; };
 		835C610B1E6504D4003E9AF8 /* Client_NetworkLoss.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Client_NetworkLoss.swift; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 				83F37A2F1E51120B00479175 /* ServerAPI_DownloadFile.swift */,
 				831DE3CB1EDA850F0084070F /* LargerCat.jpg */,
 				831DE3CC1EDA850F0084070F /* SmallerCat.jpg */,
+				835576A921E59C4900B2757A /* SmallCat.jpg */,
 				83B5F7891F09E4090069A1D7 /* CatBehaviors.jpg */,
 				83F37A211E46D52500479175 /* UploadMe.txt */,
 				83D829CE1F70B20F0030E9F7 /* UploadMe2.txt */,
@@ -504,6 +507,7 @@
 				83D829D01F70B8B30030E9F7 /* UploadMe2.txt in Resources */,
 				831DE3CF1EDA87770084070F /* LargerCat.jpg in Resources */,
 				831DE3D01EDA877B0084070F /* SmallerCat.jpg in Resources */,
+				835576AA21E59C4900B2757A /* SmallCat.jpg in Resources */,
 				83D829D11F70B8B60030E9F7 /* UploadMe3.txt in Resources */,
 				83F37A171E4445CB00479175 /* Server.plist in Resources */,
 				83224B79218D473B009C6492 /* Cat.jpg in Resources */,
