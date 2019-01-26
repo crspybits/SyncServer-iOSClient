@@ -392,7 +392,7 @@ class Client_Downloads: TestCase {
             case .error(let error):
                 XCTFail("Failed: \(error)")
             
-            case .checkResult(downloadSet: let downloadSet):
+            case .checkResult(downloadSet: let downloadSet, sharingGroups: _):
                 XCTAssert(downloadSet.downloadFiles.count == expectedDownloads, "count: \(downloadSet.downloadFiles.count)")
                 XCTAssert(downloadSet.downloadDeletions.count == expectedDownloadDeletions, "\(downloadSet.downloadDeletions.count)")
                 XCTAssert(downloadSet.downloadAppMetaData.count == 0)

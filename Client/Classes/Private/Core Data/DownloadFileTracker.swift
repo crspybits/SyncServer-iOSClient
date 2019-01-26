@@ -17,6 +17,8 @@ public class DownloadFileTracker: FileTracker, AllOperations {
     
     enum Status : String {
     case notStarted
+    
+    // 1/20/19; As of now, allowing more than one dft (or dcg) to be downloading. Prior to today, only a single download could be occurring at once-- this change is occurring with the generalized use of background downloads.
     case downloading
     
     // Either the file has been successfully downloaded or the file was "gone".

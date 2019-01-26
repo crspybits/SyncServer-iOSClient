@@ -9,13 +9,45 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../Client/Classes/Public/SyncServer.swift"
-            timestampString = "567233141.674796"
+            filePath = "../Client/Classes/Private/SyncManager/Download.swift"
+            timestampString = "569474851.1193531"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "646"
-            endingLineNumber = "646"
-            landmarkName = "delete(uuid:)"
+            startingLineNumber = "376"
+            endingLineNumber = "376"
+            landmarkName = "downloadCompletion(nextToDownload:downloadedFile:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../Client/Classes/Private/SyncManager/Download.swift"
+            timestampString = "569475042.3381619"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "395"
+            endingLineNumber = "395"
+            landmarkName = "doDownloadFile(masterVersion:downloadFile:nextToDownload:sharingGroupUUID:completion:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../Client/Classes/Private/SyncManager/Download.swift"
+            timestampString = "569625058.880618"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "244"
+            endingLineNumber = "244"
+            landmarkName = "next(first:completion:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

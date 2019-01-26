@@ -65,12 +65,11 @@ class Download {
     }
     
     enum OnlyCheckCompletion {
-        case checkResult(downloadSet: Directory.DownloadSet)
+        case checkResult(downloadSet: Directory.DownloadSet, sharingGroups: [SharingGroup])
         case error(SyncServerError)
     }
     
-    // TODO: *0* while this check is occurring, we want to make sure we don't have a concurrent check operation.
-    // Doesn't create DownloadFileTracker's or update MasterVersion.
+    // Checks for downloads that need to be done, and gets updated SharingGroup's.
     func onlyCheck(sharingGroupUUID: String, completion:((OnlyCheckCompletion)->())? = nil) {
         
         Log.msg("Download.onlyCheckForDownloads")
@@ -90,8 +89,6 @@ class Download {
                 return
             }
             
-            let sharingGroups = indexResult.sharingGroups
-            
             // Make sure the mime types we get back from the server are known to the client.
             for file in fileIndex {
                 guard let fileMimeTypeString = file.mimeType,
@@ -103,28 +100,20 @@ class Download {
             }
 
             var completionResult:OnlyCheckCompletion!
-            var sharingGroupUpdates: SharingEntry.Updates!
             
             CoreDataSync.perform(sessionName: Constants.coreDataName) {
                 do {
-                    sharingGroupUpdates = try SharingEntry.update(serverSharingGroups: sharingGroups, desiredEvents: self.desiredEvents, delegate: self.delegate)
                     let downloadSet =
                         try Directory.session.checkFileIndex(serverFileIndex: fileIndex)
                     completionResult =
-                        .checkResult(downloadSet: downloadSet)
+                        .checkResult(downloadSet: downloadSet, sharingGroups: indexResult.sharingGroups)
                 } catch (let error) {
                     completionResult = .error(.coreDataError(error))
                 }
                 
                 CoreData.sessionNamed(Constants.coreDataName).saveContext()
             }
-            
-            if sharingGroupUpdates != nil {
-                Thread.runSync(onMainThread: {
-                    self.delegate?.syncServerSharingGroupsDownloaded(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer)
-                })
-            }
-            
+
             completion?(completionResult)
         }
     }
@@ -135,56 +124,30 @@ class Download {
         case error(SyncServerError)
     }
     
-    // TODO: *0* while this check is occurring, we want to make sure we don't have a concurrent check operation.
-    // Creates DownloadFileTracker's to represent files that need downloading/download deleting. Updates MasterVersion with the master version on the server.
+    // Creates DownloadFileTracker's to represent files that need downloading/download deleting, and updates SharingEntry's from SharingGroups on the server.
     func check(sharingGroupUUID: String, completion:((CheckCompletion)->())? = nil) {
         onlyCheck(sharingGroupUUID: sharingGroupUUID) { onlyCheckResult in
             switch onlyCheckResult {
             case .error(let error):
                 completion?(.error(error))
             
-            case .checkResult(downloadSet: let downloadSet):
+            case .checkResult(downloadSet: let downloadSet, sharingGroups: let sharingGroups):
                 var completionResult:CheckCompletion!
+                var sharingGroupUpdates: SharingEntry.Updates!
 
                 CoreDataSync.perform(sessionName: Constants.coreDataName) {
                     if downloadSet.allFiles().count > 0 {
-                        for file in downloadSet.allFiles() {
-                            let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
-                            dft.fileUUID = file.fileUUID
-                            dft.fileVersion = file.fileVersion
-                            dft.mimeType = file.mimeType
-                            dft.sharingGroupUUID = file.sharingGroupUUID
-                            
-                            if downloadSet.downloadFiles.contains(file) {
-                                dft.operation = .file
-                            }
-                            else if downloadSet.downloadDeletions.contains(file) {
-                                dft.operation = .deletion
-                            }
-                            else if downloadSet.downloadAppMetaData.contains(file) {
-                                dft.operation = .appMetaData
-                            }
-                            else {
-                                completionResult = .error(.generic("Internal Error"))
-                                return
-                            }
-                            
-                            dft.appMetaDataVersion = file.appMetaDataVersion
-                            dft.fileGroupUUID = file.fileGroupUUID
+                        completionResult = self.makeDownloadFileTrackers(downloadSet: downloadSet)
+                        if completionResult != nil {
+                            return
+                        }
 
-                            do {
-                                try DownloadContentGroup.addDownloadFileTracker(dft, to: file.fileGroupUUID)
-                            }
-                            catch (let error) {
-                                completionResult = .error(.coreDataError(error))
-                                return
-                            }
-                            
-                            if file.creationDate != nil {
-                                dft.creationDate = file.creationDate! as NSDate
-                                dft.updateDate = file.updateDate! as NSDate
-                            }
-                        } // end for
+                        do {
+                            sharingGroupUpdates = try SharingEntry.update(serverSharingGroups: sharingGroups, desiredEvents: self.desiredEvents, delegate: self.delegate)
+                        } catch (let error) {
+                            completionResult = .error(.generic("\(error)"))
+                            return
+                        }
                         
                         completionResult = .downloadsAvailable(
                             numberOfContentDownloads:downloadSet.downloadFiles.count + downloadSet.downloadAppMetaData.count,
@@ -210,9 +173,56 @@ class Download {
                     }
                 } // End perform
                 
+                if let sharingGroupUpdates = sharingGroupUpdates {
+                    Thread.runSync(onMainThread: {
+                        self.delegate?.syncServerSharingGroupsDownloaded(created: sharingGroupUpdates.newSharingGroups, updated: sharingGroupUpdates.updatedSharingGroups, deleted: sharingGroupUpdates.deletedOnServer)
+                    })
+                }
+                
                 completion?(completionResult)
             }
         }
+    }
+    
+    // Assumes it's called within CoreDataSync.perform
+    private func makeDownloadFileTrackers(downloadSet: Directory.DownloadSet) -> CheckCompletion? {
+        for file in downloadSet.allFiles() {
+            let dft = DownloadFileTracker.newObject() as! DownloadFileTracker
+            dft.fileUUID = file.fileUUID
+            dft.fileVersion = file.fileVersion
+            dft.mimeType = file.mimeType
+            dft.sharingGroupUUID = file.sharingGroupUUID
+            
+            if downloadSet.downloadFiles.contains(file) {
+                dft.operation = .file
+            }
+            else if downloadSet.downloadDeletions.contains(file) {
+                dft.operation = .deletion
+            }
+            else if downloadSet.downloadAppMetaData.contains(file) {
+                dft.operation = .appMetaData
+            }
+            else {
+                return .error(.generic("Internal Error"))
+            }
+            
+            dft.appMetaDataVersion = file.appMetaDataVersion
+            dft.fileGroupUUID = file.fileGroupUUID
+
+            do {
+                try DownloadContentGroup.addDownloadFileTracker(dft, to: file.fileGroupUUID)
+            }
+            catch (let error) {
+                return .error(.coreDataError(error))
+            }
+            
+            if file.creationDate != nil {
+                dft.creationDate = file.creationDate! as NSDate
+                dft.updateDate = file.updateDate! as NSDate
+            }
+        } // end for
+        
+        return nil
     }
 
     enum NextResult {
@@ -373,6 +383,7 @@ class Download {
         return nextCompletionResult
     }
     
+    // TODO: Need to be able to call this multiple times, in succession, to enqueue multiple background download tasks. We'll enqueue up a series of downloads only for a single sharingGroupUUID.
     private func doDownloadFile(masterVersion: MasterVersionInt, downloadFile: FilenamingWithAppMetaDataVersion, nextToDownload: DownloadFileTracker, sharingGroupUUID: String, completion:((NextCompletion)->())?) {
     
         ServerAPI.session.downloadFile(fileNamingObject: downloadFile, serverMasterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID) {[weak self] (result, error)  in
@@ -391,6 +402,7 @@ class Download {
                 completion?(nextCompletionResult)
                 
             case .serverMasterVersionUpdate(let masterVersionUpdate):
+                // TODO: We'll need to kill any/all downloads enqueued. They'll need to be restarted.
                 self?.doMasterVersionUpdate(masterVersionUpdate: masterVersionUpdate, sharingGroupUUID: sharingGroupUUID, completion:completion)
             }
         }

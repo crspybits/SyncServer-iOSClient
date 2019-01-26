@@ -99,6 +99,7 @@ public class SharingEntry: NSManagedObject, CoreDataModel, AllOperations {
         let updatedSharingGroups:[SyncServer.SharingGroup]
     }
     
+    // Update the SharingEntry's with the SharingGroup's obtained from the server.
     // We're being passed the list of sharing groups in which the user is still a member. (Notably, if a sharing group has been removed from a group, it will not be in this list, so we haven't handle this specially).
     class func update(serverSharingGroups: [SharingGroup], desiredEvents:EventDesired, delegate:SyncServerDelegate?) throws -> Updates? {
         var deletedOnServer = [SharingGroup]()
