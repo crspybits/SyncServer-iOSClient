@@ -1,10 +1,8 @@
 SyncServer-iOSClient
 
-Version 18.11.0
-	* Added endpoint for registering PN token.
+Version 18.10.0 (2/16/19)
+	* Added endpoint for registering APNS push notification token.
 	* Added parameter to DoneUploads for push notification message.
-
-Version 18.10.0
 	* Updated PersistentValue pod version to use file-backed values.
 
 Version 18.9.0 (1/2/19)

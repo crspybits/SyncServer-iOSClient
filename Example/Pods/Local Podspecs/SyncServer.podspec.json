@@ -35,7 +35,7 @@
       "~> 1.2"
     ],
     "SyncServer-Shared": [
-      "~> 9.6"
+      "~> 9.7"
     ],
     "FileMD5Hash": [
       "~> 2.0"
