@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 18.10.1 (2/18/19)
+	* Fixed incorrect assertion about file versions 
+		See https://github.com/crspybits/SharedImages/issues/158
+	
 Version 18.10.0 (2/16/19)
 	* Added endpoint for registering APNS push notification token.
 	* Added parameter to DoneUploads for push notification message.
