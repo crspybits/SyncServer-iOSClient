@@ -62,9 +62,9 @@ Pod::Spec.new do |s|
     google.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_GOOGLE_SIGNIN' }
 
-    # This is a dependency on the https://github.com/crspybits/GoogleSignIn *dynamic* framework.
+    # This is a dependency on the https://github.com/crspybits/SMGoogleSignIn *dynamic* framework.
     # In your Podfile, at the very top of the file, put:
     #   source 'https://github.com/crspybits/Specs.git'
-    google.dependency 'GoogleSignIn', '~> 0.1'
+    google.dependency 'SMGoogleSignIn', '~> 1.1'
   end
 end

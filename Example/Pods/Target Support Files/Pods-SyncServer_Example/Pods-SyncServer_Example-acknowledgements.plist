@@ -438,16 +438,6 @@ SOFTWARE.
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>Copyright 2018 Google</string>
-			<key>License</key>
-			<string>Copyright</string>
-			<key>Title</key>
-			<string>GoogleSignIn</string>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-		</dict>
-		<dict>
-			<key>FooterText</key>
 			<string>Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -1417,6 +1407,16 @@ Public License instead of this License.  But first, please read
 			<string>GPL3</string>
 			<key>Title</key>
 			<string>SMCoreLib</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>FooterText</key>
+			<string>Copyright 2018 Google</string>
+			<key>License</key>
+			<string>Copyright</string>
+			<key>Title</key>
+			<string>SMGoogleSignIn</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>

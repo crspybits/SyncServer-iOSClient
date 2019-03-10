@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 
+	* Updated to version 1.1.0 of SMGoogleSignIn
+
 Version 18.10.1 (2/18/19)
 	* Fixed incorrect assertion about file versions 
 		See https://github.com/crspybits/SharedImages/issues/158
