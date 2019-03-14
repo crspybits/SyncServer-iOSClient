@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
 
   s.dependency 'SMCoreLib', '~> 1.4'
   s.dependency 'Gloss', '~> 1.2'
-  s.dependency 'SyncServer-Shared', '~> 9.7'
+  s.dependency 'SyncServer-Shared', '~> 9.8'
   s.dependency 'FileMD5Hash', '~> 2.0'
   s.dependency 'PersistentValue', '~> 0.3'
 

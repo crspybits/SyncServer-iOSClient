@@ -2,6 +2,8 @@ SyncServer-iOSClient
 
 Version 
 	* Updated to version 1.1.0 of SMGoogleSignIn
+	* Use new Shared Library-- which is a breaking change with the server.
+		Switching over to a new server version.
 
 Version 18.10.1 (2/18/19)
 	* Fixed incorrect assertion about file versions 

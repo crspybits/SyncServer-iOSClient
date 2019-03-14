@@ -16,7 +16,7 @@ target 'SyncServer_Example' do
 	# pod 'SwiftyBeaver', :path => '../../SwiftyBeaver'
 	# pod 'SMCoreLib', :path => '../../Common/SMCoreLib'
 	
-	pod 'SyncServer-Shared', '9.7'
+	pod 'SyncServer-Shared', '9.8.1'
 	# pod 'SyncServer-Shared', :path => '../../SyncServer-Shared'
 	
 # 	pod 'SyncServer'
