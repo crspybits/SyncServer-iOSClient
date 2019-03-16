@@ -31,9 +31,6 @@
     "SMCoreLib": [
       "~> 1.4"
     ],
-    "Gloss": [
-      "~> 1.2"
-    ],
     "SyncServer-Shared": [
       "~> 9.8"
     ],
