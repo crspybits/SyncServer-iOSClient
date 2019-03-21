@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '18.11.0'
+  s.version          = '18.12.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -29,10 +29,11 @@ Pod::Spec.new do |s|
   s.dependency 'SyncServer-Shared', '~> 9.8'
   s.dependency 'FileMD5Hash', '~> 2.0'
   s.dependency 'PersistentValue', '~> 0.3'
+  s.dependency 'XCGLogger', '~> 6.1'
 
   s.default_subspec = 'Lite'
 
-  s.swift_version = '3.2'
+  s.swift_version = '4.0'
   
   s.subspec 'Lite' do |lite|
     # subspec for users who don't want the sign-in's they don't use.

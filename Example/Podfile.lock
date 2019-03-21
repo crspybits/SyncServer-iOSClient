@@ -21,11 +21,14 @@ PODS:
   - FileMD5Hash (2.0.0)
   - HPTextViewTapGestureRecognizer (0.1)
   - KeychainAccess (3.1.2)
+  - ObjcExceptionBridging (1.0.1):
+    - ObjcExceptionBridging/ObjcExceptionBridging (= 1.0.1)
+  - ObjcExceptionBridging/ObjcExceptionBridging (1.0.1)
   - PersistentValue (0.3.0):
     - KeychainAccess (~> 3.1)
     - SwiftyUserDefaults (~> 3.0)
   - Reachability (3.2)
-  - SMCoreLib (1.4.3):
+  - SMCoreLib (1.4.4):
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
@@ -34,20 +37,22 @@ PODS:
   - SwiftyDropbox (4.8.2):
     - Alamofire (~> 4.7.3)
   - SwiftyUserDefaults (3.0.1)
-  - SyncServer (18.10.1):
+  - SyncServer (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SyncServer-Shared (~> 9.8)
-    - SyncServer/Lite (= 18.10.1)
+    - SyncServer/Lite (= 18.12.0)
+    - XCGLogger (~> 6.1)
   - SyncServer-Shared (9.8.4)
-  - SyncServer/Dropbox (18.10.1):
+  - SyncServer/Dropbox (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SwiftyDropbox (~> 4.8)
     - SyncServer-Shared (~> 9.8)
-  - SyncServer/Facebook (18.10.1):
+    - XCGLogger (~> 6.1)
+  - SyncServer/Facebook (18.12.0):
     - FacebookCore (= 0.5.0)
     - FacebookLogin (= 0.5.0)
     - FBSDKCoreKit (= 4.38.1)
@@ -56,17 +61,24 @@ PODS:
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SyncServer-Shared (~> 9.8)
-  - SyncServer/Google (18.10.1):
+    - XCGLogger (~> 6.1)
+  - SyncServer/Google (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SMGoogleSignIn (~> 1.1)
     - SyncServer-Shared (~> 9.8)
-  - SyncServer/Lite (18.10.1):
+    - XCGLogger (~> 6.1)
+  - SyncServer/Lite (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SyncServer-Shared (~> 9.8)
+    - XCGLogger (~> 6.1)
+  - XCGLogger (6.1.0):
+    - XCGLogger/Core (= 6.1.0)
+  - XCGLogger/Core (6.1.0):
+    - ObjcExceptionBridging
 
 DEPENDENCIES:
   - SMCoreLib (~> 1.3)
@@ -87,10 +99,12 @@ SPEC REPOS:
     - FileMD5Hash
     - HPTextViewTapGestureRecognizer
     - KeychainAccess
+    - ObjcExceptionBridging
     - Reachability
     - SwiftyBeaver
     - SwiftyDropbox
     - SwiftyUserDefaults
+    - XCGLogger
   https://github.com/crspybits/Specs.git:
     - PersistentValue
     - SMCoreLib
@@ -111,15 +125,17 @@ SPEC CHECKSUMS:
   FileMD5Hash: 3ed69cc19a21ff4d30ae8833fc104275ad2c7de0
   HPTextViewTapGestureRecognizer: 6a73fd09f858e49a2743c3a338dc5c0791b0fae0
   KeychainAccess: b3816fddcf28aa29d94b10ec305cd52be14c472b
+  ObjcExceptionBridging: c30e00eb3700467e695faeea30e26e18bd445001
   PersistentValue: 95a7398a6e0854854283d9d7360cd3c8d7e4a619
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  SMCoreLib: 00bbf0ccabb6d9e4a7fa6d74a09f5a3b5f9d9ff2
+  SMCoreLib: 32dd9265d7ead20f47bcc8f113d179ca849e5db1
   SMGoogleSignIn: de1b8302583b61df51b71b81e349cbe487cbbda3
   SwiftyBeaver: 8e67ab3cd94389cbbb7a9c7cc02748d98bfee68e
   SwiftyDropbox: 5cd8d101968609dbbb002fd86ce0450e2d90838b
   SwiftyUserDefaults: 3d273b1739b68ada3145dc754a70ec775bc5c8be
-  SyncServer: d3f931c5ba679fd843b5bb20e03f0b6acf1a3e9d
+  SyncServer: 7aaecaf39dd301ce0367776eb45ea8397a851faf
   SyncServer-Shared: 336b54037b6a305d4477f8302a4c7136952e98a9
+  XCGLogger: 7f7f43f15dfe3a305fa1342b7dc29af656289abd
 
 PODFILE CHECKSUM: c8489eb3033a848b0488f3922a6fb893c322b9fe
 

@@ -15,6 +15,7 @@
 import UIKit
 import SMCoreLib
 import SyncServer
+import XCGLogger
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -36,9 +37,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let failoverURLString = try? plist.getString(varName: "FailoverMessageURL") {
             failoverURL = URL(string: failoverURLString)
         }
+        
+        XCGLogger.default.setup(level: .verbose, showThreadName: true, showLevel: true, showFileNames: true, showLineNumbers: true)
 
         // Call this as soon as possible in your launch sequence.
-        SyncServer.session.appLaunchSetup(withServerURL: serverURL, cloudFolderName:cloudFolderName, failoverMessageURL: failoverURL)
+        SyncServer.session.appLaunchSetup(withServerURL: serverURL, logger: XCGLogger.default, cloudFolderName:cloudFolderName, failoverMessageURL: failoverURL)
         
         SetupSignIn.session.appLaunch(options:launchOptions)
         
