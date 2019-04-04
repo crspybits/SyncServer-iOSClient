@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '18.12.0'
+  s.version          = '18.13.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC
@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
   s.preserve_paths = 'Client/Assets/**/*'
 
   s.dependency 'SMCoreLib', '~> 1.4'
-  s.dependency 'SyncServer-Shared', '~> 9.8'
+  s.dependency 'SyncServer-Shared', '~> 9.9'
   s.dependency 'FileMD5Hash', '~> 2.0'
   s.dependency 'PersistentValue', '~> 0.3'
   s.dependency 'XCGLogger', '~> 6.1'

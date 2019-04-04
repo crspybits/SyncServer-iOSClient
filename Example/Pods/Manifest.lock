@@ -28,12 +28,12 @@ PODS:
     - KeychainAccess (~> 3.1)
     - SwiftyUserDefaults (~> 3.0)
   - Reachability (3.2)
-  - SMCoreLib (1.4.4):
+  - SMCoreLib (1.4.5):
     - HPTextViewTapGestureRecognizer (~> 0.1)
     - Reachability
     - SwiftyBeaver
   - SMGoogleSignIn (1.1.0)
-  - SwiftyBeaver (1.6.2)
+  - SwiftyBeaver (1.7.0)
   - SwiftyDropbox (4.8.2):
     - Alamofire (~> 4.7.3)
   - SwiftyUserDefaults (3.0.1)
@@ -41,16 +41,16 @@ PODS:
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
-    - SyncServer-Shared (~> 9.8)
+    - SyncServer-Shared (~> 9.9)
     - SyncServer/Lite (= 18.12.0)
     - XCGLogger (~> 6.1)
-  - SyncServer-Shared (9.8.4)
+  - SyncServer-Shared (9.9.1)
   - SyncServer/Dropbox (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SwiftyDropbox (~> 4.8)
-    - SyncServer-Shared (~> 9.8)
+    - SyncServer-Shared (~> 9.9)
     - XCGLogger (~> 6.1)
   - SyncServer/Facebook (18.12.0):
     - FacebookCore (= 0.5.0)
@@ -60,20 +60,20 @@ PODS:
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
-    - SyncServer-Shared (~> 9.8)
+    - SyncServer-Shared (~> 9.9)
     - XCGLogger (~> 6.1)
   - SyncServer/Google (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
     - SMGoogleSignIn (~> 1.1)
-    - SyncServer-Shared (~> 9.8)
+    - SyncServer-Shared (~> 9.9)
     - XCGLogger (~> 6.1)
   - SyncServer/Lite (18.12.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 1.4)
-    - SyncServer-Shared (~> 9.8)
+    - SyncServer-Shared (~> 9.9)
     - XCGLogger (~> 6.1)
   - XCGLogger (6.1.0):
     - XCGLogger/Core (= 6.1.0)
@@ -83,7 +83,7 @@ PODS:
 DEPENDENCIES:
   - SMCoreLib (~> 1.3)
   - SyncServer (from `..`)
-  - SyncServer-Shared (= 9.8.4)
+  - SyncServer-Shared (= 9.9.1)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -128,15 +128,15 @@ SPEC CHECKSUMS:
   ObjcExceptionBridging: c30e00eb3700467e695faeea30e26e18bd445001
   PersistentValue: 95a7398a6e0854854283d9d7360cd3c8d7e4a619
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  SMCoreLib: 32dd9265d7ead20f47bcc8f113d179ca849e5db1
+  SMCoreLib: 5c10eb65ba23ebe054f6a93336aae9c834ec8182
   SMGoogleSignIn: de1b8302583b61df51b71b81e349cbe487cbbda3
-  SwiftyBeaver: 8e67ab3cd94389cbbb7a9c7cc02748d98bfee68e
+  SwiftyBeaver: 4cc0080d2e23f980652e28978db11a5c9da39165
   SwiftyDropbox: 5cd8d101968609dbbb002fd86ce0450e2d90838b
   SwiftyUserDefaults: 3d273b1739b68ada3145dc754a70ec775bc5c8be
-  SyncServer: 7aaecaf39dd301ce0367776eb45ea8397a851faf
-  SyncServer-Shared: 336b54037b6a305d4477f8302a4c7136952e98a9
+  SyncServer: fa28fa8e25f1183014aa953ba5b943bf1be948fb
+  SyncServer-Shared: 77e0ca6db9b16234a1d9bd82de366a3fca862e9e
   XCGLogger: 7f7f43f15dfe3a305fa1342b7dc29af656289abd
 
-PODFILE CHECKSUM: c8489eb3033a848b0488f3922a6fb893c322b9fe
+PODFILE CHECKSUM: 478411a03893a7ecd27e57a1d0d13aeadb9c84f8
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.6.1

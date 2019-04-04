@@ -32,7 +32,7 @@ class ServerAPI_Sharing: TestCase {
         
         let expectation = self.expectation(description: "CreateSharingInvitation")
         
-        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupUUID: sharingGroupUUID) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupUUID: sharingGroupUUID, numberAcceptors: 1, allowSharingAcceptance: true) { (sharingInvitationUUID, error) in
             XCTAssert(error == nil)
             XCTAssert(sharingInvitationUUID != nil)
             expectation.fulfill()
@@ -56,7 +56,7 @@ class ServerAPI_Sharing: TestCase {
         
         let expectation = self.expectation(description: "SharingInvitation")
 
-        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupUUID: sharingGroupUUID) { (sharingInvitationUUID, error) in
+        ServerAPI.session.createSharingInvitation(withPermission: .read, sharingGroupUUID: sharingGroupUUID, numberAcceptors: 1, allowSharingAcceptance: true) { (sharingInvitationUUID, error) in
             guard error == nil, sharingInvitationUUID != nil else {
                 XCTFail()
                 return

@@ -549,7 +549,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-resources.sh",
 				"${PODS_ROOT}/SMGoogleSignIn/Framework/GoogleSignIn.framework/GoogleSignIn.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -558,7 +558,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		9C8D9FCD73EF0178553B3CA0 /* [CP] Embed Pods Frameworks */ = {
@@ -567,7 +567,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/Bolts/Bolts.framework",
 				"${BUILT_PRODUCTS_DIR}/FBSDKCoreKit/FBSDKCoreKit.framework",
@@ -614,7 +614,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SyncServer_Example/Pods-SyncServer_Example-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FDE3F0B52A30B2D362B11342 /* [CP] Check Pods Manifest.lock */ = {

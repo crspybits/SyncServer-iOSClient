@@ -32,7 +32,7 @@
       "~> 1.4"
     ],
     "SyncServer-Shared": [
-      "~> 9.8"
+      "~> 9.9"
     ],
     "FileMD5Hash": [
       "~> 2.0"
@@ -45,7 +45,7 @@
     ]
   },
   "default_subspecs": "Lite",
-  "swift_version": "3.2",
+  "swift_version": "4.0",
   "subspecs": [
     {
       "name": "Lite"
