@@ -1,7 +1,7 @@
 SyncServer-iOSClient
 
-Version 18.13.0
-	* Adding new parameters to sharing invitation creation: Number acceptors and optional allowing of social acceptors.
+Version 18.13.0 (4/4/19)
+	* Adding new parameters to sharing invitation creation server request: Number acceptors and optional allowing of social acceptors.
 
 Version 18.12.0 (3/21/19)
 	* Using new logger. Breaking change to app launch method.
