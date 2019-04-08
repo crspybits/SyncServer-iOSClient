@@ -25,15 +25,15 @@ Pod::Spec.new do |s|
   s.resources = ['Client/Assets/**/*', 'Client/Classes/**/*.{xib}']
   s.preserve_paths = 'Client/Assets/**/*'
 
-  s.dependency 'SMCoreLib', '~> 1.4'
-  s.dependency 'SyncServer-Shared', '~> 9.9'
+  s.dependency 'SMCoreLib', '~> 2.0'
+  s.dependency 'SyncServer-Shared', '~> 10.0'
   s.dependency 'FileMD5Hash', '~> 2.0'
   s.dependency 'PersistentValue', '~> 0.3'
   s.dependency 'XCGLogger', '~> 6.1'
 
   s.default_subspec = 'Lite'
 
-  s.swift_version = '4.0'
+  s.swift_version = '4.2'
   
   s.subspec 'Lite' do |lite|
     # subspec for users who don't want the sign-in's they don't use.
@@ -48,14 +48,16 @@ Pod::Spec.new do |s|
     facebook.dependency 'FacebookLogin', '0.5.0'
 
 # 12/11/18; These two are a hack/workaround for a FB issue. See https://stackoverflow.com/questions/35248412/ios-facebook-login-error-unknown-error-building-url-com-facebook-sdk-core-e
-    facebook.dependency 'FBSDKCoreKit', '4.38.1'
-    facebook.dependency 'FBSDKLoginKit', '4.38.1'
+# 4/7/19-- Looks like this is fixed.
+    # facebook.dependency 'FBSDKCoreKit', '4.38.1'
+    # facebook.dependency 'FBSDKLoginKit', '4.38.1'
   end
 
   s.subspec 'Dropbox' do |dropbox|
     dropbox.xcconfig =   
         { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSYNCSERVER_DROPBOX_SIGNIN' }
-    dropbox.dependency 'SwiftyDropbox', '~> 4.8'
+    # SwiftyDropbox 5.0.0 brings Swift version to 4.2
+    dropbox.dependency 'SwiftyDropbox', '~> 5.0'
   end
 
   s.subspec 'Google' do |google|

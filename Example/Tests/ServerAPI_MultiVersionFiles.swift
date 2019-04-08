@@ -234,7 +234,7 @@ class ServerAPI_MultiVersionFiles: TestCase {
             return
         }
         
-        guard var masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
+        guard let masterVersion = getMasterVersion(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
         }

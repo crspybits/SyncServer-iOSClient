@@ -1,6 +1,6 @@
 {
   "name": "SyncServer",
-  "version": "18.12.0",
+  "version": "18.13.0",
   "summary": "iOS Client for the SyncServerII server",
   "description": "SyncServerII enables apps to save user files in users cloud storage, and\nenables safe sharing of those files.",
   "homepage": "https://github.com/crspybits/SyncServer-iOSClient",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "https://github.com/crspybits/SyncServer-iOSClient.git",
-    "tag": "18.12.0"
+    "tag": "18.13.0"
   },
   "platforms": {
     "ios": "9.0"
@@ -29,10 +29,10 @@
   "preserve_paths": "Client/Assets/**/*",
   "dependencies": {
     "SMCoreLib": [
-      "~> 1.4"
+      "~> 2.0"
     ],
     "SyncServer-Shared": [
-      "~> 9.9"
+      "~> 10.0"
     ],
     "FileMD5Hash": [
       "~> 2.0"
@@ -45,7 +45,7 @@
     ]
   },
   "default_subspecs": "Lite",
-  "swift_version": "4.0",
+  "swift_version": "4.2",
   "subspecs": [
     {
       "name": "Lite"
@@ -61,12 +61,6 @@
         ],
         "FacebookLogin": [
           "0.5.0"
-        ],
-        "FBSDKCoreKit": [
-          "4.38.1"
-        ],
-        "FBSDKLoginKit": [
-          "4.38.1"
         ]
       }
     },
@@ -77,7 +71,7 @@
       },
       "dependencies": {
         "SwiftyDropbox": [
-          "~> 4.8"
+          "~> 5.0"
         ]
       }
     },
