@@ -1,5 +1,8 @@
 SyncServer-iOSClient
 
+Version 19.0.0 (4/7/19)
+	* Update to Swift 4.2
+
 Version 18.13.0 (4/4/19)
 	* Adding new parameters to sharing invitation creation server request: Number acceptors and optional allowing of social acceptors.
 
