@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 19.0.0 (4/7/19)
+Version 19.0.1 (4/8/19)
 	* Update to Swift 4.2
 
 Version 18.13.0 (4/4/19)

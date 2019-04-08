@@ -19,7 +19,6 @@ import XCGLogger
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -38,7 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             failoverURL = URL(string: failoverURLString)
         }
         
-        XCGLogger.default.setup(level: .verbose, showThreadName: true, showLevel: true, showFileNames: true, showLineNumbers: true)
+        XCGLogger.default.setup(level: .verbose, showThreadName: true, showLevel: true, showFileNames: true, showLineNumbers: true, writeToFile: Shared.logFileURL)
 
         // Call this as soon as possible in your launch sequence.
         SyncServer.session.appLaunchSetup(withServerURL: serverURL, logger: XCGLogger.default, cloudFolderName:cloudFolderName, failoverMessageURL: failoverURL)

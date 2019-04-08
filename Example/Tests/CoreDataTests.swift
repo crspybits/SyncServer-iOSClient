@@ -209,13 +209,13 @@ class CoreDataTests: TestCase {
             var fileContents:String!
             
             do {
-                fileContents = try String(contentsOfFile: Log.logFileURL!.path)
+                fileContents = try String(contentsOfFile: Shared.logFileURL!.path)
             } catch (let error) {
                 XCTFail("\(error)")
                 return
             }
 
-            XCTAssert(fileContents.contains(SyncServer.trailingMarker), "\(String(describing: fileContents))")
+            XCTAssert(fileContents.contains(SyncServer.trailingMarker), "\(Shared.logFileURL!.path)")
             
             exp.fulfill()
         }
