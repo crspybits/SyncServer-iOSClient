@@ -1018,15 +1018,15 @@ extension ServerAPI : ServerNetworkingDelegate {
             let resultError = self.checkForError(statusCode: httpStatus, error: error)
             
             if httpStatus == HTTPStatus.gone.rawValue {
-                completion?(.success(SyncServer.SharingInvitationInfo.noInvitationFound))
+                completion?(.success(.noInvitationFound))
                 return
             }
             
             if resultError == nil {
                 if let response = response,
                     let getSharingInvitationResponse = try? GetSharingInvitationInfoResponse.decode(response) {
-                    let info = SyncServer.SharingInvitationInfo.invitation(permission: getSharingInvitationResponse.permission, allowSocialAcceptance: getSharingInvitationResponse.allowSocialAcceptance)
-                    completion?(.success(info))
+                    let info = SyncServer.Invitation(code: sharingInvitationUUID, permission: getSharingInvitationResponse.permission, allowsSocialSharing: getSharingInvitationResponse.allowSocialAcceptance)
+                    completion?(.success(.invitation(info)))
                 }
                 else {
                     completion?(.error(SyncServerError.couldNotCreateResponse))

@@ -291,9 +291,10 @@ class ServerAPI_Sharing: TestCase {
                 XCTFail()
             case .success(let info):
                 switch info {
-                case .invitation(permission: let perm, allowSocialAcceptance: let allow):
-                    XCTAssert(allowSharingAcceptance == allow)
-                    XCTAssert(permission == perm)
+                case .invitation(let invite):
+                    XCTAssert(allowSharingAcceptance == invite.allowsSocialSharing)
+                    XCTAssert(permission == invite.permission)
+                    XCTAssert(sharingInvitationUUID == invite.code)
                 case .noInvitationFound:
                     XCTFail()
                 }

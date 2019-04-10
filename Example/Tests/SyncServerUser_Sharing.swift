@@ -52,9 +52,10 @@ class SyncServerUser_Sharing: TestCase {
         SyncServerUser.session.getSharingInvitationInfo(invitationCode: sharingInvitionUUID) { info, error in
             if let info = info, error == nil {
                 switch info {
-                case .invitation(permission: let perm, allowSocialAcceptance: let allow):
-                    XCTAssert(allowSharingAcceptance == allow)
-                    XCTAssert(permission == perm)
+                case .invitation(let invite):
+                    XCTAssert(allowSharingAcceptance == invite.allowsSocialSharing)
+                    XCTAssert(permission == invite.permission)
+                    XCTAssert(sharingInvitionUUID == invite.code)
                 case .noInvitationFound:
                     XCTFail()
                 }
