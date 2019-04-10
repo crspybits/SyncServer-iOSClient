@@ -72,6 +72,11 @@ extension SyncServer {
             return sharingGroups.map {from(sharingGroup: $0)}
         }
     }
+    
+    public enum SharingInvitationInfo {
+        case noInvitationFound
+        case invitation(permission: Permission, allowSocialAcceptance: Bool)
+    }
 }
 
 

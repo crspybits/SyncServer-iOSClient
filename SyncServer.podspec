@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SyncServer'
-  s.version          = '19.0.1'
+  s.version          = '19.1.0'
   s.summary          = 'iOS Client for the SyncServerII server'
 
   s.description      = <<-DESC

@@ -37,22 +37,22 @@ PODS:
   - SwiftyDropbox (5.0.0):
     - Alamofire (~> 4.7.3)
   - SwiftyUserDefaults (3.0.1)
-  - SyncServer (18.13.0):
+  - SyncServer (19.1.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SyncServer-Shared (~> 10.0)
-    - SyncServer/Lite (= 18.13.0)
+    - SyncServer/Lite (= 19.1.0)
     - XCGLogger (~> 6.1)
-  - SyncServer-Shared (10.0.0)
-  - SyncServer/Dropbox (18.13.0):
+  - SyncServer-Shared (10.1.0)
+  - SyncServer/Dropbox (19.1.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SwiftyDropbox (~> 5.0)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Facebook (18.13.0):
+  - SyncServer/Facebook (19.1.0):
     - FacebookCore (= 0.5.0)
     - FacebookLogin (= 0.5.0)
     - FileMD5Hash (~> 2.0)
@@ -60,14 +60,14 @@ PODS:
     - SMCoreLib (~> 2.0)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Google (18.13.0):
+  - SyncServer/Google (19.1.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SMGoogleSignIn (~> 1.1)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Lite (18.13.0):
+  - SyncServer/Lite (19.1.0):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
@@ -81,7 +81,7 @@ PODS:
 DEPENDENCIES:
   - SMCoreLib (~> 2.0)
   - SyncServer (from `..`)
-  - SyncServer-Shared (= 10.0.0)
+  - SyncServer-Shared (= 10.1.0)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -131,10 +131,10 @@ SPEC CHECKSUMS:
   SwiftyBeaver: 4cc0080d2e23f980652e28978db11a5c9da39165
   SwiftyDropbox: 378b4425a2e8d0cb24c7b0f2e3af72bfbaaf1e73
   SwiftyUserDefaults: 3d273b1739b68ada3145dc754a70ec775bc5c8be
-  SyncServer: 2a1d0b706506ce1c41ace6960fb39b42771eb8de
-  SyncServer-Shared: 71aba0ae98af5a3e5fdd9f0b433fe0cd1d1fc728
+  SyncServer: f237d05d483de32afd74a462d7457ff639fa93f4
+  SyncServer-Shared: a24b6f0de8cda11c6a65a4582a4260e81539b7eb
   XCGLogger: 7f7f43f15dfe3a305fa1342b7dc29af656289abd
 
-PODFILE CHECKSUM: 882cd685f8dbf86003686f0f297e603a97139885
+PODFILE CHECKSUM: 0500b70270088222e8d4800d88375bdeead91ec3
 
 COCOAPODS: 1.6.1

@@ -9,6 +9,7 @@
 import XCTest
 @testable import SyncServer
 import SMCoreLib
+import SyncServer_Shared
 
 class ServerAPI_Sharing: TestCase {
     
@@ -255,5 +256,76 @@ class ServerAPI_Sharing: TestCase {
         
         let filteredResult = fileIndexResult2.sharingGroups.filter {$0.sharingGroupUUID == sharingGroupUUID}
         XCTAssert(filteredResult.count == 0)
+    }
+    
+    // MARK: Get sharing invitation info
+    
+    func testGetSharingInvitationInfoWorks() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        var sharingInvitationUUID: String!
+        
+        let create = self.expectation(description: "CreateSharingInvitation")
+        
+        let allowSharingAcceptance = true
+        let permission: Permission = .read
+        
+        ServerAPI.session.createSharingInvitation(withPermission: permission, sharingGroupUUID: sharingGroupUUID, numberAcceptors: 1, allowSharingAcceptance: allowSharingAcceptance) { (invite, error) in
+            XCTAssert(error == nil)
+            XCTAssert(invite != nil)
+            sharingInvitationUUID = invite
+            create.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+        
+        let getInfo = self.expectation(description: "GetSharingInvitationInfo")
+        
+        ServerAPI.session.getSharingInvitationInfo(sharingInvitationUUID: sharingInvitationUUID) { response in
+            switch response {
+            case .error:
+                XCTFail()
+            case .success(let info):
+                switch info {
+                case .invitation(permission: let perm, allowSocialAcceptance: let allow):
+                    XCTAssert(allowSharingAcceptance == allow)
+                    XCTAssert(permission == perm)
+                case .noInvitationFound:
+                    XCTFail()
+                }
+            }
+            
+            getInfo.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
+    }
+    
+    func testGetSharingInvitationInfoForBadSharingInviteFails() {        
+        let sharingInvitationUUID = UUID().uuidString
+        
+        let getInfo = self.expectation(description: "GetSharingInvitationInfo")
+        
+        ServerAPI.session.getSharingInvitationInfo(sharingInvitationUUID: sharingInvitationUUID) { response in
+            switch response {
+            case .error:
+                XCTFail()
+            case .success(let info):
+                switch info {
+                case .invitation:
+                    XCTFail()
+                case .noInvitationFound:
+                    break
+                }
+            }
+            
+            getInfo.fulfill()
+        }
+        
+        waitForExpectations(timeout: 10.0, handler: nil)
     }
 }
