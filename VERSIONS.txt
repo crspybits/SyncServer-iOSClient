@@ -1,6 +1,6 @@
 SyncServer-iOSClient
 
-Version 19.2.0
+Version 19.2.0 (4/10/19)
 	* Removed permission from sharing invitation link.
 	* Reorganized sharing information structs/enum.
 
