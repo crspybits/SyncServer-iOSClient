@@ -86,7 +86,7 @@ class Client_Downloads: TestCase {
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
     }
     
-    func testCheckForDownloadOfSingleFileWorks() {
+    func checkForDownloadOfSingleFile(urlToUpload: URL, mimeType: MimeType) {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
@@ -100,9 +100,8 @@ class Client_Downloads: TestCase {
         }
         
         let fileUUID = UUID().uuidString
-        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
         
-        guard let file = uploadFile(fileURL:fileURL, mimeType: .text, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
+        guard let file = uploadFile(fileURL:urlToUpload, mimeType: mimeType, sharingGroupUUID: sharingGroupUUID, fileUUID: fileUUID, serverMasterVersion: masterVersion) else {
             return
         }
         
@@ -112,6 +111,19 @@ class Client_Downloads: TestCase {
         
         // There *will* be download trackers in normal operation at the end of this test. Don't do this assertion.
         // assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
+    }
+    
+    func testCheckForDownloadOfSingleTextFileWorks() {
+        let fileURL = Bundle(for: ServerAPI_UploadFile.self).url(forResource: "UploadMe", withExtension: "txt")!
+        checkForDownloadOfSingleFile(urlToUpload: fileURL, mimeType: .text)
+    }
+    
+    func testCheckForDownloadOfSingleURLFileWorks() {
+        guard let url = SMRelativeLocalURL(withRelativePath: "example.url", toBaseURLType: .mainBundle) else {
+            XCTFail()
+            return
+        }
+        checkForDownloadOfSingleFile(urlToUpload: url as URL, mimeType: .url)
     }
     
     func testCheckForDownloadOfTwoFilesWorks() {

@@ -24,8 +24,8 @@ class Client_SyncServer_FileUpload: TestCase {
         super.tearDown()
     }
 
-    func uploadASingleFile(copy:Bool, sharingGroupUUID: String) {
-        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, uploadCopy: copy) else {
+    func uploadASingleFile(copy:Bool, sharingGroupUUID: String, fileURL:SMRelativeLocalURL? = nil, mimeType: MimeType = .text) {
+        guard let (url, attr) = uploadSingleFileUsingSync(sharingGroupUUID: sharingGroupUUID, fileURL: fileURL, mimeType: mimeType, uploadCopy: copy) else {
             XCTFail()
             return
         }
@@ -41,7 +41,7 @@ class Client_SyncServer_FileUpload: TestCase {
         onlyDownloadFile(comparisonFileURL: url as URL, file: file, masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID)
     }
     
-    func testThatUploadingASingleImmutableFileWorks() {
+    func testThatUploadingASingleImmutableTextFileWorks() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()
             return
@@ -50,6 +50,25 @@ class Client_SyncServer_FileUpload: TestCase {
         let sharingGroupUUID = sharingGroup.sharingGroupUUID
         
         uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID)
+        
+        assertUploadTrackersAreReset()
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])
+    }
+    
+    func testThatUploadingASingleImmutableURLFileWorks() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let url = SMRelativeLocalURL(withRelativePath: "example.url", toBaseURLType: .mainBundle) else {
+            XCTFail()
+            return
+        }
+        
+        uploadASingleFile(copy:false, sharingGroupUUID: sharingGroupUUID, fileURL: url, mimeType: .url)
         
         assertUploadTrackersAreReset()
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: [sharingGroupUUID])

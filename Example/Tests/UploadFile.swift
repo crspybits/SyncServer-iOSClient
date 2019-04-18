@@ -56,6 +56,27 @@ class ServerAPI_UploadFile: TestCase {
         _ = uploadFile(fileURL:fileURL, mimeType: .jpeg, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)
     }
     
+    func testUploadURLFile() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
+            XCTFail()
+            return
+        }
+        
+        guard let url = Bundle.main.url(forResource: "example", withExtension: "url") else {
+            XCTFail()
+            return
+        }
+        
+        _ = uploadFile(fileURL:url, mimeType: .url, sharingGroupUUID: sharingGroupUUID, serverMasterVersion: masterVersion)
+    }
+    
     func testUploadTextFileWithNoAuthFails() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()

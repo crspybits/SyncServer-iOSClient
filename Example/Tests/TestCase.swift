@@ -966,8 +966,7 @@ class TestCase: XCTestCase {
         XCTAssert(foundDeletedFile)
     }
     
-    func uploadAndDownloadTextFile(sharingGroupUUID: String, appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
-    
+    func uploadAndDownloadFile(sharingGroupUUID: String, appMetaData:AppMetaData? = nil, uploadFileURL:URL, mimeType: MimeType, fileUUID:String? = nil) {
         guard let masterVersion = getLocalMasterVersionFor(sharingGroupUUID: sharingGroupUUID) else {
             XCTFail()
             return
@@ -978,13 +977,18 @@ class TestCase: XCTestCase {
             actualFileUUID = UUID().uuidString
         }
         
-        guard let file = uploadFile(fileURL:uploadFileURL, mimeType: .text,  sharingGroupUUID: sharingGroupUUID, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
+        guard let file = uploadFile(fileURL:uploadFileURL, mimeType: mimeType,  sharingGroupUUID: sharingGroupUUID, fileUUID: actualFileUUID, serverMasterVersion: masterVersion, appMetaData:appMetaData) else {
             return
         }
         
         doneUploads(masterVersion: masterVersion, sharingGroupUUID: sharingGroupUUID, expectedNumberUploads: 1)
         
         onlyDownloadFile(comparisonFileURL: uploadFileURL, file: file, masterVersion: masterVersion + 1, sharingGroupUUID: sharingGroupUUID, appMetaData: appMetaData)
+    }
+    
+    func uploadAndDownloadTextFile(sharingGroupUUID: String, appMetaData:AppMetaData? = nil, uploadFileURL:URL = Bundle(for: TestCase.self).url(forResource: "UploadMe", withExtension: "txt")!, fileUUID:String? = nil) {
+    
+        uploadAndDownloadFile(sharingGroupUUID: sharingGroupUUID, appMetaData:appMetaData, uploadFileURL:uploadFileURL, mimeType: .text, fileUUID:fileUUID)
     }
     
     func onlyDownloadFile(comparisonFileURL:URL, file:Filenaming, masterVersion:MasterVersionInt, sharingGroupUUID: String, appMetaData:AppMetaData? = nil, expectedCheckSum:String? = nil) {
@@ -1029,16 +1033,19 @@ class TestCase: XCTestCase {
     }
     
     @discardableResult
-    func uploadSingleFileUsingSync(sharingGroupUUID: String, fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, appMetaData:String? = nil, uploadCopy:Bool = false, sharingGroupOperationExpected: Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
+    func uploadSingleFileUsingSync(sharingGroupUUID: String, fileUUID:String = UUID().uuidString, fileGroupUUID: String? = nil, fileURL:SMRelativeLocalURL? = nil, mimeType: MimeType = .text, appMetaData:String? = nil, uploadCopy:Bool = false, sharingGroupOperationExpected: Bool = false, errorExpected: UploadSingleFileUsingSyncError? = nil) -> (SMRelativeLocalURL, SyncAttributes)? {
         
         var url:SMRelativeLocalURL
         var originalURL:SMRelativeLocalURL
+        let actualMimeType: MimeType
         
         if fileURL == nil {
             url = SMRelativeLocalURL(withRelativePath: "UploadMe2.txt", toBaseURLType: .mainBundle)!
+            actualMimeType = .text
         }
         else {
             url = fileURL!
+            actualMimeType = mimeType
         }
         
         originalURL = url
@@ -1054,7 +1061,7 @@ class TestCase: XCTestCase {
             url = copyOfFileURL
         }
 
-        var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: .text)
+        var attr = SyncAttributes(fileUUID: fileUUID, sharingGroupUUID: sharingGroupUUID, mimeType: actualMimeType)
         attr.appMetaData = appMetaData
         attr.fileGroupUUID = fileGroupUUID
         
@@ -1084,7 +1091,7 @@ class TestCase: XCTestCase {
                 
             case .singleFileUploadComplete(attr: let attr):
                 XCTAssert(attr.fileUUID == fileUUID)
-                XCTAssert(attr.mimeType == .text)
+                XCTAssert(attr.mimeType == actualMimeType)
                 expectation3.fulfill()
                 
             case .sharingGroupUploadOperationCompleted:

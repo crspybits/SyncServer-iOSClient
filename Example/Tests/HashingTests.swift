@@ -31,6 +31,18 @@ class HashingTests: XCTestCase {
         XCTAssert(hash == "485291fa0ee50c016982abbfa943957bcd231aae0492ccbaa22c58e3997b35e0")
     }
     
+    // The purpose of this test is mostly to bootstrap a hash value to use in server tests.
+    func testDropboxFromURL2() {
+        guard let url = Bundle.main.url(forResource: "example", withExtension: "url") else {
+            XCTFail()
+            return
+        }
+
+        let hash = Hashing.generateDropbox(fromLocalFile: url)
+        // print("hash: \(hash)")
+        XCTAssert(hash == "842520e78cc66fad4ea3c5f24ad11734075d97d686ca10b799e726950ad065e7")
+    }
+    
     func testDropboxFromData() {
         guard let data = "This is some longer text that I'm typing here and hopefullly I don't get too bored".data(using: .utf8) else {
             XCTFail()
@@ -54,6 +66,22 @@ class HashingTests: XCTestCase {
         print("md5Hash: \(md5Hash)")
         // I used http://onlinemd5.com to generate the MD5 hash from the image.
         XCTAssert(md5Hash == "F83992DC65261B1BA2E7703A89407E6E".lowercased())
+    }
+    
+    // The purpose of this test is mostly to bootstrap a hash value to use in server tests.
+    func testGoogleFromURL2() {
+        guard let url = Bundle.main.url(forResource: "example", withExtension: "url") else {
+            XCTFail()
+            return
+        }
+
+        guard let md5Hash = Hashing.generateMD5(fromURL: url) else {
+            XCTFail()
+            return
+        }
+        
+        print("md5Hash: \(md5Hash)")
+        XCTAssert(md5Hash == "958c458be74acfcf327619387a8a82c4")
     }
     
     func testGoogleFromData() {

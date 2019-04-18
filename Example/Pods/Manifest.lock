@@ -14,9 +14,9 @@ PODS:
     - FacebookCore (~> 0.5)
     - FBSDKCoreKit (~> 4.37)
     - FBSDKLoginKit (~> 4.37)
-  - FBSDKCoreKit (4.44.0):
+  - FBSDKCoreKit (4.44.1):
     - Bolts (~> 1.9)
-  - FBSDKLoginKit (4.44.0):
+  - FBSDKLoginKit (4.44.1):
     - FBSDKCoreKit
   - FileMD5Hash (2.0.0)
   - HPTextViewTapGestureRecognizer (0.2.2)
@@ -37,22 +37,22 @@ PODS:
   - SwiftyDropbox (5.0.0):
     - Alamofire (~> 4.7.3)
   - SwiftyUserDefaults (3.0.1)
-  - SyncServer (19.1.0):
+  - SyncServer (19.2.1):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SyncServer-Shared (~> 10.0)
-    - SyncServer/Lite (= 19.1.0)
+    - SyncServer/Lite (= 19.2.1)
     - XCGLogger (~> 6.1)
-  - SyncServer-Shared (10.1.0)
-  - SyncServer/Dropbox (19.1.0):
+  - SyncServer-Shared (10.2.0)
+  - SyncServer/Dropbox (19.2.1):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SwiftyDropbox (~> 5.0)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Facebook (19.1.0):
+  - SyncServer/Facebook (19.2.1):
     - FacebookCore (= 0.5.0)
     - FacebookLogin (= 0.5.0)
     - FileMD5Hash (~> 2.0)
@@ -60,14 +60,14 @@ PODS:
     - SMCoreLib (~> 2.0)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Google (19.1.0):
+  - SyncServer/Google (19.2.1):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
     - SMGoogleSignIn (~> 1.1)
     - SyncServer-Shared (~> 10.0)
     - XCGLogger (~> 6.1)
-  - SyncServer/Lite (19.1.0):
+  - SyncServer/Lite (19.2.1):
     - FileMD5Hash (~> 2.0)
     - PersistentValue (~> 0.3)
     - SMCoreLib (~> 2.0)
@@ -81,7 +81,7 @@ PODS:
 DEPENDENCIES:
   - SMCoreLib (~> 2.0)
   - SyncServer (from `..`)
-  - SyncServer-Shared (= 10.1.0)
+  - SyncServer-Shared (= 10.2.0)
   - SyncServer/Dropbox (from `..`)
   - SyncServer/Facebook (from `..`)
   - SyncServer/Google (from `..`)
@@ -118,8 +118,8 @@ SPEC CHECKSUMS:
   Bolts: ac6567323eac61e203f6a9763667d0f711be34c8
   FacebookCore: 74288d0add931d361b1596beae787ab72c438249
   FacebookLogin: ebcf34714a1cb9f0759d9f071cfb01ed500996cf
-  FBSDKCoreKit: 8bcd4503afe43f28823c2175a6142a7f50f1bf28
-  FBSDKLoginKit: 93c5a407ab1a6a17b1b38cff57e89991f714d878
+  FBSDKCoreKit: a823ae35bdb60ebb8d7a7e51abe7c5d87d2bfced
+  FBSDKLoginKit: 54ae59987f2a8703021557c90a9aebb9e5c2bef6
   FileMD5Hash: 3ed69cc19a21ff4d30ae8833fc104275ad2c7de0
   HPTextViewTapGestureRecognizer: 8b0c0edc2b40e619ec644db11c648b7b567e1789
   KeychainAccess: 3b1bf8a77eb4c6ea1ce9404c292e48f948954c6b
@@ -131,10 +131,10 @@ SPEC CHECKSUMS:
   SwiftyBeaver: 4cc0080d2e23f980652e28978db11a5c9da39165
   SwiftyDropbox: 378b4425a2e8d0cb24c7b0f2e3af72bfbaaf1e73
   SwiftyUserDefaults: 3d273b1739b68ada3145dc754a70ec775bc5c8be
-  SyncServer: f237d05d483de32afd74a462d7457ff639fa93f4
-  SyncServer-Shared: a24b6f0de8cda11c6a65a4582a4260e81539b7eb
+  SyncServer: 411e31e31f9b637dfa5c44e45ef3a46d5e978e3c
+  SyncServer-Shared: 3bce6222b4a6cee43445c7f9c446aeb6d4437926
   XCGLogger: 7f7f43f15dfe3a305fa1342b7dc29af656289abd
 
-PODFILE CHECKSUM: 0500b70270088222e8d4800d88375bdeead91ec3
+PODFILE CHECKSUM: c997efa9d922d0ea29f9795438fe8e4354f053dc
 
 COCOAPODS: 1.6.1

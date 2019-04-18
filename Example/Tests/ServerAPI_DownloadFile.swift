@@ -35,6 +35,26 @@ class ServerAPI_DownloadFile: TestCase {
         assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
     }
     
+    func testDownloadURLFile() {
+        guard let sharingGroup = getFirstSharingGroup() else {
+            XCTFail()
+            return
+        }
+        
+        let sharingGroupUUID = sharingGroup.sharingGroupUUID
+        
+        guard let url = Bundle.main.url(forResource: "example", withExtension: "url") else {
+            XCTFail()
+            return
+        }
+        
+        uploadAndDownloadFile(sharingGroupUUID: sharingGroupUUID, uploadFileURL:url, mimeType: .url)
+        
+        assertThereIsNoTrackingMetaData(sharingGroupUUIDs: SyncServer.session.sharingGroups.map {$0.sharingGroupUUID})
+    }
+    
+    //
+    
     func testDownloadTextFileWithAppMetaData() {
         guard let sharingGroup = getFirstSharingGroup() else {
             XCTFail()

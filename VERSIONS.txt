@@ -1,5 +1,9 @@
 SyncServer-iOSClient
 
+Version 19.3.0 (4/18/19)
+	* Added url mime type
+	* Added test cases for url mime type.
+
 Version 19.2.1 (4/10/19)
 	* Improved error reporting for redeeming sharing invitation.
 
