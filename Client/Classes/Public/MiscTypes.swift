@@ -90,5 +90,3 @@ extension SyncServer {
         case invitation(Invitation)
     }
 }
-
-

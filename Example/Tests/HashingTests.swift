@@ -119,4 +119,25 @@ class HashingTests: XCTestCase {
         }
         print("md5Hash: \(md5Hash)")
     }
+    
+    func testGenerateCommentFileHashes() {
+        let commentFile = "{\"elements\":[]}"
+        guard let data = commentFile.data(using: .utf8) else {
+            XCTFail()
+            return
+        }
+        
+        guard let md5Hash = Hashing.generateMD5(fromData: data) else {
+            XCTFail()
+            return
+        }
+        
+        guard let dropboxHash = Hashing.generateDropbox(fromData: data) else {
+            XCTFail()
+            return
+        }
+        
+        print("md5Hash: \(md5Hash)")
+        print("dropboxHash: \(dropboxHash)")
+    }
 }
